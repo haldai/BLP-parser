@@ -3,6 +3,10 @@
  */
 package Logic;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author daiwz
@@ -30,7 +34,30 @@ public class myTerm {
 				str = s.substring(0, s.length() - 1);
 		}
 	}
-	
+	// another realization of directly reading string into myWord and Predicate
+	public myTerm(String s) {
+		str = s;
+		// find arguments
+		Pattern p = Pattern.compile("\\(.*?\\)");
+		Matcher m = p.matcher(s);
+		boolean found = m.find();
+		String[] tmp_args = null;
+		List<myWord> buff_words = new ArrayList<myWord>();
+		if (found) {
+			tmp_args = m.group().split("\\,");
+			for (int i = 0; i < tmp_args.length; i++) {
+				buff_words.add(new myWord(tmp_args[i]));
+			}
+			args = new myWord[buff_words.size()];
+			for (int i = 0; i < buff_words.size(); i++) {
+				args[i] = buff_words.get(i);
+			}
+		} else {
+			System.out.println("arguments of " + s + " not found!");
+			System.exit(0);
+		}
+		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
+	}
 	public myTerm() {
 		pred = null;
 		args = null;

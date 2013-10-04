@@ -32,32 +32,46 @@ public class Sentence {
 		// processing each term
 		List<Integer> l = new ArrayList<Integer>();
 		l.add(-1);
-		for (int i = 0; i < deps.length(); i++) {
+		for (int i = 0; i < dep.length; i++) {
+//			System.out.print(i);
+//			System.out.println(dep[i]);
 			List<myWord> arg_words = new ArrayList<myWord>();
 			Matcher m = p.matcher(dep[i]);
 			boolean found = m.find(); // if matched (content)
 			if (found) {
 				String args = m.group();
-				String pred = dep[i].split("(")[0];
+				args = args.substring(1, args.length() - 1);
+				System.out.println(dep[i]);
+				String pred = dep[i].split("\\(")[0];
+
 				String[] words = args.split(",");
-				for (i = 0; i < words.length; i++) {
-					myWord tmp = new myWord(words[i]);
+				for (int j = 0; j < words.length; j++) {
+					myWord tmp = new myWord(words[j]);
 					arg_words.add(tmp);
 					if (!l.contains(tmp.num)) {
 						wd.add(tmp);
 						l.add(tmp.num);
 					}
 				}
-				tm.add(new myTerm(pred, (myWord[]) arg_words.toArray()));
+				tm.add(new myTerm(dep[i]));
 				arg_words = null;
 			} else {
 				System.out.println("Parsing dependency error in Sentence:" + deps);
 				System.exit(1);
 			}
-			termList = (myTerm[]) tm.toArray();
-			wordList = (myWord[]) wd.toArray();
-			tm = null;
-			wd = null;
 		}
+		myTerm[] buff_terms = new myTerm[tm.size()];
+		myWord[] buff_words = new myWord[wd.size()];
+		for (int i = 0; i < tm.size(); i++ ) {
+			buff_terms[i] = tm.get(i);
+		}
+		
+		for (int i = 0; i < wd.size(); i++ ) {
+			buff_words[i] = wd.get(i);
+		}
+		tm = null;
+		wd = null;
+		termList = buff_terms;
+		wordList = buff_words;
 	}
 }

@@ -31,6 +31,8 @@ public class Document {
 		String[] fpred = readFileByLines(path_pred);
 		System.out.println(fpred.length);
 		String[] fsent = readFileByLines(path_sent);
+		for (int i = 0; i < fsent.length; i++)
+			System.out.println(fsent[i]);
 		System.out.println(fsent.length);
 		// TODO parse into sentences(train or test).
 		// TODO predicates
@@ -49,6 +51,16 @@ public class Document {
 		for (int i = 0; i < fsent.length; i++) {
 			line = fsent[i];
 			buff_line = line.split("\\:-");
+			System.out.println(buff_line[0]);
+			if (train) {
+				// training data, split the labels
+				String[] buff_label = buff_line[0].split("\\,");
+				for (int j = 0; j < buff_label.length; j++) {
+					buff_label_list[i][j] = new myTerm(buff_label[j]);
+				}
+				// parse sentences
+			}
+			buff_sent_list[i] = new Sentence(buff_line[buff_line.length - 1]);
 		}
 	}
 	
