@@ -34,8 +34,8 @@ public class Document {
 		for (int i = 0; i < fsent.length; i++)
 			System.out.println(fsent[i]);
 		System.out.println(fsent.length);
-		// TODO parse into sentences(train or test).
-		// TODO predicates
+		// parse into sentences(train or test).
+		// predicates
 		Predicate[] buff_pred_list = new Predicate[fpred.length];
 		for (int i = 0; i < fpred.length; i++) {
 			String[] s = fpred[i].split("\\/");
@@ -43,7 +43,7 @@ public class Document {
 		}
 		pred_list = buff_pred_list;
 		buff_pred_list = null;
-		// TODO sentences
+		// sentences
 		Sentence[] buff_sent_list = new Sentence[fsent.length];
 		myTerm[][] buff_label_list = new myTerm[fsent.length][MAX_LABEL_LEN];
 		String line = null;
@@ -62,6 +62,7 @@ public class Document {
 			}
 			buff_sent_list[i] = new Sentence(buff_line[buff_line.length - 1]);
 		}
+		// TODO test parse results
 	}
 	
 	public static String[] readFileByLines(String fileName) {
