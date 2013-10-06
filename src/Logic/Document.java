@@ -20,20 +20,21 @@ public class Document {
 	 * Read file and comile it as a document.
 	 */
 	boolean tr; // true for trainning data, false for testing data. 
-	            // training data has labels, while testing data does not.
+	             // training data has labels, while testing data does not.
 	int length;
-	Sentence[] sent_list;
-	myTerm[] label_list;
-	Predicate[] pred_list;
+	Sentence[] sentList;
+	myTerm[][] labelList;
+	Predicate[] predList;
 	// reading path of predicate file and sentence file.
 	public Document(String path_pred, String path_sent, boolean train) {
 		// read file		
 		String[] fpred = readFileByLines(path_pred);
 		System.out.println(fpred.length);
 		String[] fsent = readFileByLines(path_sent);
-		for (int i = 0; i < fsent.length; i++)
-			System.out.println(fsent[i]);
+//		for (int i = 0; i < fsent.length; i++)
+//			System.out.println(fsent[i]);
 		System.out.println(fsent.length);
+		length = fsent.length;
 		// parse into sentences(train or test).
 		// predicates
 		Predicate[] buff_pred_list = new Predicate[fpred.length];
@@ -41,17 +42,17 @@ public class Document {
 			String[] s = fpred[i].split("\\/");
 			buff_pred_list[i] = new Predicate(s[0], Integer.parseInt(s[1]));
 		}
-		pred_list = buff_pred_list;
+		predList = buff_pred_list;
 		buff_pred_list = null;
 		// sentences
-		Sentence[] buff_sent_list = new Sentence[fsent.length];
+		Sentence[] buff_sentList = new Sentence[fsent.length];
 		myTerm[][] buff_label_list = new myTerm[fsent.length][MAX_LABEL_LEN];
 		String line = null;
 		String[] buff_line = new String[2];
 		for (int i = 0; i < fsent.length; i++) {
 			line = fsent[i];
 			buff_line = line.split("\\:-");
-			System.out.println(buff_line[0]);
+//			System.out.println(buff_line[0]);
 			if (train) {
 				// training data, split the labels
 				String[] buff_label = buff_line[0].split("\\,");
@@ -60,8 +61,13 @@ public class Document {
 				}
 				// parse sentences
 			}
-			buff_sent_list[i] = new Sentence(buff_line[buff_line.length - 1]);
+			buff_sentList[i] = new Sentence(buff_line[buff_line.length - 1]);
+//			System.out.println(i);
 		}
+		sentList = buff_sentList;
+		labelList = buff_label_list;
+		buff_sentList = null;
+		buff_label_list = null;
 		// TODO test parse results
 	}
 	
@@ -98,5 +104,25 @@ public class Document {
 			buff[i] = string_buffer.get(i);
 		}
 		return buff;
+	}
+	
+	public int length() {
+		return length;
+	}
+	
+	public boolean train() {
+		return tr;
+	}
+	
+	public Sentence getSent(int num) {
+		return sentList[num];
+	}
+	
+	public myTerm[] getLabel(int num) {
+		return labelList[num];
+	}
+	
+	public Predicate[] getPredList() {
+		return predList;
 	}
 }

@@ -58,9 +58,22 @@ public class myTerm {
 		}
 		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
 	}
+	
 	public myTerm() {
 		pred = null;
 		args = null;
 		str = null;
+	}
+	
+	public Predicate getPred() {
+		return pred;
+	}
+	
+	public String str() {
+		return str;
+	}
+	
+	public myWord[] getArgs() {
+		return args;
 	}
 }

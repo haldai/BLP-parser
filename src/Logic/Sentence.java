@@ -18,7 +18,8 @@ public class Sentence {
 	 * Sentence is a bunch of dependencies, i.e., myTerms, and 
 	 * its word list
 	 */
-	int length;
+	int termLen;
+	int wordLen;
 	myTerm[] termList;
 	myWord[] wordList;
 	
@@ -26,6 +27,7 @@ public class Sentence {
 		// TODO read sentence from string
 		Pattern p = Pattern.compile("\\(.*?\\)");
 		String[] dep = deps.substring(0, deps.length() - 1).split(";");
+		termLen = dep.length;
 		// use dynamic array to initialize the termlist and wordlist
 		List<myWord> wd = new ArrayList<myWord>();
 		List<myTerm> tm = new ArrayList<myTerm>();
@@ -41,7 +43,7 @@ public class Sentence {
 			if (found) {
 				String args = m.group();
 				args = args.substring(1, args.length() - 1);
-				System.out.println(dep[i]);
+//				System.out.println(dep[i]);
 				String pred = dep[i].split("\\(")[0];
 
 				String[] words = args.split(",");
@@ -60,6 +62,7 @@ public class Sentence {
 				System.exit(1);
 			}
 		}
+//		System.out.println(l.toString());
 		myTerm[] buff_terms = new myTerm[tm.size()];
 		myWord[] buff_words = new myWord[wd.size()];
 		for (int i = 0; i < tm.size(); i++ ) {
@@ -67,11 +70,42 @@ public class Sentence {
 		}
 		
 		for (int i = 0; i < wd.size(); i++ ) {
-			buff_words[i] = wd.get(i);
+			buff_words[l.get(i + 1) - 1] = wd.get(i);
 		}
+		
+		
+		
 		tm = null;
 		wd = null;
 		termList = buff_terms;
 		wordList = buff_words;
+		wordLen = wordList.length;
+//		for (int i = 0; i < buff_words.length; i++) {
+//			System.out.println(wordList[i].str);
+//		}
+	}
+	
+	public int termLen() {
+		return termLen;
+	}
+	
+	public int wordLen() {
+		return wordLen;
+	}
+	
+	public myTerm getTerm(int num) {
+		return termList[num];
+	}
+	
+	public myWord getWord(int num) {
+		return wordList[num];
+	}
+	
+	public String str() {
+		String s = "";
+		for (int i = 0; i < wordLen; i++) {
+			s = s + wordList[i].name;
+		}
+		return s;
 	}
 }
