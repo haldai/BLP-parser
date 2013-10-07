@@ -15,12 +15,47 @@ public class Formular {
 	/**
 	 * Logic formular in prolog form, e.g., "grandfather(X, Y):-father(X,Z),father(Z,Y)."
 	 */
-	int headLen;
-	int tailLen;
-	myTerm[] head;
-	myTerm[] tail;
+	
+	private double weight;
+	private int headLen;
+	private int tailLen;
+	private myTerm[] head;
+	private myTerm[] tail;
+	private String str;
+	
 	public Formular() {
-		// TODO Auto-generated constructor stub
+		// TODO deal with variables !!!
+		weight = 0;
+		headLen = 0;
+		tailLen = 0;
+		head = null;
+		tail = null;
+		str = "";
+	}
+	
+	public Formular(double w, myTerm[] h, myTerm[] t) {
+		weight = w;
+		headLen = h.length;
+		tailLen = t.length;
+		head = h;
+		tail = t;
+		// TODO turn to str
+	}
+	
+	public void pushTail() {
+		
+	}
+	
+	public void pushHead() {
+		
+	}
+	
+	public void popTail() {
+		
+	}
+	
+	public void popHead() {
+		
 	}
 
 }
