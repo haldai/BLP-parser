@@ -24,7 +24,7 @@ public class Sentence {
 	myWord[] wordList;
 	
 	public Sentence(String deps) {
-		// TODO read sentence from string
+		// read sentence from string
 		Pattern p = Pattern.compile("\\(.*?\\)");
 		String[] dep = deps.substring(0, deps.length() - 1).split(";");
 		termLen = dep.length;
@@ -101,7 +101,7 @@ public class Sentence {
 		return wordList[num];
 	}
 	
-	public String str() {
+	public String toString() {
 		String s = "";
 		for (int i = 0; i < wordLen; i++) {
 			s = s + wordList[i].name;

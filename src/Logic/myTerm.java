@@ -6,6 +6,7 @@ package Logic;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,6 +26,18 @@ public class myTerm {
 	
 	public myTerm(String n, myWord[] words) {
 		pred = new Predicate(n, words.length);
+		args = words;
+		String s = String.format("%s(", pred.name);
+		for (int i = 0; i < words.length; i++) {
+			s = s + String.format("%s,", words[i].name);
+		}
+		if (s.charAt(s.length() - 1) == ',') {
+				str = s.substring(0, s.length() - 1);
+		}
+	}
+	
+	public myTerm(Predicate p, myWord[] words) {
+		pred = p;
 		args = words;
 		String s = String.format("%s(", pred.name);
 		for (int i = 0; i < words.length; i++) {
@@ -69,11 +82,24 @@ public class myTerm {
 		return pred;
 	}
 	
-	public String str() {
+	public String getStr() {
 		return str;
 	}
 	
 	public myWord[] getArgs() {
 		return args;
+	}
+	
+	// term substitution
+	public myTerm substitution(myWord[] vars, myWord[] atms) {
+		myWord[] a = this.args;
+		List<myWord> varList = Arrays.asList(vars);
+		for (int i = 0; i < a.length; i++) {
+			if (varList.contains(a[i])) {
+				int pos = varList.indexOf(a[i]);
+				a[i] =  atms[pos];
+			}
+		}
+		return new myTerm(this.pred, a);
 	}
 }

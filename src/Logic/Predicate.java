@@ -12,8 +12,8 @@ public class Predicate {
 	/**
 	 * Logic Predicate, with its arity, e.g., "att/2" means att(_,_).
 	 */
-	public String name;
-	public int arity;
+	String name;
+	int arity;
 	
 	public Predicate() {
 		name = "";
@@ -23,5 +23,21 @@ public class Predicate {
 	public Predicate(String s, int n) {
 		name = null;
 		arity = 0;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String s) {
+		name = s;
+	}
+	
+	public int getArity() {
+		return arity;
+	}
+	
+	public void setArity(int a) {
+		arity = a;
 	}
 }
