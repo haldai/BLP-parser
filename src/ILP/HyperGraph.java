@@ -31,10 +31,14 @@ public class HyperGraph {
     
     public void addHyperVertex(HyperVertex v) {
     	vertices.add(v);
+    	vertexMap.put(v.toString(), v);
     }
     
     public void addHypgerVertex(myWord wrd) {
-    	vertices.add(new HyperVertex(wrd));
+    	HyperVertex v = new HyperVertex(wrd);
+    	vertices.add(v);
+    	vertexMap.put(wrd.toString(), v);
+    	
     }
     
 //    public void addHyperEdge(myTerm t, double w) {
@@ -58,6 +62,10 @@ public class HyperGraph {
     	String s = "";
     	// TODO when node not in vertices list
     	for (int i = 0; i < nodes.length; i++) {
+    		if (!isIn(nodes[i])) {
+    			// new vertex
+    			
+    		}
     		s = s + nodes[i] + ',';
     		LinkedHashSet<String> adjacent = adjMap.get(nodes[i].toString());
             if(adjacent == null) {
@@ -94,5 +102,38 @@ public class HyperGraph {
             return new LinkedList();
         }
         return new LinkedList<String>(adjacent);
+    }
+    
+    public boolean isIn(myWord node) {
+    	boolean found = false;
+    	for (int k = 0; k < vertices.size(); k++) {
+			if (vertices.get(k).name == node.toString()) {
+				found = true;
+				break;
+			}
+		}
+    	return found;
+    }
+    
+    public boolean isIn(HyperVertex node) {
+    	boolean found = false;
+    	for (int k = 0; k < vertices.size(); k++) {
+			if (vertices.get(k).name == node.toString()) {
+				found = true;
+				break;
+			}
+		}
+    	return found;
+    }
+    
+    public boolean isIn(String node) {
+    	boolean found = false;
+    	for (int k = 0; k < vertices.size(); k++) {
+			if (vertices.get(k).name == node) {
+				found = true;
+				break;
+			}
+		}
+    	return found;
     }
 }
