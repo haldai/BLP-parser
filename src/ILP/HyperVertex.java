@@ -38,4 +38,22 @@ public class HyperVertex {
 	public String getName() {
 		return name;
 	}
+	
+	public myWord toMyWord() {
+		return new myWord(this.name);
+	}
+	
+	public boolean equals(HyperVertex v) {
+		if (this.name == v.name)
+			return true;
+		else
+			return false;
+	}
+	
+	public boolean equals(String v) {
+		if (this.name == v)
+			return true;
+		else
+			return false;
+	}
 }

@@ -52,7 +52,7 @@ public class myWord {
 		return pos;
 	}
 	
-	public String getStr() {
+	public String toString() {
 		return str;
 	}
 
@@ -64,5 +64,12 @@ public class myWord {
 		if ((name == "X") && (pos == "var") && (num < 0)) 
 			return true;
 		else return false;
+	}
+	
+	public boolean equals(myWord w) {
+		if ((this.name == w.name) && (this.num == w.num) && (this.pos == w.pos))
+			return true;
+		else
+			return false;
 	}
 }

@@ -40,4 +40,11 @@ public class Predicate {
 	public void setArity(int a) {
 		arity = a;
 	}
+	
+	public boolean equals(Predicate p) {
+		if ((this.name == p.name) && (this.arity == p.arity))
+			return true;
+		else 
+			return false;
+	}
 }

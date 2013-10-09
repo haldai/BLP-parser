@@ -4,7 +4,7 @@
 package ILP;
 
 import Logic.myTerm;
-import Logic.Predicate;
+import Logic.myWord;
 
 /**
  * @author Wang-Zhou
@@ -18,6 +18,7 @@ public class HyperEdge {
 	String name = null;
 	HyperVertex[] vertices = null;
 	double weight = 0.0;
+	int vertexLen;
 	public HyperEdge(String rel, String[] nodes, double w) {
 		name = rel;
 		HyperVertex[] buff_vertices = new HyperVertex[nodes.length];
@@ -25,6 +26,7 @@ public class HyperEdge {
 			buff_vertices[i].setName(nodes[i]);
 		}
 		vertices = buff_vertices;
+		vertexLen = buff_vertices.length;
 		buff_vertices = null;
 		weight = w;
 	}
@@ -36,6 +38,7 @@ public class HyperEdge {
 			buff_vertices[i].setName(nodes[i]);
 		}
 		vertices = buff_vertices;
+		vertexLen = buff_vertices.length;
 		buff_vertices = null;
 		weight = 0.0;
 	}
@@ -43,12 +46,14 @@ public class HyperEdge {
 	public HyperEdge(String rel, HyperVertex[] v, double w) {
 		name = rel;
 		vertices = v;
+		vertexLen = v.length;
 		weight = w;
 	}
 	
 	public HyperEdge(String rel, HyperVertex[] v) {
 		name = rel;
 		vertices = v;
+		vertexLen = v.length;
 		weight = 0.0;
 	}
 	
@@ -59,6 +64,7 @@ public class HyperEdge {
 			v[i] = new HyperVertex(t.getArgs()[i]);
 		}
 		vertices = v;
+		vertexLen = v.length;
 		weight = w;
 	}
 	
@@ -69,6 +75,7 @@ public class HyperEdge {
 			v[i] = new HyperVertex(t.getArgs()[i]);
 		}
 		vertices = v;
+		vertexLen = v.length;
 		weight = 0.0;
 	}
 	
@@ -78,5 +85,57 @@ public class HyperEdge {
 	
 	public double getWeight() {
 		return weight;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public int vertexLen() {
+		return vertexLen;
+	}
+	
+	public HyperVertex getVertex(int i) {
+		return vertices[i];
+	}
+	
+	public HyperVertex[] getVerices() {
+		return vertices;
+	}
+	
+	public myTerm toMyTerm() {
+		myWord[] words = new myWord[this.vertexLen];
+		for (int i = 0; i < this.vertexLen; i++) {
+			words[i] = new myWord(this.vertices[i].name);
+		}
+		return new myTerm(name, words);
+	}
+	
+	public boolean equals(HyperEdge e) {
+		if (this.name != e.getName())
+			return false;
+		else {
+			for (int i = 0; i < vertexLen; i++) {
+				if (!(this.getVertex(i).equals(e.getVertex(i))))
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean containsVertex(HyperVertex v) {
+		for (int i = 0; i < vertexLen; i++) {
+			if (this.getVertex(i).equals(v))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean containsVertex(String s) {
+		for (int i = 0; i < vertexLen; i++) {
+			if (this.getVertex(i).equals(s))
+				return true;
+		}
+		return false;
 	}
 }

@@ -82,12 +82,16 @@ public class myTerm {
 		return pred;
 	}
 	
-	public String getStr() {
+	public String toString() {
 		return str;
 	}
 	
 	public myWord[] getArgs() {
 		return args;
+	}
+	
+	public myWord getArg(int i) {
+		return args[i];
 	}
 	
 	// term substitution
@@ -101,5 +105,17 @@ public class myTerm {
 			}
 		}
 		return new myTerm(this.pred, a);
+	}
+	
+	public boolean equals(myTerm t) {
+		if (!this.pred.equals(t.pred))
+			return false;
+		else {
+			for (int i = 0; i < this.pred.arity; i++) {
+				if (this.args[i] != t.getArg(i))
+					return false;
+			}
+		}
+		return true;
 	}
 }
