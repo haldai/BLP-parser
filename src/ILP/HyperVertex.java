@@ -56,4 +56,11 @@ public class HyperVertex {
 		else
 			return false;
 	}
+	
+	public boolean equals(myWord w) {
+		if (this.name == w.toString())
+			return true;
+		else
+			return false;
+	}
 }

@@ -9,6 +9,7 @@ package ILP;
  */
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -137,7 +138,65 @@ public class HyperGraph {
     public boolean isConnected(HyperVertex v1, HyperVertex v2) {
         return isConnected(v1.name, v2.name);
     }
+    
+    public LinkedList<HyperEdge> edgesContainsVertex(String node) {
+    	// find all adjacent edges of a node
+    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+    	for (int i = 0; i < edgeLen; i++) {
+    		if (edges.get(i).containsVertex(node))
+    			r.add(edges.get(i));
+    	}
+    	return r;
+    }
+    
+    public LinkedList<HyperEdge> edgesContainsVertex(HyperVertex node) {
+    	// find all adjacent edges of a node
+    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+    	for (int i = 0; i < edgeLen; i++) {
+    		if (edges.get(i).containsVertex(node))
+    			r.add(edges.get(i));
+    	}
+    	return r;
+    }
 
+    public LinkedList<HyperEdge> edgesContainsVertex(myWord node) {
+    	// find all adjacent edges of a node
+    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+    	for (int i = 0; i < edgeLen; i++) {
+    		if (edges.get(i).containsVertex(node.toString()))
+    			r.add(edges.get(i));
+    	}
+    	return r;
+    }
+    
+    public LinkedList<HyperEdge> adjacentEdges(HyperEdge e) {
+    	// find all adjacent edges of an edge;
+    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+    	for (Iterator<HyperEdge> it = edges.iterator(); it.hasNext();) {
+    		HyperEdge tmp_e = (HyperEdge) it.next();
+    		// for each contained vertex, find a list of its edges
+    		for (int i = 0; i < tmp_e.vertexLen(); i++) {
+    			HyperVertex tmp_v = tmp_e.getVertex(i);
+    			LinkedList<HyperEdge> l = edgesContainsVertex(tmp_v);
+    			for (Iterator<HyperEdge> it_2 = l.iterator(); it_2.hasNext();) {
+    				HyperEdge tmp_e_2 = (HyperEdge) it_2.next();
+    				if (!r.contains(tmp_e_2))
+    					r.add(tmp_e_2);
+    			}
+    		}
+    	}
+    	return r;
+    }
+    
+    public LinkedList<HyperEdge> adjacentEdges(myTerm t) {
+    	for (Iterator<HyperEdge> it = edges.iterator(); it.hasNext(); ) {
+    		HyperEdge e = it.next();
+    		if (e.equals(t))
+    			return adjacentEdges(e);
+    	}
+    	return null;
+    }
+    
     public LinkedList<String> adjacentNodes(String last) {
         LinkedHashSet<String> adjacent = adjMap.get(last);
         if(adjacent==null) {
@@ -146,10 +205,6 @@ public class HyperGraph {
         return new LinkedList<String>(adjacent);
     }
     
-    public LinkedList<HyperEdge> adjacentEdges(String node) {
-    	// TODO find all adjacent edges of a node
-    	return null;
-    }
     
     public LinkedList<String> adjacentNodes(myWord w) {
     	return adjacentNodes(w.toString());

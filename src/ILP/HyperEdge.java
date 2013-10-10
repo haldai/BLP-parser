@@ -123,6 +123,18 @@ public class HyperEdge {
 		return true;
 	}
 	
+	public boolean equals(myTerm t) {
+		if (this.name != t.getPred().getName())
+			return false;
+		else {
+			for (int i = 0; i < vertexLen; i++) {
+				if (!(this.getVertex(i).equals(t.getArg(i))))
+					return false;
+			}
+		}
+		return true;
+	}
+	
 	public boolean containsVertex(HyperVertex v) {
 		for (int i = 0; i < vertexLen; i++) {
 			if (this.getVertex(i).equals(v))

@@ -46,8 +46,8 @@ public class HyperPathFind {
     	end = e.toString();
     }
     
-    private HyperEdge[] allContainedEdges(String v) {
-    	// TODO find all possible  edges
+    private HyperEdge[] allEdgesContain(String v) {
+    	// TODO find all possible edges
     	List<HyperEdge> r = new ArrayList<HyperEdge>();
     	for (int i = 0; i < graph.edgeLen; i++) {
     		if (graph.getEdge(i).containsVertex(v))
@@ -60,35 +60,50 @@ public class HyperPathFind {
     	return buff_edges;
     }
     
-    public void depthFirst(HyperGraph graph, LinkedList<String> visitedEdges, LinkedList<String> visited) {
+    public void depthFirst(HyperGraph graph, LinkedList<HyperEdge> visitedEdges,
+    		LinkedList<String> visitedNodes) {
     	// "visited edges"
-        LinkedList<String> nodes = graph.adjacentNodes(visited.getLast());
+        LinkedList<String> nodes = graph.adjacentNodes(visitedNodes.getLast());
+        LinkedList<HyperEdge> edges = graph.adjacentEdges(visitedEdges.getLast());
         // examine adjacent nodes
-        for (String node : nodes) {
-            if (visited.contains(node)) {
+        
+        for (HyperEdge edge : edges) {
+            if (visitedEdges.contains(edge)) {
                 continue;
             }
-            if (node.equals(end)) {
-                visited.add(node);
-                printPath(visited);
-                visited.removeLast();
-                break;
+            boolean reached_end = false;
+            // store visited edges
+            for (int i = 0; i < edge.vertexLen(); i++) {
+            	// TODO modify the node into edges
+            	String v = edge.getVertex(i).getName();
+            	if (v == end) {
+                    visitedNodes.add(v);
+                    visitedEdges.add(edge);
+                    printPath(visitedEdges);
+                    visitedNodes.removeLast();
+                    visitedEdges.removeLast();
+                    reached_end = true;
+                }
             }
+            if (reached_end)
+            	break;
         }
         // in depth-first, recursion needs to come after visiting adjacent nodes
-        for (String node : nodes) {
-            if (visited.contains(node) || node.equals(end)) {
+        for (HyperEdge edge : edges) {
+            if (visitedEdges.contains(edge) || edge.containsVertex(end)) {
                 continue;
             }
-            visited.addLast(node);
-            depthFirst(graph, visited);
-            visited.removeLast();
+//            visited.addLast(node);
+            visitedEdges.addLast(edge);
+            depthFirst(graph, visitedEdges, visitedNodes);
+            visitedNodes.removeLast();
         }
     }
 
-    public void printPath(LinkedList<String> visited) {
-        for (String node : visited) {
-            System.out.print(node);
+    public void printPath(LinkedList<HyperEdge> visited) {
+    	
+        for (HyperEdge edge : visited) {
+            System.out.print(edge.toString());
             System.out.print(" ");
         }
         System.out.println();
