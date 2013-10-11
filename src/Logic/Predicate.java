@@ -21,7 +21,7 @@ public class Predicate {
 	}
 	
 	public Predicate(String s, int n) {
-		name = null;
+		name = s;
 		arity = 0;
 	}
 	
@@ -42,7 +42,7 @@ public class Predicate {
 	}
 	
 	public boolean equals(Predicate p) {
-		if ((this.name == p.name) && (this.arity == p.arity))
+		if ((this.name.equals(p.name)) && (this.arity == p.arity))
 			return true;
 		else 
 			return false;

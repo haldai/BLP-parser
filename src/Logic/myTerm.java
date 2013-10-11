@@ -29,10 +29,10 @@ public class myTerm {
 		args = words;
 		String s = String.format("%s(", pred.name);
 		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].name);
+			s = s + String.format("%s,", words[i].toString());
 		}
 		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1);
+				str = s.substring(0, s.length() - 1) + ')';
 		}
 	}
 	
@@ -41,10 +41,10 @@ public class myTerm {
 		args = words;
 		String s = String.format("%s(", pred.name);
 		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].name);
+			s = s + String.format("%s,", words[i].toString());
 		}
 		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1);
+				str = s.substring(0, s.length() - 1) + ')';
 		}
 	}
 	// another realization of directly reading string into myWord and Predicate
@@ -57,7 +57,9 @@ public class myTerm {
 		String[] tmp_args = null;
 		List<myWord> buff_words = new ArrayList<myWord>();
 		if (found) {
-			tmp_args = m.group().split("\\,");
+			String tmp_s = m.group();
+			tmp_s = tmp_s.substring(1, tmp_s.lastIndexOf(')'));
+			tmp_args = tmp_s.split("\\,");
 			for (int i = 0; i < tmp_args.length; i++) {
 				buff_words.add(new myWord(tmp_args[i]));
 			}

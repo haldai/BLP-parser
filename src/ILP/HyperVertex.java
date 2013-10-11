@@ -44,21 +44,21 @@ public class HyperVertex {
 	}
 	
 	public boolean equals(HyperVertex v) {
-		if (this.name == v.name)
+		if (this.name.equals(v.name))
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean equals(String v) {
-		if (this.name == v)
+		if (this.name.equals(v))
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean equals(myWord w) {
-		if (this.name == w.toString())
+		if (this.name.equals(w.toString()))
 			return true;
 		else
 			return false;

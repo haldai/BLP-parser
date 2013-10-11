@@ -15,9 +15,9 @@ public class HyperEdge {
 	/**
 	 * HyperEdge that can connect multiple vertices.
 	 */
-	String name = null;
-	HyperVertex[] vertices = null;
-	double weight = 0.0;
+	String name;
+	HyperVertex[] vertices;
+	double weight;
 	int vertexLen;
 	public HyperEdge(String rel, String[] nodes, double w) {
 		name = rel;

@@ -32,24 +32,53 @@ public class HyperGraph {
     int edgeLen = 0;
     int vertexLen = 0;
     
+    public int getEdgeLen() {
+    	return edgeLen;
+    }
+    
+    public int getVertexLen() {
+    	return vertexLen;
+    }
+    
     public void addHyperVertex(HyperVertex v) {
-    	vertices.add(v);
-    	vertexMap.put(v.toString(), v);
-    	vertexLen = vertices.size();
+    	boolean contained = false;
+    	for (HyperVertex vertex : vertices) {
+    		if (vertex.equals(v))
+    				contained = true;
+    	}
+    	if (!contained) {
+    		vertices.add(v);	
+    		vertexMap.put(v.toString(), v);
+    		vertexLen = vertices.size();
+    	}
     }
     
     public void addHyperVertex(myWord wrd) {
-    	HyperVertex v = new HyperVertex(wrd);
-    	vertices.add(v);
-    	vertexMap.put(wrd.toString(), v);
-    	vertexLen = vertices.size();
+    	boolean contained = false;
+    	for (HyperVertex vertex : vertices) {
+    		if (vertex.equals(wrd))
+    				contained = true;
+    	}
+    	if (!contained) {
+    		HyperVertex v = new HyperVertex(wrd);
+    		vertices.add(v);
+    		vertexMap.put(wrd.toString(), v);
+    		vertexLen = vertices.size();
+    	}
     }
     
     public void addHyperVertex(String s) {
-    	HyperVertex v = new HyperVertex(s);
-    	vertices.add(v);
-    	vertexMap.put(s, v);
-    	vertexLen = vertices.size();
+    	boolean contained = false;
+    	for (HyperVertex vertex : vertices) {
+    		if (vertex.equals(s))
+    				contained = true;
+    	}
+    	if (!contained) {
+    		HyperVertex v = new HyperVertex(s);
+    		vertices.add(v);
+    		vertexMap.put(s, v);
+    		vertexLen = vertices.size();
+    	}
     }
     
     public void addHyperEdge(myTerm t, double w) {
@@ -217,7 +246,7 @@ public class HyperGraph {
     public boolean isVertex(myWord node) {
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
-			if (vertices.get(k).name == node.toString()) {
+			if (vertices.get(k).name.equals(node.toString())) {
 				found = true;
 				break;
 			}
@@ -228,7 +257,7 @@ public class HyperGraph {
     public boolean isVertex(HyperVertex node) {
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
-			if (vertices.get(k).name == node.toString()) {
+			if (vertices.get(k).name.equals(node.toString())) {
 				found = true;
 				break;
 			}
@@ -239,7 +268,7 @@ public class HyperGraph {
     public boolean isVertex(String node) {
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
-			if (vertices.get(k).name == node) {
+			if (vertices.get(k).name.equals(node)) {
 				found = true;
 				break;
 			}

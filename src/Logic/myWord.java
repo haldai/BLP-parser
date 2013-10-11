@@ -61,13 +61,13 @@ public class myWord {
 	}
 	// to judge if the word is a variable
 	public boolean isVar() {
-		if ((name == "X") && (pos == "var") && (num < 0)) 
+		if ((name.equals("X")) && (pos == "var") && (num < 0)) 
 			return true;
 		else return false;
 	}
 	
 	public boolean equals(myWord w) {
-		if ((this.name == w.name) && (this.num == w.num) && (this.pos == w.pos))
+		if ((this.name.equals(w.name)) && (this.num == w.num) && (this.pos == w.pos))
 			return true;
 		else
 			return false;

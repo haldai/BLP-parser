@@ -108,4 +108,8 @@ public class Sentence {
 		}
 		return s;
 	}
+	
+	public myTerm[] getTerms() {
+		return termList;
+	}
 }

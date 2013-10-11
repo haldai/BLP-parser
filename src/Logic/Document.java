@@ -125,4 +125,8 @@ public class Document {
 	public Predicate[] getPredList() {
 		return predList;
 	}
+	
+	public Sentence[] getSentences() {
+		return sentList;
+	}
 }
