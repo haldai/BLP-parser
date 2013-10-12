@@ -11,9 +11,9 @@ public class tmptest {
 		Document doc = new Document("data/questions/questions.pred", 
 				"data/questions/test/query_v2.dep.bak", false);
 		
-		for (int i = 0; i < doc.length(); i++) {
-			System.out.println(doc.getSent(i).toString());
-		}
+//		for (int i = 0; i < doc.length(); i++) {
+//			System.out.println(doc.getSent(i).toString());
+//		}
 		
 		testPathFind(doc);
 	}
@@ -21,15 +21,30 @@ public class tmptest {
 	public static void testPathFind(Document doc) {	    
         Sentence[] sentences = doc.getSentences();
         for (Sentence sent : sentences) {
+        	HyperGraph graph = new HyperGraph();
         	myTerm[] terms = sent.getTerms();
-            HyperGraph graph = new HyperGraph();
+        	myWord[] words = sent.getWords();
+        	for (myWord word : words) {
+        		graph.addHyperVertex(word);
+        	}
+
         	for (myTerm term : terms) {
         		graph.addHyperEdge(term);
         	}
-        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
-        	for (HyperEdge edge : graph.getEdges()) {
-        		System.out.println(edge.toMyTerm().toString());
-        	}
+        	HyperPathFind pf = new HyperPathFind(graph, graph.getVertex(0), graph.getVertex(graph.getVertexLen() - 1));
+        	LinkedList<String> visited = new LinkedList();
+        	visited.add(graph.getVertex(0).toMyWord().toString());
+        	LinkedList<HyperEdge> visitedEdges = new LinkedList();
+        	pf.Search(graph, visitedEdges, visited);
+//        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
+//        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
+//        		System.out.println("ERROR!!");
+//        	for (HyperEdge edge : graph.getEdges()) {
+//        		System.out.println(edge.toMyTerm().toString());
+//        	}
+//        	for (HyperVertex vertex : graph.getVertices()) {
+//        		System.out.println(vertex.toMyWord().toString());
+//        	}
         	graph = null;
         }
 //        graph.addEdge("A", "B");

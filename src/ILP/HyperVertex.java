@@ -63,4 +63,8 @@ public class HyperVertex {
 		else
 			return false;
 	}
+	
+	public String toString() {
+		return name;
+	}
 }

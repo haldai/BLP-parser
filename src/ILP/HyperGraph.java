@@ -9,6 +9,7 @@ package ILP;
  */
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -24,9 +25,11 @@ import Logic.*;
 public class HyperGraph {
 	// TODO modify Graph class into HyperGraph
 	
-    private Map<String, LinkedHashSet<String>> adjMap = new HashMap<String, LinkedHashSet<String>>(); // map(nodeName, AdjacentSet<nodeName>)
+    private Map<String, LinkedHashSet<String>> adjMap = new HashMap<String, LinkedHashSet<String>>(); // map(node, AdjacentSet<node>)
     private Map<String, HyperEdge> edgeMap = new HashMap<String, HyperEdge>(); //map(edgeName, edge)
+    private Map<HyperEdge, LinkedHashSet<HyperEdge>> adjEdgeMap = new HashMap<HyperEdge, LinkedHashSet<HyperEdge>>();
     private Map<String, HyperVertex> vertexMap = new HashMap<String, HyperVertex>(); // map(nodeName, node)
+    private Map<String, LinkedHashSet<HyperEdge>> nodeEdgeMap = new HashMap<String, LinkedHashSet<HyperEdge>>();
     private List<HyperVertex> vertices = new ArrayList<HyperVertex>();
     private List<HyperEdge> edges = new ArrayList<HyperEdge>();
     int edgeLen = 0;
@@ -81,54 +84,111 @@ public class HyperGraph {
     	}
     }
     
+    private void updateAdjEdgeMap(HyperEdge e) {
+    	LinkedHashSet<HyperEdge> new_adj = adjEdgeMap.get(e); // New a adjEdgeMap of e
+    	if (new_adj == null) {
+    		new_adj = new LinkedHashSet<HyperEdge>();
+            adjEdgeMap.put(e, new_adj);
+    	}
+    	for (HyperEdge edge : this.edges) { // for all old edges
+    		// if same, continue
+    		if (edge.equals(e))
+    			continue;
+    		// if shareVertex(e, edge), update
+    		LinkedHashSet<HyperEdge> adjacent = adjEdgeMap.get(edge);
+			if (adjacent == null) {
+				adjacent = new LinkedHashSet<HyperEdge>();
+                adjEdgeMap.put(edge, adjacent);
+			}
+    		if (shareVertex(e, edge).size() > 0) {
+    			// if shared, add a two-way "edge" of these two edges
+//    			System.out.println("connected: " + e.toMyTerm().toString() + ", " + edge.toMyTerm().toString());
+    			adjacent.add(e);
+    			new_adj.add(edge);
+    		}
+    	}
+    }
+    
+    private Set<HyperVertex> shareVertex(HyperEdge e_1, HyperEdge e_2) {
+    	// return shared vertex between two hyper edges
+    	Set<HyperVertex> shared = new HashSet<HyperVertex>();
+    	for (HyperVertex v : e_1.getVerices()) {
+    		if (e_2.containsVertex(v)) {
+    			shared.add(v);
+    		}
+    	}
+    	return shared;
+    }
+    
     public void addHyperEdge(myTerm t, double w) {
+    	// add edge
+    	HyperEdge e = new HyperEdge(t,w);
+    	edges.add(e);
+    	edgeLen = edges.size();
+    	edgeMap.put(t.toString(), e);
+    	// update node adjlist
     	String[] nodes = new String[t.getArgs().length];
     	for (int i = 0; i < t.getArgs().length; i++) {
-    		nodes[i] = t.getArg(i).toString();
+    		nodes[i] = vertexMap.get(t.getArg(i)).getName();
     		if (!isVertex(t.getArg(i)))
     			addHyperVertex(t.getArg(i));
     	}
     	for (int i = 0; i < nodes.length; i++) {
     		LinkedHashSet<String> adjacent = adjMap.get(nodes[i]);
+    		LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(nodes[i]);
             if(adjacent == null) {
+            	// new an adjacent list term
                 adjacent = new LinkedHashSet<String>();
                 adjMap.put(nodes[i], adjacent);
+            }
+            if (belongs == null) {
+            	belongs = new LinkedHashSet<HyperEdge>();
+            	nodeEdgeMap.put(nodes[i], belongs);
             }
             for (int j = 0; j < nodes.length; j ++) {
             	if (i != j)
             		adjacent.add(nodes[j]);	
             }
+            belongs.add(e);
+            
     	}
-    	HyperEdge e = new HyperEdge(t,w);
-    	edges.add(e);
-    	edgeLen = edges.size();
-    	edgeMap.put(t.toString(), e);
+    	
+//    	HyperEdge e = new HyperEdge(t,w);
+//    	edges.add(e);
+//    	edgeLen = edges.size();
+//    	edgeMap.put(t.toString(), e);
+    	
+    	// update map adjEdge
+    	updateAdjEdgeMap(e);
     }
 
-    public void addHyperEdge(String name, HyperVertex[] nodes, double w) {
-    	String s = "";
-    	for (int i = 0; i < nodes.length; i++) {
-    		if (!isVertex(nodes[i])) {
-    			// new vertex
-    			addHyperVertex(nodes[i]);
-    		}
-    		s = s + nodes[i].toString() + ',';
-    		LinkedHashSet<String> adjacent = adjMap.get(nodes[i].toString());
-            if(adjacent == null) {
-                adjacent = new LinkedHashSet<String>();
-                adjMap.put(nodes[i].toString(), adjacent);
-            }
-            for (int j = 0; j < nodes.length; j ++) {
-            	if (i != j)
-            		adjacent.add(nodes[j].toString());	
-            }
-    	}
-    	String t = String.format("%s(%s)", name, s.substring(0, s.length() - 2));
-    	HyperEdge e = new HyperEdge(name, nodes, w);
-    	edges.add(e);
-    	edgeLen = edges.size();
-    	edgeMap.put(t, e);
-    }
+//    public void addHyperEdge(String name, HyperVertex[] nodes, double w) {
+//    	
+//    	String s = "";
+//    	for (int i = 0; i < nodes.length; i++) {
+//    		if (!isVertex(nodes[i])) {
+//    			// new vertex
+//    			addHyperVertex(nodes[i]);
+//    		}
+//    		s = s + nodes[i].toString() + ',';
+//    		LinkedHashSet<String> adjacent = adjMap.get(nodes[i].getName());
+//            if(adjacent == null) {
+//                adjacent = new LinkedHashSet<String>();
+//                adjMap.put(nodes[i].getName(), adjacent);
+//            }
+//            for (int j = 0; j < nodes.length; j ++) {
+//            	if (i != j)
+//            		adjacent.add(nodes[j].getName());	
+//            }
+//    	}
+//    	String t = String.format("%s(%s)", name, s.substring(0, s.length() - 2));
+//    	HyperEdge e = new HyperEdge(name, nodes, w);
+//    	edges.add(e);
+//    	edgeLen = edges.size();
+//    	edgeMap.put(t, e);
+//    	// add map adjEdge
+//    	updateAdjEdgeMap(e);
+//    }
     
     public void addHyperEdge(String s) {
     	myTerm t = new myTerm(s);
@@ -147,10 +207,10 @@ public class HyperGraph {
     	edgeLen = edges.size();
     }
 
-    public void addHyperEdge(String name, HyperVertex[] nodes) {
-    	addHyperEdge(name, nodes, 0.0);
-    	edgeLen = edges.size();
-    }
+//    public void addHyperEdge(String name, HyperVertex[] nodes) {
+//    	addHyperEdge(name, nodes, 0.0);
+//    	edgeLen = edges.size();
+//    }
     
     public boolean isConnected(String node1, String node2) {
         Set adjacent = adjMap.get(node1);
@@ -168,53 +228,62 @@ public class HyperGraph {
         return isConnected(v1.name, v2.name);
     }
     
-    public LinkedList<HyperEdge> edgesContainsVertex(String node) {
-    	// find all adjacent edges of a node
-    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
-    	for (int i = 0; i < edgeLen; i++) {
-    		if (edges.get(i).containsVertex(node))
-    			r.add(edges.get(i));
-    	}
-    	return r;
-    }
+//    public LinkedList<HyperEdge> edgesContainsVertex(String node) {
+//    	// find all adjacent edges of a node
+//    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+//    	for (int i = 0; i < edgeLen; i++) {
+//    		if (edges.get(i).containsVertex(node))
+//    			r.add(edges.get(i));
+//    	}
+//    	return r;
+//    }
+//    
+//    public LinkedList<HyperEdge> edgesContainsVertex(HyperVertex node) {
+//    	// find all adjacent edges of a node
+//    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+//    	for (int i = 0; i < edgeLen; i++) {
+//    		if (edges.get(i).containsVertex(node))
+//    			r.add(edges.get(i));
+//    	}
+//    	return r;
+//    }
+//
+//    public LinkedList<HyperEdge> edgesContainsVertex(myWord node) {
+//    	// find all adjacent edges of a node
+//    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+//    	for (int i = 0; i < edgeLen; i++) {
+//    		if (edges.get(i).containsVertex(node.toString()))
+//    			r.add(edges.get(i));
+//    	}
+//    	return r;
+//    }
     
-    public LinkedList<HyperEdge> edgesContainsVertex(HyperVertex node) {
-    	// find all adjacent edges of a node
-    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
-    	for (int i = 0; i < edgeLen; i++) {
-    		if (edges.get(i).containsVertex(node))
-    			r.add(edges.get(i));
-    	}
-    	return r;
-    }
-
-    public LinkedList<HyperEdge> edgesContainsVertex(myWord node) {
-    	// find all adjacent edges of a node
-    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
-    	for (int i = 0; i < edgeLen; i++) {
-    		if (edges.get(i).containsVertex(node.toString()))
-    			r.add(edges.get(i));
-    	}
-    	return r;
-    }
+//    public LinkedList<HyperEdge> adjacentEdges(HyperEdge e) {
+//    	// find all adjacent edges of an edge;
+//    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
+//    	for (Iterator<HyperEdge> it = edges.iterator(); it.hasNext();) {
+//    		HyperEdge tmp_e = (HyperEdge) it.next();
+//    		// for each contained vertex, find a list of its edges
+//    		for (int i = 0; i < tmp_e.vertexLen(); i++) {
+//    			HyperVertex tmp_v = tmp_e.getVertex(i);
+//    			LinkedList<HyperEdge> l = edgesContainsVertex(tmp_v);
+//    			for (Iterator<HyperEdge> it_2 = l.iterator(); it_2.hasNext();) {
+//    				HyperEdge tmp_e_2 = (HyperEdge) it_2.next();
+//    				if (!r.contains(tmp_e_2) &&  (!tmp_e_2.equals(e)))
+//    					r.add(tmp_e_2);
+//    			}
+//    		}
+//    	}
+//    	return r;
+//    }
     
-    public LinkedList<HyperEdge> adjacentEdges(HyperEdge e) {
-    	// find all adjacent edges of an edge;
-    	LinkedList<HyperEdge> r = new LinkedList<HyperEdge>();
-    	for (Iterator<HyperEdge> it = edges.iterator(); it.hasNext();) {
-    		HyperEdge tmp_e = (HyperEdge) it.next();
-    		// for each contained vertex, find a list of its edges
-    		for (int i = 0; i < tmp_e.vertexLen(); i++) {
-    			HyperVertex tmp_v = tmp_e.getVertex(i);
-    			LinkedList<HyperEdge> l = edgesContainsVertex(tmp_v);
-    			for (Iterator<HyperEdge> it_2 = l.iterator(); it_2.hasNext();) {
-    				HyperEdge tmp_e_2 = (HyperEdge) it_2.next();
-    				if (!r.contains(tmp_e_2))
-    					r.add(tmp_e_2);
-    			}
-    		}
-    	}
-    	return r;
+   
+    public LinkedList<HyperEdge> adjacentEdges(HyperEdge last) {
+        LinkedHashSet<HyperEdge> adjacent = adjEdgeMap.get(last);
+        if(adjacent == null) {
+            return new LinkedList<HyperEdge>();
+        }
+        return new LinkedList<HyperEdge>(adjacent);
     }
     
     public LinkedList<HyperEdge> adjacentEdges(myTerm t) {
@@ -227,20 +296,20 @@ public class HyperGraph {
     }
     
     public LinkedList<String> adjacentNodes(String last) {
-        LinkedHashSet<String> adjacent = adjMap.get(last);
-        if(adjacent==null) {
+        LinkedHashSet<String> adjacent = adjMap.get(vertexMap.get(last));
+        if(adjacent == null) {
             return new LinkedList<String>();
         }
         return new LinkedList<String>(adjacent);
     }
     
     
-    public LinkedList<String> adjacentNodes(myWord w) {
-    	return adjacentNodes(w.toString());
+    public LinkedList<HyperVertex> adjacentNodes(myWord w) {
+    	return adjacentNodes(vertexMap.get(w.toString()));
     }
     
-    public LinkedList<String> adjacentNodes(HyperVertex v) {
-    	return adjacentNodes(v.name);
+    public LinkedList<HyperVertex> adjacentNodes(HyperVertex v) {
+    	return adjacentNodes(v);
     }
     
     public boolean isVertex(myWord node) {
@@ -288,8 +357,15 @@ public class HyperGraph {
     	return vertices;
     }
     
-    public HyperVertex getVertice(int i) {
+    public HyperVertex getVertex(int i) {
     	return vertices.get(i);
     }
     
+    public LinkedList<HyperEdge> edgesContainsVertex(String last) {
+    	LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(last);
+        if(belongs == null) {
+            return new LinkedList<HyperEdge>();
+        }
+        return new LinkedList<HyperEdge>(belongs);
+    }
 }

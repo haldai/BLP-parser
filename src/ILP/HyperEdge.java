@@ -150,4 +150,8 @@ public class HyperEdge {
 		}
 		return false;
 	}
+	
+	public String toString() {
+		return this.toMyTerm().toString();
+	}
 }

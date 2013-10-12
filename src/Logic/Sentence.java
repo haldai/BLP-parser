@@ -112,4 +112,8 @@ public class Sentence {
 	public myTerm[] getTerms() {
 		return termList;
 	}
+	
+	public myWord[] getWords() {
+		return wordList;
+	}
 }
