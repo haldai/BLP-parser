@@ -121,18 +121,21 @@ public class HyperGraph {
     }
     
     public void addHyperEdge(myTerm t, double w) {
+    	// add node
+    	String[] nodes = new String[t.getArgs().length];
+    	for (int i = 0; i < t.getArgs().length; i++) {
+    		nodes[i] = vertexMap.get(t.getArg(i).toString()).toString();
+    		if (!isVertex(t.getArg(i)))
+    			addHyperVertex(t.getArg(i));
+    	}
+    	
     	// add edge
     	HyperEdge e = new HyperEdge(t,w);
     	edges.add(e);
     	edgeLen = edges.size();
     	edgeMap.put(t.toString(), e);
+    	
     	// update node adjlist
-    	String[] nodes = new String[t.getArgs().length];
-    	for (int i = 0; i < t.getArgs().length; i++) {
-    		nodes[i] = vertexMap.get(t.getArg(i)).getName();
-    		if (!isVertex(t.getArg(i)))
-    			addHyperVertex(t.getArg(i));
-    	}
     	for (int i = 0; i < nodes.length; i++) {
     		LinkedHashSet<String> adjacent = adjMap.get(nodes[i]);
     		LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(nodes[i]);

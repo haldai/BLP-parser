@@ -1,6 +1,7 @@
 package test;
 
 import java.util.LinkedList;
+
 import Logic.*;
 import ILP.*;
 
@@ -32,10 +33,8 @@ public class tmptest {
         		graph.addHyperEdge(term);
         	}
         	HyperPathFind pf = new HyperPathFind(graph, graph.getVertex(0), graph.getVertex(graph.getVertexLen() - 1));
-        	LinkedList<String> visited = new LinkedList();
-        	visited.add(graph.getVertex(0).toMyWord().toString());
-        	LinkedList<HyperEdge> visitedEdges = new LinkedList();
-        	pf.Search(graph, visitedEdges, visited);
+        	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+        	pf.Search(visitedEdges);
 //        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
 //        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
 //        		System.out.println("ERROR!!");
@@ -47,24 +46,5 @@ public class tmptest {
 //        	}
         	graph = null;
         }
-//        graph.addEdge("A", "B");
-//        graph.addEdge("A", "C");
-//        graph.addEdge("B", "A");
-//        graph.addEdge("B", "D");
-//        graph.addEdge("B", "E"); // this is the only one-way connection
-//        graph.addEdge("B", "F");
-//        graph.addEdge("C", "A");
-//        graph.addEdge("C", "E");
-//        graph.addEdge("C", "F");
-//        graph.addEdge("D", "B");
-//        graph.addEdge("E", "C");
-//        graph.addEdge("E", "F");
-//        graph.addEdge("F", "B");
-//        graph.addEdge("F", "C");
-//        graph.addEdge("F", "E");
-//        LinkedList<String> visited = new LinkedList();
-//        visited.add(START);
-//        HyperPathFind pf = new HyperPathFind(graph, null, null);
-//        .breadthFirst(graph, visited)
 	}
 }
