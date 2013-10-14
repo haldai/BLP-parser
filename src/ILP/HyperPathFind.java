@@ -24,6 +24,8 @@ public class HyperPathFind {
     String end;
     HyperGraph graph;
     
+    int debug = 0;
+    
     public HyperPathFind(HyperGraph g, String s, String e) {
     	graph = g;
     	start = s;
@@ -61,7 +63,6 @@ public class HyperPathFind {
     }
     
     private LinkedList<HyperEdge> allEdgesContain(String node) {
-		// TODO Auto-generated method stub
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
     	for (HyperEdge edge : graph.getEdges()) {
     		if (edge.containsVertex(start))
@@ -69,22 +70,27 @@ public class HyperPathFind {
     	}
 		return re;
 	}
-
+    /**
+     * Available edges in HyperPath: each node can only appears twice at most, or there will 
+     * be redundant edges.
+     */
 	private LinkedList<HyperEdge> adjAvailEdges(HyperEdge e, LinkedList<HyperEdge> visited) {
     	LinkedList<HyperEdge> edges = graph.adjacentEdges(e);
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
     	LinkedList<String> node_1 = new LinkedList<String>();
+    	// very important!
+    	node_1.add(start);
     	LinkedList<String> node_2 = new LinkedList<String>();
     	for (HyperEdge edge : visited) {
     		for (HyperVertex node : edge.getVerices()) {
     			String tmp = node.getName();
     			if (node_1.contains(tmp))
     				if (node_2.contains(tmp)) {
-    					System.out.println("error");
-    					System.out.println(e.toString());
-    					System.out.println(node_1.toString());
-    					System.out.println(node_2.toString());
-    					System.out.println(visited.toString());
+    					System.out.println("Redundancy Error !!");
+//    					System.out.println(e.toString());
+//    					System.out.println(node_1.toString());
+//    					System.out.println(node_2.toString());
+//    					System.out.println(visited.toString());
     					System.exit(0);
     				}
     				else
@@ -137,10 +143,16 @@ public class HyperPathFind {
     }
 
     private void printPath(LinkedList<HyperEdge> visitedEdges) {
+    	debug++;
         for (HyperEdge edge : visitedEdges) {
             System.out.print(edge.toString());
             System.out.print(" ");
         }
+        System.out.println(debug);
         System.out.println();
+        if (debug >= 2) {
+        	System.out.println("Multi Paths in Tree!!!");
+        	System.exit(0);
+        }
     }
 }
