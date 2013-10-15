@@ -21,7 +21,7 @@ public class Predicate {
 	}
 	
 	public Predicate(String s, int n) {
-		name = s;
+		name = s.toLowerCase();
 		arity = 0;
 	}
 	

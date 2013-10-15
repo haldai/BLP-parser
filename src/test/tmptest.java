@@ -34,7 +34,7 @@ public class tmptest {
         	}
         	HyperPathFind pf = new HyperPathFind(graph, graph.getVertex(0), graph.getVertex(graph.getVertexLen() - 1));
         	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
-        	pf.Search(visitedEdges);
+        	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
 //        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
 //        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
 //        		System.out.println("ERROR!!");

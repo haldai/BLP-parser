@@ -4,6 +4,8 @@
 package ILP;
 
 import Logic.*;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -23,6 +25,7 @@ public class HyperPathFind {
     String start;
     String end;
     HyperGraph graph;
+    ArrayList<LinkedList<myTerm>> path = new ArrayList<LinkedList <myTerm>>();
     
     int debug = 0;
     
@@ -44,7 +47,8 @@ public class HyperPathFind {
     	end = e.toString();
     }
     
-    public void Search(LinkedList<HyperEdge> visitedEdges) {
+    public ArrayList<LinkedList<myTerm>> Search(LinkedList<HyperEdge> visitedEdges) {
+    	
     	System.out.format("start %s, end %s\n", start, end);
     	LinkedList<HyperEdge> start_edges = allEdgesContain(start);
     	for (HyperEdge edge : start_edges) {
@@ -52,6 +56,7 @@ public class HyperPathFind {
     		if (edge.containsVertex(end)) {
     			visitedEdges.add(edge);
         		printPath(visitedEdges);
+        		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		continue;
     		} else {
@@ -60,6 +65,7 @@ public class HyperPathFind {
     			visitedEdges.removeLast();
     		}
     	}
+    	return path;
     }
     
     private LinkedList<HyperEdge> allEdgesContain(String node) {
@@ -127,6 +133,7 @@ public class HyperPathFind {
             if (edge.containsVertex(end)) {
             	visitedEdges.add(edge);
         		printPath(visitedEdges);
+        		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		break;
             }
@@ -149,10 +156,20 @@ public class HyperPathFind {
             System.out.print(" ");
         }
         System.out.println(debug);
-        System.out.println();
         if (debug >= 2) {
         	System.out.println("Multi Paths in Tree!!!");
         	System.exit(0);
         }
+    }
+    
+    private LinkedList<myTerm> returnPath(LinkedList<HyperEdge> visitedEdges) {
+    	LinkedList<myTerm> re = new LinkedList<myTerm>();
+        for (HyperEdge edge : visitedEdges) {
+        	re.add(edge.toMyTerm());
+        }
+        if (re.size() > 0)
+        	return re;
+        else
+        	return null;
     }
 }

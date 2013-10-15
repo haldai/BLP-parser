@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
 import static utils.utils.MAX_LABEL_LEN;;
 /**
  * @author daiwz
@@ -23,7 +25,7 @@ public class Document {
 	             // training data has labels, while testing data does not.
 	int length;
 	Sentence[] sentList;
-	myTerm[][] labelList;
+	ArrayList<LinkedList<myTerm>> labelList;
 	Predicate[] predList;
 	// reading path of predicate file and sentence file.
 	public Document(String path_pred, String path_sent, boolean train) {
@@ -46,7 +48,8 @@ public class Document {
 		buff_pred_list = null;
 		// sentences
 		Sentence[] buff_sentList = new Sentence[fsent.length];
-		myTerm[][] buff_label_list = new myTerm[fsent.length][MAX_LABEL_LEN];
+//		myTerm[][] myTerm[fsent.length][MAX_LABEL_LEN];
+		ArrayList<LinkedList<myTerm>>buff_label_list = new ArrayList<LinkedList<myTerm>>();
 		String line = null;
 		String[] buff_line = new String[2];
 		for (int i = 0; i < fsent.length; i++) {
@@ -57,7 +60,7 @@ public class Document {
 				// training data, split the labels
 				String[] buff_label = buff_line[0].split("\\,");
 				for (int j = 0; j < buff_label.length; j++) {
-					buff_label_list[i][j] = new myTerm(buff_label[j]);
+					buff_label_list.get(i).add(new myTerm(buff_label[j]));
 				}
 				// parse sentences
 			}
@@ -118,8 +121,8 @@ public class Document {
 		return sentList[num];
 	}
 	
-	public myTerm[] getLabel(int num) {
-		return labelList[num];
+	public LinkedList<myTerm> getLabel(int num) {
+		return labelList.get(num);
 	}
 	
 	public Predicate[] getPredList() {

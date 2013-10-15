@@ -23,6 +23,20 @@ public class myTerm {
 	Predicate pred;
 	myWord[] args;
 	String str;
+	double weight;
+	
+	public myTerm(String n, myWord[] words, double w) {
+		pred = new Predicate(n, words.length);
+		args = words;
+		String s = String.format("%s(", pred.name);
+		for (int i = 0; i < words.length; i++) {
+			s = s + String.format("%s,", words[i].toString());
+		}
+		if (s.charAt(s.length() - 1) == ',') {
+				str = s.substring(0, s.length() - 1) + ')';
+		}
+		weight = w;
+	}
 	
 	public myTerm(String n, myWord[] words) {
 		pred = new Predicate(n, words.length);
@@ -34,6 +48,20 @@ public class myTerm {
 		if (s.charAt(s.length() - 1) == ',') {
 				str = s.substring(0, s.length() - 1) + ')';
 		}
+		weight = 0.0;
+	}
+	
+	public myTerm(Predicate p, myWord[] words, double w) {
+		pred = p;
+		args = words;
+		String s = String.format("%s(", pred.name);
+		for (int i = 0; i < words.length; i++) {
+			s = s + String.format("%s,", words[i].toString());
+		}
+		if (s.charAt(s.length() - 1) == ',') {
+				str = s.substring(0, s.length() - 1) + ')';
+		}
+		weight = w;
 	}
 	
 	public myTerm(Predicate p, myWord[] words) {
@@ -46,8 +74,36 @@ public class myTerm {
 		if (s.charAt(s.length() - 1) == ',') {
 				str = s.substring(0, s.length() - 1) + ')';
 		}
+		weight = 0.0;
 	}
 	// another realization of directly reading string into myWord and Predicate
+	public myTerm(String s, double w) {
+		str = s;
+		// find arguments
+		Pattern p = Pattern.compile("\\(.*?\\)");
+		Matcher m = p.matcher(s);
+		boolean found = m.find();
+		String[] tmp_args = null;
+		List<myWord> buff_words = new ArrayList<myWord>();
+		if (found) {
+			String tmp_s = m.group();
+			tmp_s = tmp_s.substring(1, tmp_s.lastIndexOf(')'));
+			tmp_args = tmp_s.split("\\,");
+			for (int i = 0; i < tmp_args.length; i++) {
+				buff_words.add(new myWord(tmp_args[i]));
+			}
+			args = new myWord[buff_words.size()];
+			for (int i = 0; i < buff_words.size(); i++) {
+				args[i] = buff_words.get(i);
+			}
+		} else {
+			System.out.println("arguments of " + s + " not found!");
+			System.exit(0);
+		}
+		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
+		weight = w;
+	}
+	
 	public myTerm(String s) {
 		str = s;
 		// find arguments
@@ -72,6 +128,7 @@ public class myTerm {
 			System.exit(0);
 		}
 		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
+		weight = 0.0;
 	}
 	
 	public myTerm() {
@@ -119,5 +176,13 @@ public class myTerm {
 			}
 		}
 		return true;
+	}
+	
+	public void setWeight(double w) {
+		weight = w;
+	}
+	
+	public double getWeight() {
+		return weight;
 	}
 }
