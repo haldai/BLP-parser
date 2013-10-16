@@ -29,12 +29,16 @@ public class Family
 								new Atom("steve")
 						});
 		String assertz = "assertz";
+		new Query("dynamic(good/2).").hasSolution();
+		new Query("dynamic(bad/2).").hasSolution();
+		// 如果在规则中有新谓词，jpl必须先声明dynamic，为防万一最好进行
 		new Query("assertz(child_of(joe, 老大)).").hasSolution();
 		new Query("assertz(child_of(mary, joe)).").hasSolution();
 		new Query("assertz(child_of(steve, joe)).").hasSolution();
 		new Query("assertz(descendent_of(X, Y):-child_of(X, Y)).").hasSolution();
-		new Query("assert((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
-//		new Query("retract((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
+		new Query("assertz((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
+		new Query("assertz((descendent_of(X, Y):-good(Z, Y),bad(X, Z))).").hasSolution();
+		new Query("retract((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
 		Query q0 = new Query(
 				assertz,
 				new Term[] { c });

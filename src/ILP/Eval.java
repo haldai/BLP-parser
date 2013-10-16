@@ -25,7 +25,7 @@ public class Eval {
 	 */
 	
 	Sentence[] sentences;
-	Formular[] rules;
+	Formula[] rules;
 	Predicate[] Q_Preds; // query predicates
 	int ruleLen;
 	int sentLen;
@@ -40,7 +40,7 @@ public class Eval {
 		sentLen = sentences.length;
 		// find out all query predicates
 		Set<Predicate> buff_preds = new HashSet<Predicate>();
-		for (Formular r : rules) {
+		for (Formula r : rules) {
 			for (myTerm t : r.getHead()) {
 				if (!buff_preds.contains(t.getPred())) {
 					buff_preds.add(t.getPred());
@@ -56,11 +56,15 @@ public class Eval {
 		}
 		buff_preds = null;
 		JPL.init();
+		// Prolog.dynamic(ALL_PREDICATES)
+		for (Predicate p : doc.getPredList()) {
+			dynamic(p);
+		}
 		// Prolog.assertz(ALL_RULES)
-		for (Formular r : rules) {
+		for (Formula r : rules) {
 			String clause = r.toPrologStr();
 			if (clause.endsWith("."))
-				clause = clause.substring(0, clause.length() - 1);
+				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
 			assertz(clause);
 		}
 	}
@@ -79,7 +83,9 @@ public class Eval {
 		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sentLen);
 		// Start evaluation sentences
 		for (int i = 0; i < sentLen; i++) {
-			re.set(i, evalSent(i));
+			LinkedList<myTerm> ans_list = evalSent(i);
+//			re.set(i, ans_list);
+			re.add(ans_list);
 		}
 		return re;
 	}
@@ -95,7 +101,7 @@ public class Eval {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		// TODO evaluate all terms;
 		for (myTerm term : facts) {
-			assertz(term.toString());
+			assertz(term.toPrologString());
 		}
 		// TODO get answers
 		for (Predicate pred : Q_Preds) {
@@ -110,20 +116,23 @@ public class Eval {
 				query = query.substring(0, query.length() - 1) + ")";
 			// Start querying
 			Query q = new Query(query);
-			String answer = new String(query);
+//			System.out.println("Query: " + q);
 			while (q.hasMoreSolutions()) {
+				String answer = new String(query);
 				java.util.Hashtable ans = q.nextSolution();
 				// Build solution terms
 				for (int i = 0; i < pred.getArity(); i++) {
 					// replace query variables
 					answer = answer.replaceAll(vars[i], ans.get(vars[i]).toString());
 				}
+//				System.out.println(answer);
+				re.add(new myTerm(answer));
 			}
-			System.out.println(answer);
-			re.add(new myTerm(answer));
+//			System.out.println(answer);
+//			re.add(new myTerm(answer));
 		}
 		for (myTerm term : facts) {
-			retract(term.toString());
+			retract(term.toPrologString());
 		}
 		return re;
 	}
@@ -131,6 +140,7 @@ public class Eval {
 	private void assertz(String t) {
 		String clause;
 		clause = String.format("assertz(%s).", t);
+//		System.out.println(clause);
 		Query q = new Query(clause);
 		try {
 			q.hasSolution();
@@ -165,5 +175,18 @@ public class Eval {
 			System.out.println("ERROR LOG: " + clause);
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	private void dynamic(Predicate p) {
+		String clause;
+		clause = String.format("dynamic(%s/%d)", p.getName(), p.getArity());
+		Query q = new Query(clause);
+		try {
+			q.hasSolution();
+		} catch (PrologException e) {
+			System.out.println("Prolog Assertion Failed!!!");
+			System.out.println("ERROR LOG: " + clause);
+			System.out.println(e.getMessage());
+		} 
 	}
 }

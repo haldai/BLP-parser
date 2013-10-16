@@ -1,5 +1,6 @@
 package test;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import Logic.*;
@@ -12,15 +13,30 @@ public class tmptest {
 		Document doc = new Document("data/questions/questions.pred", 
 				"data/questions/test/query_v2.dep.bak", false);
 		
-//		for (int i = 0; i < doc.length(); i++) {
-//			System.out.println(doc.getSent(i).toString());
-//		}
+		for (int i = 0; i < doc.length(); i++) {
+			System.out.println(doc.getSent(i).toString());
+		}
 		
 		testPathFind(doc);
 	}
 	
 	public static void testPathFind(Document doc) {	    
         Sentence[] sentences = doc.getSentences();
+        Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var).");
+        LogicProgram p = new LogicProgram();
+        p.addRule(f);
+        Eval eval = new Eval(p, doc);
+        ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
+        for (LinkedList<myTerm> l : sems) {
+        	if (l == null) 
+        		continue;
+        	else {
+        		for (myTerm t : l) {
+        			System.out.println(t.toString());
+        		}
+        		System.out.println("==============");
+        	}
+        }
         for (Sentence sent : sentences) {
         	HyperGraph graph = new HyperGraph();
         	myTerm[] terms = sent.getTerms();
@@ -34,7 +50,7 @@ public class tmptest {
         	}
         	HyperPathFind pf = new HyperPathFind(graph, graph.getVertex(0), graph.getVertex(graph.getVertexLen() - 1));
         	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
-        	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+//        	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
 //        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
 //        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
 //        		System.out.println("ERROR!!");

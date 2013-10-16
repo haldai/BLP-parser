@@ -25,8 +25,10 @@ public class Sentence {
 	
 	public Sentence(String deps) {
 		// read sentence from string
+		if (deps.endsWith("."))
+			deps = deps.substring(0, deps.length() - 1);
 		Pattern p = Pattern.compile("\\(.*?\\)");
-		String[] dep = deps.substring(0, deps.length() - 1).split(";");
+		String[] dep = deps.split(";");
 		termLen = dep.length;
 		// use dynamic array to initialize the termlist and wordlist
 		List<myWord> wd = new ArrayList<myWord>();
@@ -44,9 +46,8 @@ public class Sentence {
 				String args = m.group();
 				args = args.substring(1, args.length() - 1);
 //				System.out.println(dep[i]);
-				String pred = dep[i].split("\\(")[0];
-
 				String[] words = args.split(",");
+				Predicate pred = new Predicate(dep[i].split("\\(")[0], words.length);
 				for (int j = 0; j < words.length; j++) {
 					myWord tmp = new myWord(words[j]);
 					arg_words.add(tmp);

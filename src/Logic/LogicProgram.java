@@ -13,15 +13,14 @@ public class LogicProgram {
 	 * LogicProgram is a set of (probabilistic) logic rules
 	 */
 	
-	Formular[] rules;
+	Formula[] rules;
 	int length;
 	
 	public LogicProgram() {
-		rules = null;
 		length = 0;
 	}
 	
-	public LogicProgram(Formular[] p) {
+	public LogicProgram(Formula[] p) {
 		// TODO Auto-generated constructor stub
 		rules = p;
 		length = rules.length;
@@ -31,9 +30,9 @@ public class LogicProgram {
 		return length;
 	}
 	
-	public void addRule(Formular f) {
-		Formular[] p = rules.clone();
-		rules = new Formular[length + 1];
+	public void addRule(Formula f) {
+		Formula[] p = rules;
+		rules = new Formula[length + 1];
 		length = length + 1;
 		for (int i = 0; i < length - 1; i++) {
 			rules[i] = p[i];
@@ -43,8 +42,8 @@ public class LogicProgram {
 	}
 	
 	public void removeLast() {
-		Formular[] p = rules.clone();
-		rules = new Formular[length - 1];
+		Formula[] p = rules.clone();
+		rules = new Formula[length - 1];
 		length = length - 1;
 		for (int i = 0; i < length; i++) {
 			rules[i] = p[i];
@@ -52,11 +51,11 @@ public class LogicProgram {
 		p = null;
 	}
 	
-	public Formular[] getRules() {
+	public Formula[] getRules() {
 		return rules;
 	}
 	
-	public Formular getRule(int i) {
+	public Formula getRule(int i) {
 		return rules[i];
 	}
 }

@@ -22,63 +22,33 @@ public class myTerm {
 	 */
 	Predicate pred;
 	myWord[] args;
-	String str;
 	double weight;
 	
 	public myTerm(String n, myWord[] words, double w) {
 		pred = new Predicate(n, words.length);
 		args = words;
-		String s = String.format("%s(", pred.name);
-		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].toString());
-		}
-		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1) + ')';
-		}
 		weight = w;
 	}
 	
 	public myTerm(String n, myWord[] words) {
 		pred = new Predicate(n, words.length);
 		args = words;
-		String s = String.format("%s(", pred.name);
-		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].toString());
-		}
-		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1) + ')';
-		}
 		weight = 0.0;
 	}
 	
 	public myTerm(Predicate p, myWord[] words, double w) {
 		pred = p;
 		args = words;
-		String s = String.format("%s(", pred.name);
-		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].toString());
-		}
-		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1) + ')';
-		}
 		weight = w;
 	}
 	
 	public myTerm(Predicate p, myWord[] words) {
 		pred = p;
 		args = words;
-		String s = String.format("%s(", pred.name);
-		for (int i = 0; i < words.length; i++) {
-			s = s + String.format("%s,", words[i].toString());
-		}
-		if (s.charAt(s.length() - 1) == ',') {
-				str = s.substring(0, s.length() - 1) + ')';
-		}
 		weight = 0.0;
 	}
 	// another realization of directly reading string into myWord and Predicate
 	public myTerm(String s, double w) {
-		str = s;
 		// find arguments
 		Pattern p = Pattern.compile("\\(.*?\\)");
 		Matcher m = p.matcher(s);
@@ -105,7 +75,6 @@ public class myTerm {
 	}
 	
 	public myTerm(String s) {
-		str = s;
 		// find arguments
 		Pattern p = Pattern.compile("\\(.*?\\)");
 		Matcher m = p.matcher(s);
@@ -134,7 +103,6 @@ public class myTerm {
 	public myTerm() {
 		pred = null;
 		args = null;
-		str = null;
 	}
 	
 	public Predicate getPred() {
@@ -142,7 +110,23 @@ public class myTerm {
 	}
 	
 	public String toString() {
-		return str;
+		String s = String.format("%s(", pred.getName());
+		for (myWord w : args) {
+			s = s + w.toString() + ",";
+		}
+		if (s.endsWith(","))
+			s = s.substring(0, s.length() - 1) + ")";
+		return s;
+	}
+	
+	public String toPrologString() {
+		String s = String.format("%s(", pred.getName());
+		for (myWord w : args) {
+			s = s + w.toPrologString() + ",";
+		}
+		if (s.endsWith(","))
+			s = s.substring(0, s.length() - 1) + ")";
+		return s;
 	}
 	
 	public myWord[] getArgs() {

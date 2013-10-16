@@ -22,7 +22,7 @@ public class Predicate {
 	
 	public Predicate(String s, int n) {
 		name = s.toLowerCase();
-		arity = 0;
+		arity = n;
 	}
 	
 	public String getName() {
