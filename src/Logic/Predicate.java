@@ -25,6 +25,12 @@ public class Predicate {
 		arity = n;
 	}
 	
+	public Predicate(String s) {
+		String[] t = s.split("\\/");
+		name = t[0].toLowerCase();
+		arity = Integer.parseInt(t[1]);
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -42,9 +48,13 @@ public class Predicate {
 	}
 	
 	public boolean equals(Predicate p) {
-		if ((this.name.equals(p.name)) && (this.arity == p.arity))
+		if ((this.name.equals(p.getName())) && (this.arity == p.getArity()))
 			return true;
 		else 
 			return false;
+	}
+	
+	public String toString() {
+		return String.format("%s/%d", name, arity);
 	}
 }

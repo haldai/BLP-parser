@@ -43,6 +43,7 @@ public class myWord {
 		name = name.replaceAll("’", "quoteRight");
 		name = name.replaceAll("‘", "quoteLeft");
 		name = name.replaceAll("、", "backslash");
+		name = name.replaceAll("—", "minus");
 		name = name.replaceAll("[?]", "question");
 		name = name.replaceAll("[.]", "period");
 		name = name.replaceAll(",", "comma");
@@ -51,9 +52,10 @@ public class myWord {
 		name = name.replaceAll("[(]", "parLeft");
 		name = name.replaceAll("[)]", "parRight");
 		name = name.replaceAll("\"", "quote");
-		name = name.replaceAll("\'", "quote");
+//		name = name.replaceAll("\'", "quote");
 		name = name.replaceAll("\\\\", "backslash");
 		name = name.replaceAll("/", "slash");
+		name = name.replaceAll("[-]", "minus");
 		num = Integer.parseInt(args[1]);
 		pos = args[2];
 	}

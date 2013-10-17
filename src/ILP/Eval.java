@@ -39,19 +39,20 @@ public class Eval {
 		ruleLen = rules.length;
 		sentLen = sentences.length;
 		// find out all query predicates
-		Set<Predicate> buff_preds = new HashSet<Predicate>();
+		LinkedList<String> buff_preds = new LinkedList<String>();
 		for (Formula r : rules) {
 			for (myTerm t : r.getHead()) {
-				if (!buff_preds.contains(t.getPred())) {
-					buff_preds.add(t.getPred());
+				if (!buff_preds.contains(t.getPred().toString())) {
+//					System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
+					buff_preds.add(t.getPred().toString());
 				}
 			}
 		}
 		Q_Preds = new Predicate[buff_preds.size()];
 		predLen = buff_preds.size();
 		int i = 0;
-		for (Iterator<Predicate> it = buff_preds.iterator(); it.hasNext();) {
-			Q_Preds[i] = it.next();
+		for (Iterator<String> it = buff_preds.iterator(); it.hasNext();) {
+			Q_Preds[i] = new Predicate(it.next());
 			i++;
 		}
 		buff_preds = null;
@@ -116,6 +117,7 @@ public class Eval {
 				query = query.substring(0, query.length() - 1) + ")";
 			// Start querying
 			Query q = new Query(query);
+			LinkedList<String> answers = new LinkedList<String>();
 //			System.out.println("Query: " + q);
 			while (q.hasMoreSolutions()) {
 				String answer = new String(query);
@@ -126,7 +128,10 @@ public class Eval {
 					answer = answer.replaceAll(vars[i], ans.get(vars[i]).toString());
 				}
 //				System.out.println(answer);
-				re.add(new myTerm(answer));
+				if (!answers.contains(answer)) {
+					re.add(new myTerm(answer));
+					answers.add(answer);
+				}
 			}
 //			System.out.println(answer);
 //			re.add(new myTerm(answer));
