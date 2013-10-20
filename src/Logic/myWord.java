@@ -53,15 +53,21 @@ public class myWord {
 		name = name.replaceAll("[)]", "parRight");
 		name = name.replaceAll("\"", "quote");
 //		name = name.replaceAll("\'", "quote");
-		name = name.replaceAll("\\\\", "backslash");
+//		name = name.replaceAll("\\\\", "backslash");
 		name = name.replaceAll("/", "slash");
 		name = name.replaceAll("[-]", "minus");
-		num = Integer.parseInt(args[1]);
-		pos = args[2];
+		if (args.length == 3) {
+			num = Integer.parseInt(args[1]);
+			pos = args[2];
+		} else if (args.length == 2) {
+			// is a prolog term
+			num = 0;
+			pos = args[1];
+		}
 	}
 	public myWord() {
 		name = null;
-		num = -1;
+		num = 0;
 		pos = null;
 	}
 	
@@ -78,7 +84,11 @@ public class myWord {
 	}
 	
 	public String toString() {
-		String str = String.format("%s_%s_%s", name, num, pos);
+		String str;
+		if (num != 0)
+			str = String.format("%s_%s_%s", name, num, pos);
+		else
+			str = String.format("%s_%s", name, pos);
 		return str;
 	}
 	
@@ -89,7 +99,8 @@ public class myWord {
 		new_name = "d" + new_name;
 		}
 		new_name = new_name.replaceAll(" ", "SPACE");
-		String str = String.format("%s_%s_%s", new_name, num, pos);
+		String str = String.format("%s_%s", new_name, pos);
+//		String str = String.format("%s_%s_%s", new_name, num, pos);
 		return str;
 	}
 
@@ -98,7 +109,7 @@ public class myWord {
 	}
 	// to judge if the word is a variable
 	public boolean isVar() {
-		if ((name.equals("X")) && (pos == "var") && (num < 0)) 
+		if ((name.equals("X")) && (pos == "var")) 
 			return true;
 		else return false;
 	}

@@ -194,6 +194,11 @@ public class Formula {
 		}
 		return s;
 	}
+	
+	public String toString() {
+		return this.toPrologStr();
+	}
+	
 //	// substitution
 //	public Formular substitution(myWord[] vars, myWord[] atms) {
 //		// TODO myTerm substitution

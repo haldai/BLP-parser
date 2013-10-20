@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
-
 import jpl.*;
 import Logic.*;
 /**
@@ -30,6 +29,7 @@ public class Eval {
 	int ruleLen;
 	int sentLen;
 	int predLen;
+	Prolog prolog;
 	
 	
 	public Eval(LogicProgram program, Document doc) {
@@ -56,17 +56,18 @@ public class Eval {
 			i++;
 		}
 		buff_preds = null;
-		JPL.init();
+//		JPL.init();
+		prolog = new Prolog(); 
 		// Prolog.dynamic(ALL_PREDICATES)
 		for (Predicate p : doc.getPredList()) {
-			dynamic(p);
+			prolog.dynamic(p);
 		}
 		// Prolog.assertz(ALL_RULES)
 		for (Formula r : rules) {
 			String clause = r.toPrologStr();
 			if (clause.endsWith("."))
 				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
-			assertz(clause);
+			prolog.assertz(clause);
 		}
 	}
 	
@@ -102,7 +103,8 @@ public class Eval {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		// TODO evaluate all terms;
 		for (myTerm term : facts) {
-			assertz(term.toPrologString());
+			prolog.assertz(term.toPrologString());
+//			System.out.println(term.toPrologString());
 		}
 		// TODO get answers
 		for (Predicate pred : Q_Preds) {
@@ -137,61 +139,10 @@ public class Eval {
 //			re.add(new myTerm(answer));
 		}
 		for (myTerm term : facts) {
-			retract(term.toPrologString());
+			prolog.retract(term.toPrologString());
 		}
 		return re;
 	}
 	
-	private void assertz(String t) {
-		String clause;
-		clause = String.format("assertz(%s).", t);
-//		System.out.println(clause);
-		Query q = new Query(clause);
-		try {
-			q.hasSolution();
-		} catch (PrologException e) {
-			System.out.println("Prolog Assertion Failed!!!");
-			System.out.println("ERROR LOG: " + clause);
-			System.out.println(e.getMessage());
-		}
-	}
-	
-	private void retract(String t) {
-		String clause;
-		clause = String.format("retract(%s).", t);
-		Query q = new Query(clause);
-		try {
-			q.hasSolution();
-		} catch (PrologException e) {
-			System.out.println("Prolog Assertion Failed!!!");
-			System.out.println("ERROR LOG: " + clause);
-			System.out.println(e.getMessage());
-		}
-	}
-	
-	private void retractAll(String t) {
-		String clause;
-		clause = String.format("retractall(%s).", t);
-		Query q = new Query(clause);
-		try {
-			q.hasSolution();
-		} catch (PrologException e) {
-			System.out.println("Prolog Assertion Failed!!!");
-			System.out.println("ERROR LOG: " + clause);
-			System.out.println(e.getMessage());
-		}
-	}
-	
-	private void dynamic(Predicate p) {
-		String clause;
-		clause = String.format("dynamic(%s/%d)", p.getName(), p.getArity());
-		Query q = new Query(clause);
-		try {
-			q.hasSolution();
-		} catch (PrologException e) {
-			System.out.println("Prolog Assertion Failed!!!");
-			System.out.println("ERROR LOG: " + clause);
-			System.out.println(e.getMessage());
-		} 
-	}
+
 }

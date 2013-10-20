@@ -25,7 +25,9 @@ public class tmptest {
         Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var).");
         LogicProgram p = new LogicProgram();
         p.addRule(f);
-        f = new Formula("sem(X_1_var,X_2_var):-att(X_1_var,X_2_var);\\=(X_2_var,'的_4_u').");
+        f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
+//        f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var).");
+        // TODO in prolog, the value of myWord position is not important, can be removed ?
         p.addRule(f);
         Eval eval = new Eval(p, doc);
         ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
