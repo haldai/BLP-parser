@@ -32,7 +32,7 @@ public class Eval {
 	Prolog prolog;
 	
 	
-	public Eval(LogicProgram program, Document doc) {
+	public Eval(Prolog plg, LogicProgram program, Document doc) {
 		// Start prolog engine initialization
 		rules = program.getRules();
 		sentences = doc.getSentences();
@@ -57,7 +57,7 @@ public class Eval {
 		}
 		buff_preds = null;
 //		JPL.init();
-		prolog = new Prolog(); 
+		prolog = plg; 
 		// Prolog.dynamic(ALL_PREDICATES)
 		for (Predicate p : doc.getPredList()) {
 			prolog.dynamic(p);

@@ -15,10 +15,9 @@ import Logic.Predicate;
 public class Prolog {
 
 	/**
-	 * 
+	 * a prolog instance and different kinds of predicates.
 	 */
 	public Prolog() {
-		// TODO Auto-generated constructor stub
 		JPL.init();
 	}
 	
@@ -75,5 +74,44 @@ public class Prolog {
 			System.out.println(e.getMessage());
 		} 
 	}
-
+	
+	public void equalTerm(String s1, String s2) {
+		String clause;
+		clause = String.format("\\==(%s,%s)", s1, s2);
+		Query q = new Query(clause);
+		try {
+			q.hasSolution();
+		} catch (PrologException e) {
+			System.out.println("Prolog Assertion Failed!!!");
+			System.out.println("ERROR LOG: " + clause);
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void unifyTerm(String s1, String s2) {
+		String clause;
+		clause = String.format("\\=(%s,%s)", s1, s2);
+		Query q = new Query(clause);
+		try {
+			q.hasSolution();
+		} catch (PrologException e) {
+			System.out.println("Prolog Assertion Failed!!!");
+			System.out.println("ERROR LOG: " + clause);
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void not(String s) {
+		String clause;
+		clause = String.format(" \\+(%s)", s);
+		Query q = new Query(clause);
+		try {
+			q.hasSolution();
+		} catch (PrologException e) {
+			System.out.println("Prolog Assertion Failed!!!");
+			System.out.println("ERROR LOG: " + clause);
+			System.out.println(e.getMessage());
+		}
+	}
+	
 }

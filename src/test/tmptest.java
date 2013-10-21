@@ -7,8 +7,7 @@ import Logic.*;
 import ILP.*;
 
 public class tmptest {
-
-
+	static Prolog prolog;
 	public static void main(String[] args) {
 		Document doc = new Document("data/questions/questions.pred", 
 				"data/questions/test/query_v2.dep.bak", false);
@@ -16,31 +15,35 @@ public class tmptest {
 		for (int i = 0; i < doc.length(); i++) {
 			System.out.println(doc.getSent(i).toString());
 		}
-		testEvaluation(doc);
+		
+		prolog = new Prolog();
+		testEvaluation(doc, prolog);
 //		testPathFind(doc);
 	}
 	
-	public static void testEvaluation(Document doc) {
+	public static void testEvaluation(Document doc, Prolog prolog) {
 		
         Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var).");
         LogicProgram p = new LogicProgram();
         p.addRule(f);
         f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
-//        f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var).");
         // TODO in prolog, the value of myWord position is not important, can be removed ?
         p.addRule(f);
-        Eval eval = new Eval(p, doc);
+        Eval eval = new Eval(prolog, p, doc);
         ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
+        int cnt = 0;
         for (LinkedList<myTerm> l : sems) {
         	if (l == null) 
         		continue;
         	else {
         		for (myTerm t : l) {
+        			cnt++;
         			System.out.println(t.toString());
         		}
         		System.out.println("==============");
         	}
         }
+        System.out.println("num of semantics: " + cnt);
 	}
 	
 	public static void testPathFind(Document doc) {	    
