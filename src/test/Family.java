@@ -29,11 +29,15 @@ public class Family
 								new Atom("steve")
 						});
 		String assertz = "assertz";
-		new Query("assertz(child_of(joe, ralf)).").hasSolution();
+		new Query("dynamic(good/2).").hasSolution();
+		new Query("dynamic(bad/2).").hasSolution();
+		// 如果在规则中有新谓词，jpl必须先声明dynamic，为防万一最好进行
+		new Query("assertz(child_of(joe, 老大)).").hasSolution();
 		new Query("assertz(child_of(mary, joe)).").hasSolution();
 		new Query("assertz(child_of(steve, joe)).").hasSolution();
 		new Query("assertz(descendent_of(X, Y):-child_of(X, Y)).").hasSolution();
-		new Query("assert((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
+		new Query("assertz((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
+		new Query("assertz((descendent_of(X, Y):-good(Z, Y),bad(X, Z))).").hasSolution();
 		new Query("retract((descendent_of(X, Y):-child_of(Z, Y),descendent_of(X, Z))).").hasSolution();
 		Query q0 = new Query(
 				assertz,
@@ -41,22 +45,22 @@ public class Family
 		if (q0.hasSolution()) {
 			System.out.println("assertion of 'assertz(child_of(tom, steve)).' complete");
 		}
-		
-		String t2 = "child_of(joe, ralf)";
+
+		String t2 = "child_of(joe, 老大)";
 		Query q2 = new Query(t2);
 
 		System.out.println( t2 + " is " + (q2.hasSolution() ? "provable" : "not provable") );
 
 		//--------------------------------------------------
 
-		String t3 = "descendent_of(steve, ralf)";
+		String t3 = "descendent_of(steve, 老大)";
 		Query q3 = new Query(t3);
 
 		System.out.println( t3 + " is " +(q3.hasSolution() ? "provable" : "not provable") );
 
 		//--------------------------------------------------
 
-		String t4 = "descendent_of(X, ralf)";
+		String t4 = "descendent_of(X, 老大)";
 		Query q4 = new Query(t4);
 
 		System.out.println( "first solution of " + t4 + ": X = " + q4.oneSolution().get("X"));
@@ -80,13 +84,13 @@ public class Family
 
 		//--------------------------------------------------
 
-		String t5 = "descendent_of(X,Y)";
+		String t5 = "descendent_of(G,F)";
 		Query q5 = new Query(t5);
 
 		System.out.println( "each solution of " + t5 );
 		while ( q5.hasMoreSolutions() ){
 			java.util.Hashtable s5 = q5.nextSolution();
-			System.out.println( "X = " + s5.get("X") + ", Y = " + s5.get("Y"));
+			System.out.println( "G = " + s5.get("G").toString() + ", F = " + s5.get("F").toString());
 		}
 
 
