@@ -23,7 +23,7 @@ public class tmptest {
 	
 	public static void testEvaluation(Document doc, Prolog prolog) {
 		
-        Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var).");
+        Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
         LogicProgram p = new LogicProgram();
         p.addRule(f);
         f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)

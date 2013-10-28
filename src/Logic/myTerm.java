@@ -23,6 +23,7 @@ public class myTerm {
 	Predicate pred;
 	myWord[] args;
 	double weight;
+	boolean positive = true;
 	
 	public myTerm(String n, myWord[] words, double w) {
 		pred = new Predicate(n, words.length);
@@ -47,7 +48,11 @@ public class myTerm {
 		args = words;
 		weight = 0.0;
 	}
-	// another realization of directly reading string into myWord and Predicate
+	/**
+	 * another realization of directly reading string into myWord and Predicate
+	 * @param s: string to be parsed
+	 * @param w: weight
+	 */
 	public myTerm(String s, double w) {
 		// find arguments
 		Pattern p = Pattern.compile("\\(.*?\\)");
@@ -137,7 +142,12 @@ public class myTerm {
 		return args[i];
 	}
 	
-	// term substitution
+	/**
+	 * term substitution
+	 * @param vars: to be substituted
+	 * @param atms: to substitute
+	 * @return substituted term
+	 */
 	public myTerm substitution(myWord[] vars, myWord[] atms) {
 		myWord[] a = this.args;
 		List<myWord> varList = Arrays.asList(vars);
@@ -168,5 +178,16 @@ public class myTerm {
 	
 	public double getWeight() {
 		return weight;
+	}
+	/**
+	 * set this term as a positive or a negative term
+	 * @param b
+	 */
+	public void setPositive(boolean b) {
+		positive = b;
+	}
+	
+	public boolean getPositive() {
+		return positive;
 	}
 }

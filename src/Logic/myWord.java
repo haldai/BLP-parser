@@ -63,6 +63,10 @@ public class myWord {
 			// is a prolog term
 			num = 0;
 			pos = args[1];
+		} else if (args.length == 1) {
+			// is a single word
+			num = 0;
+			pos = "null";
 		}
 	}
 	public myWord() {
