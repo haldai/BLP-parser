@@ -72,7 +72,7 @@ public class RuleTree {
 	 */
 	public TreeNode buildTree(ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
 		TreeNode node = new TreeNode();
-		// TODO if no coverage, no different classes, return node as a label
+		// TODO if no coverage, no different clvbasses, return node as a label
 		// TODO else split current node
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); // get available terms to add
 		// TODO use ILP coverage
