@@ -91,18 +91,29 @@ if label != 'dummy':
                 word = tmp_wrds[j]
                 if not word in tmp_list:
                     tmp_list.append(word)
+                    print word
         print len(tmp_list)
         tmp_sub_list = []
         for i in range(len(tmp_list)):
             for j in range(len(l)):
-                if l[j].find(tmp_list[i]) != -1:
+                if l[j].split('_')[0] == tmp_list[i]:
                     tmp_sub_list.append(l[j])
+                    print l[j]
                     break
         print len(tmp_sub_list)
-        for i in range(len(tmp_list)):
-            print tmp_sub_list[i], tmp_list[i]
-            line = line.replace(tmp_list[i], tmp_sub_list[i])
-        fout.write('%s:-%s.\n' % (line, dep_list[cnt]))
+        new_label = ''
+        for i in range(len(terms)):
+            term = terms[i]
+            new_term = ''
+            tmp_str = term[1:-1]
+            tmp_wrds = tmp_str.split(',')
+            for j in range(len(tmp_wrds)):
+                word = tmp_wrds[j]
+                pos = tmp_list.index(word)
+                new_term = new_term + tmp_sub_list[pos] + ','
+            new_term = '(' + new_term[0:-1] + ')'
+            new_label = new_label + new_term + ';'
+        fout.write('%s:-%s.\n' % (new_label[0:-1], dep_list[cnt]))
         cnt = cnt+1
     flabel.close()
 else:
