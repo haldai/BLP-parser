@@ -56,12 +56,17 @@ public class Document {
 			line = fsent[i];
 			buff_line = line.split("\\:-");
 //			System.out.println(buff_line[0]);
+			LinkedList<myTerm> tmp_label_list = new LinkedList<myTerm>(); // current sentence
 			if (train) {
 				// training data, split the labels
-				String[] buff_label = buff_line[0].split("\\,");
+				String[] buff_label = buff_line[0].split("\\;");
 				for (int j = 0; j < buff_label.length; j++) {
-					buff_label_list.get(i).add(new myTerm(buff_label[j]));
+					String tmp_label = buff_label[j];
+					if (tmp_label.indexOf('(') == 0)
+						tmp_label = "sem" + tmp_label;
+					tmp_label_list.add(new myTerm(tmp_label));
 				}
+				buff_label_list.add(tmp_label_list);
 				// parse sentences
 			}
 			buff_sentList[i] = new Sentence(buff_line[buff_line.length - 1]);

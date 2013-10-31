@@ -71,8 +71,8 @@ public class Sentence {
 		}
 		
 		for (int i = 0; i < wd.size(); i++ ) {
-			System.out.println(wd.get(i));
-			System.out.println(l.get(i+1) - 1);
+//			System.out.println(wd.get(i));
+//			System.out.println(l.get(i+1) - 1);
 			buff_words[l.get(i + 1) - 1] = wd.get(i);
 		}
 		

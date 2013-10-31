@@ -10,10 +10,11 @@ public class tmptest {
 	static Prolog prolog;
 	public static void main(String[] args) {
 		Document doc = new Document("data/questions/questions.pred", 
-				"data/test_new/test.dep", false);
+				"data/test_new/test.dep", true);
 		
 		for (int i = 0; i < doc.length(); i++) {
 			System.out.println(doc.getSent(i).toString());
+			System.out.println(doc.getLabel(i).toString());
 		}
 		
 		prolog = new Prolog();
@@ -48,6 +49,7 @@ public class tmptest {
 	
 	public static void testPathFind(Document doc) {	    
 		Sentence[] sentences = doc.getSentences();
+		int cnt = 0;
         for (Sentence sent : sentences) {
         	HyperGraph graph = new HyperGraph();
         	myTerm[] terms = sent.getTerms();
@@ -59,9 +61,17 @@ public class tmptest {
         	for (myTerm term : terms) {
         		graph.addHyperEdge(term);
         	}
-        	HyperPathFind pf = new HyperPathFind(graph, graph.getVertex(0), graph.getVertex(graph.getVertexLen() - 1));
-        	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
-        	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+        	
+        	for (myTerm label : doc.getLabel(cnt)) {
+        		HyperVertex start = new HyperVertex(label.getArg(0));
+        		HyperVertex end = new HyperVertex(label.getArg(1));
+        		HyperPathFind pf = new HyperPathFind(graph, start, end);
+        		LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+            	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+        	}
+        	cnt++;
+        	
+        	
 //        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
 //        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
 //        		System.out.println("ERROR!!");
