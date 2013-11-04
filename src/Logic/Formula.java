@@ -183,7 +183,7 @@ public class Formula {
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 2);
-			s = s + "):-";
+			s = s + "):- ";
 		}
 		for (int i = 0; i < tail.length; i++) {
 			s = s + tail[i].toString() + ',';

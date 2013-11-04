@@ -132,7 +132,7 @@ public class HyperPathFind {
             }
             if (edge.containsVertex(end)) {
             	visitedEdges.add(edge);
-        		printPath(visitedEdges);
+//        		printPath(visitedEdges);
         		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		break;
@@ -151,25 +151,25 @@ public class HyperPathFind {
 
     private void printPath(LinkedList<HyperEdge> visitedEdges) {
     	debug++;
-        for (HyperEdge edge : visitedEdges) {
-            System.out.print(edge.toString());
-            System.out.print(" ");
+    	for (HyperEdge edge : visitedEdges) {
+    		System.out.print(edge.toString());
+			System.out.print(" ");
         }
-        System.out.println(debug);
-        if (debug >= 2) {
-        	System.out.println("Multi Paths in Tree!!!");
-        	System.exit(0);
-        }
+    	System.out.println(debug);
+    	if (debug >= 2) {
+    		System.out.println("Multi Paths in Tree!!!");
+    		System.exit(0);
+    	}
     }
     
     private LinkedList<myTerm> returnPath(LinkedList<HyperEdge> visitedEdges) {
     	LinkedList<myTerm> re = new LinkedList<myTerm>();
-        for (HyperEdge edge : visitedEdges) {
+    	for (HyperEdge edge : visitedEdges) {
         	re.add(edge.toMyTerm());
         }
-        if (re.size() > 0)
-        	return re;
-        else
-        	return null;
+    	if (re.size() > 0)
+			return re;
+    	else
+    		return null;
     }
 }

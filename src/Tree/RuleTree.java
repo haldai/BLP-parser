@@ -4,6 +4,8 @@
 package Tree;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 
 import Logic.*;
 /**
@@ -27,17 +29,20 @@ public class RuleTree {
 	
 	TreeNode root; // tree root - the first splitting node;
 	myTerm head; // logical term - head:-body., must have variable
+	LinkedList<String> rules;
 	private int maxHeight;
 	
 	public RuleTree() {
 		root = new TreeNode();
 		head = new myTerm();
+		rules = new LinkedList<String>();
 	}
 	
 	public RuleTree(myTerm h) {
 		root = new TreeNode();
 		root.setFather(null);
 		root.setHierarchy(1);
+		rules = new LinkedList<String>();
 		head = h;
 	}
 	
@@ -65,17 +70,39 @@ public class RuleTree {
 		maxHeight = h;
 	}
 	
+	public LinkedList<String> getPrologRules() {
+		return rules;
+	}
 	/**
-	 * main procedure for building a rule tree
+	 * build a tree from one path
+	 * @param doc: training instances in document
+	 * @param path: path of available terms for split
+	 */
+	public void buildTree(Document doc, LinkedList<myTerm> path) {
+		ArrayList<Sentence> data = new ArrayList<Sentence>(Arrays.asList(doc.getSentences()));
+		LinkedList<myTerm> cand  = path;
+		ArrayList<myTerm> features = new ArrayList<myTerm>();
+		// substitution and get more features (temporarily only use words themselves)
+		
+		create(data, features);
+	}
+	
+	/**
+	 * main procedure for creating a tree node
 	 * @data is the data for training a tree
 	 * @candidateTerms are the candidate terms for a tree 
 	 */
-	public TreeNode buildTree(ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
+	public TreeNode create(ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
 		TreeNode node = new TreeNode();
-		// TODO if no coverage, no different clvbasses, return node as a label
+		// TODO return
 		// TODO else split current node
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); // get available terms to add
 		// TODO use ILP coverage
+		double maxP = 0.0, minN = 0.0; // covered positive & covered negative
+		
+		for (myTerm t : availTerms) {
+			
+		}
 		
 		return node;
 	}
@@ -89,7 +116,7 @@ public class RuleTree {
 		// TODO debug
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		ArrayList<String> appVars = new ArrayList<String>();
-		ArrayList<myTerm> historyTerms = node.getHistoryNodes();
+		ArrayList<myTerm> historyTerms = node.getAncestorNodes();
 		for (myTerm t : historyTerms) {
 			for (myWord w : t.getArgs()) {
 				if ((w.isVar()) && !appVars.contains(w.toPrologString())) {
@@ -110,4 +137,64 @@ public class RuleTree {
 		}
 		return re;
 	}
+	/**
+	 * get Prolog rule string from current tree
+	 * @return string as prolog rule
+	 */
+	public void toPrologRules() {
+		rules = null;
+		LinkedList<myTerm> re = new LinkedList<myTerm>();
+		visit(root, re);
+	}
+	/**
+	 * visit current node and trace the prolog rule until meet leaf node
+	 * @param current: current node to be visited
+	 * @param visited: visited terms
+	 */
+	private void visit(TreeNode current, LinkedList<myTerm> visited) {
+		if (current.isLeaf()) {
+			for (myTerm t : current.toTerms()) {
+				t.setPositive();
+				visited.add(t);
+			}
+			rules.add(returnPrologRule(visited));
+			for (myTerm t : current.toTerms()) {
+				visited.removeLast();
+			}
+
+		} else {
+			// visit True child, push positive current node terms
+			for (myTerm t : current.toTerms()) {
+				t.setPositive();
+				visited.add(t);
+			}
+			visit(current.getTrueChild(), visited);
+			for (myTerm t : current.toTerms()) {
+				visited.removeLast();
+			}
+
+			// visit False child, push negative current node terms
+			for (myTerm t : current.toTerms()) {
+				t.setNegative();
+				visited.add(t);
+			}
+			visit(current.getFalseChild(), visited);
+			for (myTerm t : current.toTerms()) {
+				visited.removeLast();
+			}
+		}
+	}
+	/**
+	 * return a prolog rule from visited terms stack
+	 * @param visited: stack for visited terms
+	 * @return
+	 */
+	private String returnPrologRule(LinkedList<myTerm> visited) {
+		String re_rule = "";
+		for (myTerm t : visited) {
+			re_rule = re_rule + t.toPrologString();
+		}
+		return re_rule;
+	}
+	
 }

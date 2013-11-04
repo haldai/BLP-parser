@@ -31,7 +31,12 @@ public class Eval {
 	int predLen;
 	Prolog prolog;
 	
-	
+	/**
+	 * initialize an evaluation
+	 * @param plg: swi-prolog instance
+	 * @param program: logic rules
+	 * @param doc: document to be evaluated
+	 */
 	public Eval(Prolog plg, LogicProgram program, Document doc) {
 		// Start prolog engine initialization
 		rules = program.getRules();
@@ -80,7 +85,10 @@ public class Eval {
 		predLen = 0;
 		JPL.init();
 	}
-	
+	/**
+	 * evaluate all sentenecs in documents
+	 * @return
+	 */
 	public ArrayList<LinkedList<myTerm>> evalAll() {
 		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sentLen);
 		// Start evaluation sentences
@@ -91,14 +99,22 @@ public class Eval {
 		}
 		return re;
 	}
-
+	/**
+	 * evaluate a sentence
+	 * @param i: the i-th sentence
+	 * @return: deduced answer
+	 */
 	public LinkedList<myTerm> evalSent(int i) {
 		// evaluate the i-th sentence
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		re = eval(sentences[i].getTerms()); 
 		return re;
 	}
-	
+	/**
+	 * evaluate current rules in facts
+	 * @param facts: facts of background knowledge
+	 * @return: linked list of true groundings deduced from facts and current rules
+	 */
 	public LinkedList<myTerm> eval(myTerm[] facts) {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		// TODO evaluate all terms;

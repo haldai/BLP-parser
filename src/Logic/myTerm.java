@@ -23,7 +23,7 @@ public class myTerm {
 	Predicate pred;
 	myWord[] args;
 	double weight;
-	boolean positive = true;
+	boolean isPositive = true;
 	
 	public myTerm(String n, myWord[] words, double w) {
 		pred = new Predicate(n, words.length);
@@ -115,7 +115,10 @@ public class myTerm {
 	}
 	
 	public String toString() {
-		String s = String.format("%s(", pred.getName());
+		String pos = "";
+		if (!this.isPositive())
+			pos = "not_"; 
+		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toString() + ",";
 		}
@@ -125,7 +128,10 @@ public class myTerm {
 	}
 	
 	public String toPrologString() {
-		String s = String.format("%s(", pred.getName());
+		String pos = "";
+		if (!this.isPositive())
+			pos = "\\+"; 
+		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toPrologString() + ",";
 		}
@@ -180,14 +186,19 @@ public class myTerm {
 		return weight;
 	}
 	/**
-	 * set this term as a positive or a negative term
-	 * @param b
+	 * set this term as a positive term
 	 */
-	public void setPositive(boolean b) {
-		positive = b;
+	public void setPositive() {
+		isPositive = true;
+	}
+	/**
+	 * set this term to negative
+	 */
+	public void setNegative() {
+		isPositive = false;
 	}
 	
-	public boolean getPositive() {
-		return positive;
+	public boolean isPositive() {
+		return isPositive;
 	}
 }
