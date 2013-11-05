@@ -40,7 +40,7 @@ public class Substitute {
 			for (myWord w : t.getArgs()) {
 				if (!word_list.contains(w)) {
 					word_list.add(w);
-					myWord tmp_var = new myWord(String.format("X_%d_var", cnt));
+					myWord tmp_var = new myWord(String.format("X_%d", cnt));
 					var_list.add(tmp_var);
 					tmp_args.add(var_list.get(cnt - 1));
 					cnt++;

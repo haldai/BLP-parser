@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import Logic.*;
 import ILP.*;
+import Tree.*;
 
 public class tmptest {
 	static Prolog prolog;
@@ -18,8 +19,9 @@ public class tmptest {
 		}
 		
 		prolog = new Prolog();
-		testEvaluation(doc, prolog);
-		testPathFind(doc);
+//		testEvaluation(doc, prolog);
+//		testPathFind(doc);
+		testRuleTree(doc, prolog);
 	}
 	
 	public static void testEvaluation(Document doc, Prolog prolog) {
@@ -27,7 +29,7 @@ public class tmptest {
         Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
         LogicProgram p = new LogicProgram();
         p.addRule(f);
-        f = new Formula("sem(X_2_var,X_1_var):- \\+att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
+        f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
         // TODO in prolog, the value of myWord position is not important, can be removed ?
         p.addRule(f);
         Eval eval = new Eval(prolog, p, doc);
@@ -47,52 +49,72 @@ public class tmptest {
         System.out.println("num of semantics: " + cnt);
 	}
 	
+	private static ArrayList<LinkedList<myTerm>> findPath(myTerm label, Sentence sent) {
+		HyperGraph graph = new HyperGraph();
+		myTerm[] terms = sent.getTerms();
+		myWord[] words = sent.getWords();
+		for (myWord word : words) {
+			graph.addHyperVertex(word);
+		}
+		
+		for (myTerm term : terms) {
+			graph.addHyperEdge(term);
+		}
+		
+		HyperVertex start = new HyperVertex(label.getArg(0));
+		HyperVertex end = new HyperVertex(label.getArg(1));
+		HyperPathFind pf = new HyperPathFind(graph, start, end);
+		LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+		pf.Search(visitedEdges);
+		
+		return pf.getPaths();
+	}
+	
 	public static void testPathFind(Document doc) {	    
 		Sentence[] sentences = doc.getSentences();
 		int cnt = 0;
-        for (Sentence sent : sentences) {
-        	HyperGraph graph = new HyperGraph();
-        	myTerm[] terms = sent.getTerms();
-        	myWord[] words = sent.getWords();
-        	for (myWord word : words) {
-        		graph.addHyperVertex(word);
-        	}
-
-        	for (myTerm term : terms) {
-        		graph.addHyperEdge(term);
-        	}
-        	
-        	for (myTerm label : doc.getLabel(cnt)) {
-        		HyperVertex start = new HyperVertex(label.getArg(0));
-        		HyperVertex end = new HyperVertex(label.getArg(1));
-        		HyperPathFind pf = new HyperPathFind(graph, start, end);
-        		LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
-        		pf.Search(visitedEdges);
-//            	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+       for (Sentence sent : sentences) {
+    	   HyperGraph graph = new HyperGraph();
+    	   myTerm[] terms = sent.getTerms();
+    	   myWord[] words = sent.getWords();
+    	   for (myWord word : words) {
+    		   graph.addHyperVertex(word);
+    	   }
+    	   
+    	   for (myTerm term : terms) {
+    		   graph.addHyperEdge(term);
+    	   }
+    	   
+    	   for (myTerm label : doc.getLabel(cnt)) {
+    		   HyperVertex start = new HyperVertex(label.getArg(0));
+    		   HyperVertex end = new HyperVertex(label.getArg(1));
+    		   HyperPathFind pf = new HyperPathFind(graph, start, end);
+    		   LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+    		   pf.Search(visitedEdges);
+//           	 	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
         		// test substitution
-        		for (LinkedList<myTerm> path : pf.getPaths()) {
-        			Substitute sub = new Substitute(new ArrayList<myTerm>(path));
-        			for (myWord w : sub.getWordList()) {
-        				System.out.print(String.format("%s ", w.toString()));
-        			}
-        			System.out.println();
-        			for (myWord w : sub.getVarList()) {
-        				System.out.print(String.format("%s ", w.toString()));
-        			}
-        			System.out.println();
-        			for (myTerm t : sub.getOriginTerms()) {
-        				System.out.print(String.format("%s ", t.toString()));
-        			}
-        			System.out.println();
-        			for (myTerm t : sub.getSubTerms()) {
-        				System.out.print(String.format("%s ", t.toString()));
-        			}
-        			System.out.println();
-        		}
-        	}
-        	cnt++;
-        	
-        	
+    		   for (LinkedList<myTerm> path : pf.getPaths()) {
+    			   Substitute sub = new Substitute(new ArrayList<myTerm>(path));
+    			   for (myWord w : sub.getWordList()) {
+    				   System.out.print(String.format("%s ", w.toString()));
+    			   }
+    			   System.out.println();
+    			   for (myWord w : sub.getVarList()) {
+    				   System.out.print(String.format("%s ", w.toString()));
+    			   }
+    			   System.out.println();
+    			   for (myTerm t : sub.getOriginTerms()) {
+    				   System.out.print(String.format("%s ", t.toString()));
+    			   }
+    			   System.out.println();
+    			   for (myTerm t : sub.getSubTerms()) {
+    				   System.out.print(String.format("%s ", t.toString()));
+    			   }
+    			   System.out.println();
+    		   }
+    	   }
+    	   cnt++;
+          	
 //        	System.out.format("edge len %d, vertex len %d\n", graph.getEdgeLen(), graph.getVertexLen());
 //        	if (graph.getEdgeLen() - graph.getVertexLen() != -1)
 //        		System.out.println("ERROR!!");
@@ -104,5 +126,20 @@ public class tmptest {
 //        	}
         	graph = null;
         }
+	}
+	public static void testRuleTree(Document doc, Prolog prolog) {
+
+		// find all paths;
+		for (int i = 0; i < doc.length(); i++) {
+			ArrayList<myTerm> labels = doc.getLabel(i);
+			Sentence sent = doc.getSent(i);
+			for (myTerm label : labels) {
+				ArrayList<LinkedList<myTerm>> paths = findPath(label, sent);
+				for (LinkedList<myTerm> path : paths) {
+					RuleTree tree = new RuleTree(prolog);
+					tree.buildTree(doc, label, path);
+				}
+			}
+		}
 	}
 }

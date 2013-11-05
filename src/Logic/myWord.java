@@ -99,7 +99,7 @@ public class myWord {
 	public String toPrologString() {
 		char c = name.charAt(0);
 		String new_name = name;
-		if (Character.isDigit(c) || (Character.isUpperCase(c)) || Character.isSpace(c)) {
+		if (Character.isDigit(c) || Character.isSpace(c)) {
 		new_name = "d" + new_name;
 		}
 		new_name = new_name.replaceAll(" ", "SPACE");

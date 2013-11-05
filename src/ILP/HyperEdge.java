@@ -3,6 +3,8 @@
  */
 package ILP;
 
+import java.util.ArrayList;
+
 import Logic.myTerm;
 import Logic.myWord;
 
@@ -104,9 +106,9 @@ public class HyperEdge {
 	}
 	
 	public myTerm toMyTerm() {
-		myWord[] words = new myWord[this.vertexLen];
+		ArrayList<myWord> words = new ArrayList<myWord>(this.vertexLen);
 		for (int i = 0; i < this.vertexLen; i++) {
-			words[i] = new myWord(this.vertices[i].name);
+			words.add(new myWord(this.vertices[i].name));
 		}
 		return new myTerm(name, words);
 	}

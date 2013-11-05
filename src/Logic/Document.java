@@ -25,17 +25,17 @@ public class Document {
 	             // training data has labels, while testing data does not.
 	int length;
 	Sentence[] sentList;
-	ArrayList<LinkedList<myTerm>> labelList;
+	ArrayList<ArrayList<myTerm>> labelList;
 	Predicate[] predList;
 	// reading path of predicate file and sentence file.
 	public Document(String path_pred, String path_sent, boolean train) {
 		// read file		
 		String[] fpred = readFileByLines(path_pred);
-		System.out.println(fpred.length);
+		System.out.println("Predicate number: " + fpred.length);
 		String[] fsent = readFileByLines(path_sent);
 //		for (int i = 0; i < fsent.length; i++)
 //			System.out.println(fsent[i]);
-		System.out.println(fsent.length);
+		System.out.println("Sentence number:" + fsent.length);
 		length = fsent.length;
 		// parse into sentences(train or test).
 		// predicates
@@ -49,14 +49,14 @@ public class Document {
 		// sentences
 		Sentence[] buff_sentList = new Sentence[fsent.length];
 //		myTerm[][] myTerm[fsent.length][MAX_LABEL_LEN];
-		ArrayList<LinkedList<myTerm>>buff_label_list = new ArrayList<LinkedList<myTerm>>();
+		ArrayList<ArrayList<myTerm>>buff_label_list = new ArrayList<ArrayList<myTerm>>();
 		String line = null;
 		String[] buff_line = new String[2];
 		for (int i = 0; i < fsent.length; i++) {
 			line = fsent[i];
 			buff_line = line.split("\\:-");
 //			System.out.println(buff_line[0]);
-			LinkedList<myTerm> tmp_label_list = new LinkedList<myTerm>(); // current sentence
+			ArrayList<myTerm> tmp_label_list = new ArrayList<myTerm>(); // current sentence
 			if (train) {
 				// training data, split the labels
 				String[] buff_label = buff_line[0].split("\\;");
@@ -126,8 +126,12 @@ public class Document {
 		return sentList[num];
 	}
 	
-	public LinkedList<myTerm> getLabel(int num) {
+	public ArrayList<myTerm> getLabel(int num) {
 		return labelList.get(num);
+	}
+	
+	public ArrayList<ArrayList<myTerm>> getLabels() {
+		return labelList;
 	}
 	
 	public Predicate[] getPredList() {

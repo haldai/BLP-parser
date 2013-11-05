@@ -22,63 +22,27 @@ public class myTerm {
 	 */
 	Predicate pred;
 	myWord[] args;
-	double weight;
+	double weight = 0.0;
 	boolean isPositive = true;
 	
-	public myTerm(String n, myWord[] words, double w) {
-		pred = new Predicate(n, words.length);
-		args = words;
-		weight = w;
-	}
-	
-	public myTerm(String n, myWord[] words) {
-		pred = new Predicate(n, words.length);
-		args = words;
-		weight = 0.0;
-	}
-	
-	public myTerm(Predicate p, myWord[] words, double w) {
-		pred = p;
-		args = words;
-		weight = w;
+	public myTerm(String n, ArrayList<myWord> words) {
+		pred = new Predicate(n, words.size());
+		args = words.toArray(new myWord[words.size()]);
 	}
 	
 	public myTerm(Predicate p, myWord[] words) {
 		pred = p;
 		args = words;
-		weight = 0.0;
+	}
+	
+	public myTerm(Predicate p, ArrayList<myWord> words) {
+		pred = p;
+		args = words.toArray(new myWord[words.size()]);
 	}
 	/**
 	 * another realization of directly reading string into myWord and Predicate
 	 * @param s: string to be parsed
-	 * @param w: weight
 	 */
-	public myTerm(String s, double w) {
-		// find arguments
-		Pattern p = Pattern.compile("\\(.*?\\)");
-		Matcher m = p.matcher(s);
-		boolean found = m.find();
-		String[] tmp_args = null;
-		List<myWord> buff_words = new ArrayList<myWord>();
-		if (found) {
-			String tmp_s = m.group();
-			tmp_s = tmp_s.substring(1, tmp_s.lastIndexOf(')'));
-			tmp_args = tmp_s.split("\\,");
-			for (int i = 0; i < tmp_args.length; i++) {
-				buff_words.add(new myWord(tmp_args[i]));
-			}
-			args = new myWord[buff_words.size()];
-			for (int i = 0; i < buff_words.size(); i++) {
-				args[i] = buff_words.get(i);
-			}
-		} else {
-			System.out.println("arguments of " + s + " not found!");
-			System.exit(0);
-		}
-		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
-		weight = w;
-	}
-	
 	public myTerm(String s) {
 		// find arguments
 		Pattern p = Pattern.compile("\\(.*?\\)");
@@ -102,7 +66,6 @@ public class myTerm {
 			System.exit(0);
 		}
 		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
-		weight = 0.0;
 	}
 	
 	public myTerm() {
@@ -117,7 +80,7 @@ public class myTerm {
 	public String toString() {
 		String pos = "";
 		if (!this.isPositive())
-			pos = "not_"; 
+			pos = "not: "; 
 		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toString() + ",";
@@ -130,7 +93,7 @@ public class myTerm {
 	public String toPrologString() {
 		String pos = "";
 		if (!this.isPositive())
-			pos = "\\+"; 
+			pos = "\\+ "; 
 		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toPrologString() + ",";

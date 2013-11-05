@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import ILP.Prolog;
 import Logic.*;
 /**
  * @author Wang-Zhou
@@ -29,23 +30,16 @@ public class RuleTree {
 	
 	TreeNode root; // tree root - the first splitting node;
 	myTerm head; // logical term - head:-body., must have variable
-	LinkedList<String> rules;
+	LinkedList<String> rules = new LinkedList<String>();
+	Prolog prolog;
 	private int maxHeight;
 	
-	public RuleTree() {
-		root = new TreeNode();
-		head = new myTerm();
-		rules = new LinkedList<String>();
+	public RuleTree(Prolog p) {
+		root = null;
+		head = null;
+		prolog = p;
 	}
-	
-	public RuleTree(myTerm h) {
-		root = new TreeNode();
-		root.setFather(null);
-		root.setHierarchy(1);
-		rules = new LinkedList<String>();
-		head = h;
-	}
-	
+		
 	public myTerm getHead() {
 		return head;
 	}
@@ -78,21 +72,40 @@ public class RuleTree {
 	 * @param doc: training instances in document
 	 * @param path: path of available terms for split
 	 */
-	public void buildTree(Document doc, LinkedList<myTerm> path) {
-		ArrayList<Sentence> data = new ArrayList<Sentence>(Arrays.asList(doc.getSentences()));
-		LinkedList<myTerm> cand  = path;
-		ArrayList<myTerm> features = new ArrayList<myTerm>();
+	public void buildTree(Document doc, myTerm head, LinkedList<myTerm> path) {
+		ArrayList<Sentence> data = new ArrayList<Sentence>(Arrays.asList(doc.getSentences())); // data
+		ArrayList<ArrayList<myTerm>> label = doc.getLabels(); // labels
+		ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
 		// substitution and get more features (temporarily only use words themselves)
-		
-		create(data, features);
+		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
+		all_terms.add(head);
+		all_terms.addAll(path);
+		Substitute subs = new Substitute(all_terms);
+		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
+		ArrayList<myWord> word_list = subs.getWordList();
+		ArrayList<myWord> var_list = subs.getVarList();
+		// set head term
+		this.setHead(all_sub_terms.get(0));
+		all_sub_terms.remove(0);
+		// add path as candidate terms, then build more feature as candidate terms
+		cand.addAll(all_sub_terms);
+		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
+		cand.addAll(feature);
+		System.out.println("candidate terms:");
+		for (myTerm t : cand) {
+			System.out.println(t.toPrologString());
+		}
+		root = create(label, data, cand);
 	}
+
 	
 	/**
 	 * main procedure for creating a tree node
 	 * @data is the data for training a tree
 	 * @candidateTerms are the candidate terms for a tree 
 	 */
-	public TreeNode create(ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
+	
+	public TreeNode create(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
 		TreeNode node = new TreeNode();
 		// TODO return
 		// TODO else split current node
@@ -184,6 +197,7 @@ public class RuleTree {
 			}
 		}
 	}
+	
 	/**
 	 * return a prolog rule from visited terms stack
 	 * @param visited: stack for visited terms
@@ -196,5 +210,29 @@ public class RuleTree {
 		}
 		return re_rule;
 	}
+	
+	/**
+	 * Add feature of each word in path
+	 * @param words: words in path
+	 * @param vars: variables that represent words
+	 * @return: a list of terms as feature
+	 */
+	private ArrayList<myTerm> buildFeature(ArrayList<myWord> words, ArrayList<myWord> vars) {
+		ArrayList<myTerm> re = new ArrayList<myTerm>();
+		if (words.size() == vars.size()) {
+			for (int i = 0; i < words.size(); i++) {
+				myTerm tmp_term = new CommonPredicates().prologEqual(words.get(i), vars.get(i));
+//				myTerm tmp_neg_term = new CommonPredicates().prologEqual(words.get(i), vars.get(i));
+//				tmp_neg_term.setNegative();
+				re.add(tmp_term);
+//				re.add(tmp_neg_term);
+			}
+		} else {
+			System.out.println("Number of words and number of variables does not meet");
+		}
+		return re;
+	}
+	
+	
 
 }
