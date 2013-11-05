@@ -118,10 +118,15 @@ public class myWord {
 		else return false;
 	}
 	
-	public boolean equals(myWord w) {
-		if ((this.name.equals(w.name)) && (this.num == w.num) && (this.pos == w.pos))
-			return true;
-		else
+	public boolean equals(Object o) {
+		if (!(o instanceof myWord))
 			return false;
+		else {
+			myWord w = (myWord) o;
+			if ((this.name.equals(w.getName())) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
+				return true;
+			else
+				return false;
+		}
 	}
 }

@@ -9,13 +9,22 @@ import java.util.ArrayList;
  * @author Wang-Zhou
  *
  */
-public class Substitiute {
+public class Substitute {
 
 	/**
 	 *  Logical substitution for a set of logical myTerms
 	 */
-	public Substitiute() {
+	ArrayList<myTerm> to_be_sub;
+	ArrayList<myTerm> after_sub;
+	ArrayList<myWord> word_list;
+	ArrayList<myWord> var_list;
+	
+	public Substitute(ArrayList<myTerm> term_list) {
 		// TODO Auto-generated constructor stub
+		to_be_sub = term_list;
+		word_list = new ArrayList<myWord>();
+		var_list = new ArrayList<myWord>();
+		after_sub = subsTermList(to_be_sub);
 	}
 	/**
 	 * TODO need to define a new object to return, include substituted, word_list and var_list
@@ -24,19 +33,24 @@ public class Substitiute {
 	 */
 	public ArrayList<myTerm> subsTermList(ArrayList<myTerm> term_list) {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
-		ArrayList<myWord> word_list = new ArrayList<myWord>();
-		ArrayList<myWord> var_list = new ArrayList<myWord>();
+		// get word list and variable list
 		int cnt = 1;
 		for (myTerm t : term_list) {
+			ArrayList<myWord> tmp_args = new ArrayList<myWord>(t.getArgs().length); 
 			for (myWord w : t.getArgs()) {
-				if (word_list.contains(w)) {
+				if (!word_list.contains(w)) {
 					word_list.add(w);
-					var_list.add(new myWord(String.format("X_%d_var", cnt)));
+					myWord tmp_var = new myWord(String.format("X_%d_var", cnt));
+					var_list.add(tmp_var);
+					tmp_args.add(var_list.get(cnt - 1));
 					cnt++;
+				} else {
+					int p = word_list.indexOf(w);
+					tmp_args.add(var_list.get(p));
 				}
 			}
+			re.add(new myTerm(t.getPred(), tmp_args.toArray(new myWord[tmp_args.size()])));
 		}
-		
 		return re;
 	}
 	
@@ -59,5 +73,20 @@ public class Substitiute {
 		}
 		return re;
 	}
-
+	
+	public ArrayList<myTerm> getOriginTerms() {
+		return to_be_sub;
+	}
+	
+	public ArrayList<myTerm> getSubTerms() {
+		return after_sub;
+	}
+	
+	public ArrayList<myWord> getWordList() {
+		return word_list;
+	}
+	
+	public ArrayList<myWord> getVarList() {
+		return var_list;
+	}
 }

@@ -67,7 +67,28 @@ public class tmptest {
         		HyperVertex end = new HyperVertex(label.getArg(1));
         		HyperPathFind pf = new HyperPathFind(graph, start, end);
         		LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
-            	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+        		pf.Search(visitedEdges);
+//            	System.out.format("num of paths: %d\n", pf.Search(visitedEdges).size());
+        		// test substitution
+        		for (LinkedList<myTerm> path : pf.getPaths()) {
+        			Substitute sub = new Substitute(new ArrayList<myTerm>(path));
+        			for (myWord w : sub.getWordList()) {
+        				System.out.print(String.format("%s ", w.toString()));
+        			}
+        			System.out.println();
+        			for (myWord w : sub.getVarList()) {
+        				System.out.print(String.format("%s ", w.toString()));
+        			}
+        			System.out.println();
+        			for (myTerm t : sub.getOriginTerms()) {
+        				System.out.print(String.format("%s ", t.toString()));
+        			}
+        			System.out.println();
+        			for (myTerm t : sub.getSubTerms()) {
+        				System.out.print(String.format("%s ", t.toString()));
+        			}
+        			System.out.println();
+        		}
         	}
         	cnt++;
         	

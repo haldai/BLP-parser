@@ -166,16 +166,21 @@ public class myTerm {
 		return new myTerm(this.pred, a);
 	}
 	
-	public boolean equals(myTerm t) {
-		if (!this.pred.equals(t.pred))
+	public boolean equals(Object o) {
+		if (!(o instanceof myTerm))
 			return false;
 		else {
-			for (int i = 0; i < this.pred.arity; i++) {
-				if (this.args[i] != t.getArg(i))
-					return false;
+			myTerm t = (myTerm) o;
+			if (!this.pred.equals(t.pred))
+				return false;
+			else {
+				for (int i = 0; i < this.pred.arity; i++) {
+					if (this.args[i] != t.getArg(i))
+						return false;
+				}
 			}
+			return true;
 		}
-		return true;
 	}
 	
 	public void setWeight(double w) {

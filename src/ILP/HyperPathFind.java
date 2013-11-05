@@ -49,13 +49,13 @@ public class HyperPathFind {
     
     public ArrayList<LinkedList<myTerm>> Search(LinkedList<HyperEdge> visitedEdges) {
     	
-    	System.out.format("start %s, end %s\n", start, end);
+//    	System.out.format("start %s, end %s\n", start, end);
     	LinkedList<HyperEdge> start_edges = allEdgesContain(start);
     	for (HyperEdge edge : start_edges) {
     		// visit start_edges
     		if (edge.containsVertex(end)) {
     			visitedEdges.add(edge);
-        		printPath(visitedEdges);
+//        		printPath(visitedEdges);
         		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		continue;
@@ -172,4 +172,8 @@ public class HyperPathFind {
     	else
     		return null;
     }
+    
+	public ArrayList<LinkedList<myTerm>> getPaths() {
+		return path;
+	}
 }
