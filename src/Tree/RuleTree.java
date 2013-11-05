@@ -95,7 +95,7 @@ public class RuleTree {
 		for (myTerm t : cand) {
 			System.out.println(t.toPrologString());
 		}
-		root = create(label, data, cand);
+		root = create(label, data, cand, null);
 	}
 
 	
@@ -105,17 +105,45 @@ public class RuleTree {
 	 * @candidateTerms are the candidate terms for a tree 
 	 */
 	
-	public TreeNode create(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms) {
+	public TreeNode create(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data,
+			 ArrayList<myTerm> candidateTerms, TreeNode father) {
 		TreeNode node = new TreeNode();
-		// TODO return
-		// TODO else split current node
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); // get available terms to add
-		// TODO use ILP coverage
-		double maxP = 0.0, minN = 0.0; // covered positive & covered negative
-		
-		for (myTerm t : availTerms) {
+		// TODO if no father, this node is root, add terms that includes head variables
+		if (father == null) {
+			// get candidate for root node
+			myWord[] headArgs = head.getArgs();
+			ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
+			for (myTerm t : availTerms) {
+				for (myWord w : t.getArgs()) {
+					for (int i = 0; i < headArgs.length; i++) {
+						myWord arg = headArgs[i];
+							if (arg.equals(w)) {
+							rootCand.get(i).add(t);
+							break;
+						}
+					}
+				}
+			}
+			// enumerate the best combination(covers most positive and least negative) of head
+			// TODO greeadily choose the combination of maximum |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))]
+		}
+		else {
+			node.setFather(father);
+			// TODO if enough layer or accuracy, return
+			// TODO else split current node
+			// TODO use ILP coverage
+			double maxP = 0.0, minN = 0.0; // covered positive & covered negative
+			
+			for (myTerm t : availTerms) {
+				
+			}
 			
 		}
+		
+		
+
+		
 		
 		return node;
 	}
