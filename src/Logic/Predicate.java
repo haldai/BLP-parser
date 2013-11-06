@@ -48,7 +48,7 @@ public class Predicate {
 	}
 	
 	public boolean equals(Object o) {
-		if (!(o instanceof myWord))
+		if (!(o instanceof Predicate))
 			return false;
 		else {
 			Predicate p = (Predicate) o;

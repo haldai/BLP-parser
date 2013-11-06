@@ -138,7 +138,7 @@ public class myTerm {
 				return false;
 			else {
 				for (int i = 0; i < this.pred.arity; i++) {
-					if (this.args[i] != t.getArg(i))
+					if (!this.args[i].equals(t.getArg(i)))
 						return false;
 				}
 			}

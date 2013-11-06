@@ -10,6 +10,7 @@ package Logic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Formula {
@@ -20,173 +21,132 @@ public class Formula {
 	 * use String to interact with JPL.
 	 */
 	
-	double weight;
+	double weight = 1.0;
 	int headLen;
-	int tailLen;
-	private myTerm[] head;
-	private myTerm[] tail;
+	int bodyLen;
+	private ArrayList<myTerm> head;
+	private ArrayList<myTerm> body;
 	
 	public Formula() {
-		weight = 0.0;
 		headLen = 0;
-		tailLen = 0;
+		bodyLen = 0;
 		head = null;
-		tail = null;
+		body = null;
 	}
 	
-	public Formula(double w, myTerm[] h, myTerm[] t) {
-		weight = w;
-		headLen = h.length;
-		tailLen = t.length;
+	public Formula(ArrayList<myTerm> h, ArrayList<myTerm> t) {
+		headLen = h.size();
+		bodyLen = t.size();
 		head = h;
-		tail = t;
+		body = t;
 	}
 	// build formula by String	
-	public Formula(double w, String f) {
-		if (f.endsWith("."))
-			f = f.substring(0, f.length());
-		String[] comp = f.split("\\:-");
-		// read head;
-		String[] head_string = comp[0].split("\\,");
-		ArrayList<myTerm> buff_head = new ArrayList<myTerm>();
-		for (String s : head_string) {
-			buff_head.add(new myTerm(s));
-		}
-		headLen = buff_head.size();
-		head = new myTerm[headLen];
-		for (int i = 0; i < headLen; i++) {
-			head[i] = buff_head.get(i);
-		}
-		buff_head = null;
-		// add tail
-		String[] tail_string = comp[1].split("\\,");
-		ArrayList<myTerm> buff_tail = new ArrayList<myTerm>();
-		for (String s : tail_string) {
-			buff_tail.add(new myTerm(s));
-		}
-		tailLen = buff_tail.size();
-		tail = new myTerm[tailLen];
-		for (int i = 0; i < tailLen; i++) {
-			tail[i] = buff_tail.get(i);
-		}
-		buff_tail = null;
-		weight = w;
-	}
-	
-	public Formula(myTerm[] h, myTerm[] t) {
-		weight = 0.0;
-		headLen = h.length;
-		tailLen = t.length;
-		head = h;
-		tail = t;
-	}
-	
 	public Formula(String f) {
 		if (f.endsWith("."))
 			f = f.substring(0, f.length());
 		String[] comp = f.split("\\:-");
 		// read head;
 		String[] head_string = comp[0].split("\\;");
-		ArrayList<myTerm> buff_head = new ArrayList<myTerm>();
+		head = new ArrayList<myTerm>();
 		for (String s : head_string) {
-			buff_head.add(new myTerm(s));
+			head.add(new myTerm(s));
 		}
-		headLen = buff_head.size();
-		head = new myTerm[headLen];
-		for (int i = 0; i < headLen; i++) {
-			head[i] = buff_head.get(i);
+		headLen = head.size();
+		// add body
+		String[] body_string = comp[1].split("\\;");
+		body = new ArrayList<myTerm>();
+		for (String s : body_string) {
+			body.add(new myTerm(s));
 		}
-		buff_head = null;
-		// add tail
-		String[] tail_string = comp[1].split("\\;");
-		ArrayList<myTerm> buff_tail = new ArrayList<myTerm>();
-		for (String s : tail_string) {
-			buff_tail.add(new myTerm(s));
+		bodyLen = body.size();
+	}
+
+	public void pushbody(ArrayList<myTerm> t) {
+		for (myTerm term : t) {
+			body.add(term);
 		}
-		tailLen = buff_tail.size();
-		tail = new myTerm[tailLen];
-		for (int i = 0; i < tailLen; i++) {
-			tail[i] = buff_tail.get(i);
-		}
-		buff_tail = null;
-		weight = 0.0;
+		bodyLen = body.size();
 	}
 	
-	public void pushTail(myTerm t) {
-		List<myTerm> l = Arrays.asList(tail);
-		l.add(t);
-		tail = null;
-		tail = new myTerm[l.size()];
-		for (int i = 0; i < l.size(); i++) {
-			tail[i] = l.get(i);
+	public void pushbody(myTerm t) {
+		body.add(t);
+		bodyLen = body.size();
+	}
+	
+	public void pushbody(LinkedList<myTerm> terms) {
+		for (myTerm t : terms) {
+			body.add(t);
 		}
-		tailLen = l.size();
+		bodyLen = body.size();
+	}
+	
+	public void pushHead(ArrayList<myTerm> h) {
+		for (myTerm term : h) {
+			head.add(term);
+		}
+		headLen = head.size();
+	}
+	
+	public void pushHead(LinkedList<myTerm> terms) {
+		for (myTerm t : terms) {
+			head.add(t);
+		}
+		headLen = head.size();
 	}
 	
 	public void pushHead(myTerm h) {
-		List<myTerm> l = Arrays.asList(head);
-		l.add(h);
-		head = null;
-		head = new myTerm[l.size()];
-		for (int i = 0; i < l.size(); i++) {
-			head[i] = l.get(i);
-		}
-		headLen = l.size();
+		head.add(h);
+		headLen = head.size();
 	}
 	
-	public myTerm popTail() {
-		List<myTerm> l = Arrays.asList(tail);
-		myTerm t = l.get(l.size() - 1);
-		l.remove(l.size() - 1);
-		tail = null;
-		tail = new myTerm[l.size()];
-		for (int i = 0; i < l.size(); i++) {
-			tail[i] = l.get(i);
-		}
-		tailLen = l.size();
-		return t;
+	public myTerm popbody() {
+		myTerm re = body.get(bodyLen - 1);
+		body.remove(bodyLen - 1);
+		bodyLen = body.size();
+		return re;
+	}
+	
+	public double getWeight() {
+		return weight;
+	}
+	
+	public void setWeight(double w) {
+		weight = w;
 	}
 	
 	public myTerm popHead() {
-		List<myTerm> l = Arrays.asList(head);
-		myTerm h = l.get(l.size() - 1);
-		l.remove(l.size() - 1);
-		head = null;
-		head = new myTerm[l.size()];
-		for (int i = 0; i < l.size(); i++) {
-			head[i] = l.get(i);
-		}
-		headLen = l.size();
-		return h;
+		myTerm re = head.get(headLen - 1);
+		head.remove(headLen - 1);
+		return re;
 	}
 	
-	public myTerm getTail(int i) {
-		return tail[i];
+	public myTerm getbody(int i) {
+		return body.get(i);
 	}
 	
 	public myTerm getHead(int i) {
-		return head[i];
+		return head.get(i);
 	}
 	
-	public myTerm[] getTail() {
-		return tail;
+	public ArrayList<myTerm> getbody() {
+		return body;
 	}
 	
-	public myTerm[] getHead() {
+	public ArrayList<myTerm> getHead() {
 		return head;
 	}
 	// return a String in prolog style
 	public String toPrologStr() {
 		String s = "";
-		for (int i = 0; i < head.length; i++) {
-			s = s + head[i].toString() + ',';
+		for (int i = 0; i < head.size(); i++) {
+			s = s + head.get(i).toString() + ',';
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 2);
 			s = s + "):- ";
 		}
-		for (int i = 0; i < tail.length; i++) {
-			s = s + tail[i].toString() + ',';
+		for (int i = 0; i < body.size(); i++) {
+			s = s + body.get(i).toString() + ',';
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 1);
@@ -198,6 +158,8 @@ public class Formula {
 	public String toString() {
 		return this.toPrologStr();
 	}
+
+
 	
 //	// substitution
 //	public Formular substitution(myWord[] vars, myWord[] atms) {
@@ -206,7 +168,7 @@ public class Formula {
 //			System.out.println("Substitution variables and atoms are in different length!");
 //			throw new IllegalArgumentException();
 //		}
-//		for (int i = 0; i < tail.length; i++) {
+//		for (int i = 0; i < body.length; i++) {
 //			
 //		}
 //	}

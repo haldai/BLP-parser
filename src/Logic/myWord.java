@@ -4,6 +4,7 @@
 package Logic;
 
 import jpl.Atom;
+import utils.*;
 /**
  * @author daiwz
  *
@@ -61,8 +62,13 @@ public class myWord {
 			pos = args[2];
 		} else if (args.length == 2) {
 			// is a prolog term
-			num = 0;
-			pos = args[1];
+			if (args[0].equals("X") && utils.isNumeric(args[1])) {
+				num = Integer.parseInt(args[1]);
+				pos = "var";
+			} else {
+				num = 0;
+				pos = args[1];
+			}
 		} else if (args.length == 1) {
 			// is a single word
 			num = 0;
@@ -89,7 +95,7 @@ public class myWord {
 	
 	public String toString() {
 		String str;
-		if (num != 0)
+		if (!this.isVar())
 			str = String.format("%s_%s_%s", name, num, pos);
 		else
 			str = String.format("%s_%s", name, pos);
@@ -103,9 +109,11 @@ public class myWord {
 		new_name = "d" + new_name;
 		}
 		new_name = new_name.replaceAll(" ", "SPACE");
-		String str = String.format("%s_%s", new_name, pos);
+		if (!this.isVar())
+			return String.format("%s_%s", new_name, pos);
+		else
+			return String.format("%s_%d", new_name, num);
 //		String str = String.format("%s_%s_%s", new_name, num, pos);
-		return str;
 	}
 
 	public Atom toAtom() {

@@ -6,7 +6,9 @@ package Tree;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Stack;
 
+import utils.*;
 import ILP.Prolog;
 import Logic.*;
 /**
@@ -114,11 +116,20 @@ public class RuleTree {
 			// get candidate for root node
 			myWord[] headArgs = head.getArgs();
 			ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
+			for (int i = 0; i < headArgs.length; i++) {
+				rootCand.add(new ArrayList<myTerm>());
+			}
 			for (myTerm t : availTerms) {
+				boolean is_feat = false;
+				for (myWord w : t.getArgs())
+					if (!w.isVar())
+						is_feat = true;
+				if (is_feat)
+					continue;
 				for (myWord w : t.getArgs()) {
 					for (int i = 0; i < headArgs.length; i++) {
 						myWord arg = headArgs[i];
-							if (arg.equals(w)) {
+						if (arg.equals(w)) {
 							rootCand.get(i).add(t);
 							break;
 						}
@@ -126,7 +137,46 @@ public class RuleTree {
 				}
 			}
 			// enumerate the best combination(covers most positive and least negative) of head
-			// TODO greeadily choose the combination of maximum |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))]
+			// TODO greeadily choose the combination of maximum the likelihood |p|/|p|+|n|
+			// (Foil gain: |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))])
+			// use DFS to enumerate
+			for (int j = 0; j < rootCand.get(0).size(); j++) {
+				Stack<Tuple<Integer, Integer>> S = new Stack<Tuple<Integer, Integer>>();
+				ArrayList<Tuple<Integer, Integer>> visited = new ArrayList<Tuple<Integer, Integer>>();
+				ArrayList<Tuple<Integer, Integer>> route = new ArrayList<Tuple<Integer, Integer>>();
+				Tuple<Integer, Integer> tup = new Tuple<Integer, Integer>(0, j);
+				S.push(tup);
+				while (!S.isEmpty()) {
+					Tuple<Integer, Integer> u = S.pop();
+					if (!visited.contains(u)) {
+						visited.add(u);
+						route.add(u);
+						// For each neighbor of u (only connected to next layer)
+						if (u.x == rootCand.size() - 1) {
+							// reach the bottom, forms a temp rootTerm
+							System.out.println("=======");
+							ArrayList<myTerm> tmp_head = new ArrayList<myTerm>();
+							for (Tuple<Integer, Integer> t : route) {
+								myTerm tmp_t = rootCand.get(t.x).get(t.y);
+								if (!tmp_head.contains(tmp_t)) {
+									tmp_head.add(tmp_t);
+									System.out.println(tmp_t.toPrologString());	
+								}
+							}
+							System.out.println("=======");
+							visited.remove(u); // pop visited
+							if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
+								route.remove(visited.get(visited.size() - 1));
+							route.remove(u);
+							
+						} else {
+							for (int i = 0; i < rootCand.get(u.x + 1).size(); i++) {
+								S.push(new Tuple<Integer, Integer>(u.x + 1, i));
+							}
+						}
+					}
+				}
+			}
 		}
 		else {
 			node.setFather(father);
@@ -140,14 +190,19 @@ public class RuleTree {
 			}
 			
 		}
-		
-		
-
-		
-		
 		return node;
 	}
-	
+	/**
+	 * given a formula and a set of instances with label, compute the accuracy
+	 * @param f: formula
+	 * @param label: list of labels
+	 * @param data: list of instances
+	 * @return: accuracy
+	 */
+	private double computeAccuracy(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data ) {
+		
+		return 0.0;
+	}
 	/**
 	 * compute available terms
 	 * @node the node to build
@@ -178,6 +233,21 @@ public class RuleTree {
 		}
 		return re;
 	}
+	/**
+	 * return a formula from a node to its root
+	 * @param node
+	 * @return
+	 */
+	private Formula toFormula(TreeNode node) {
+		Formula re = new Formula();
+		re.pushHead(head);
+		re.pushbody(node.toTerms());
+		while (node.getFather() != null) {
+			re.pushbody(node.getFather().toTerms());
+		}
+		return re;
+	}
+	
 	/**
 	 * get Prolog rule string from current tree
 	 * @return string as prolog rule

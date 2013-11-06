@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import Logic.*;
 import ILP.*;
 import Tree.*;
+import utils.*;
 
 public class tmptest {
 	static Prolog prolog;
@@ -19,34 +20,44 @@ public class tmptest {
 		}
 		
 		prolog = new Prolog();
+		
 //		testEvaluation(doc, prolog);
-//		testPathFind(doc);
+		testPathFind(doc);
 		testRuleTree(doc, prolog);
+		testTuple();
+
+	}
+	
+	public static void testTuple() {
+		System.out.println("Test Tuple!");
+		Tuple<Integer, Integer> tup1 = new Tuple<Integer, Integer>(0, 0);
+		Tuple<Integer, Integer> tup2 = new Tuple<Integer, Integer>(0, 2);
+		System.out.println(tup1.equals(tup2));
 	}
 	
 	public static void testEvaluation(Document doc, Prolog prolog) {
-		
-        Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
-        LogicProgram p = new LogicProgram();
-        p.addRule(f);
-        f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
-        // TODO in prolog, the value of myWord position is not important, can be removed ?
-        p.addRule(f);
-        Eval eval = new Eval(prolog, p, doc);
-        ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
-        int cnt = 0;
-        for (LinkedList<myTerm> l : sems) {
-        	if (l == null) 
-        		continue;
-        	else {
-        		for (myTerm t : l) {
-        			cnt++;
-        			System.out.println(t.toString());
-        		}
-        		System.out.println("==============");
-        	}
-        }
-        System.out.println("num of semantics: " + cnt);
+		System.out.println("Test Evaluation!");
+		Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
+		LogicProgram p = new LogicProgram();
+		p.addRule(f);
+		f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
+		// TODO in prolog, the value of myWord position is not important, can be removed ?
+		p.addRule(f);
+		Eval eval = new Eval(prolog, p, doc);
+		ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
+		int cnt = 0;
+		for (LinkedList<myTerm> l : sems) {
+			if (l == null) 
+				continue;
+			else {
+				for (myTerm t : l) {
+					cnt++;
+					System.out.println(t.toString());
+				}
+				System.out.println("==============");
+			}
+		}
+		System.out.println("num of semantics: " + cnt);
 	}
 	
 	private static ArrayList<LinkedList<myTerm>> findPath(myTerm label, Sentence sent) {
@@ -70,7 +81,8 @@ public class tmptest {
 		return pf.getPaths();
 	}
 	
-	public static void testPathFind(Document doc) {	    
+	public static void testPathFind(Document doc) {
+		System.out.println("Test PathFind!");
 		Sentence[] sentences = doc.getSentences();
 		int cnt = 0;
        for (Sentence sent : sentences) {
@@ -128,7 +140,7 @@ public class tmptest {
         }
 	}
 	public static void testRuleTree(Document doc, Prolog prolog) {
-
+		System.out.println("Test RuleTree!");
 		// find all paths;
 		for (int i = 0; i < doc.length(); i++) {
 			ArrayList<myTerm> labels = doc.getLabel(i);
