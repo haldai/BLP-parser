@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.Stack;
 
 import utils.*;
-import ILP.Prolog;
+import ILP.*;
 import Logic.*;
 /**
  * @author Wang-Zhou
@@ -111,7 +111,7 @@ public class RuleTree {
 			 ArrayList<myTerm> candidateTerms, TreeNode father) {
 		TreeNode node = new TreeNode();
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); // get available terms to add
-		// TODO if no father, this node is root, add terms that includes head variables
+		// if no father, this node is root, add terms that includes head variables
 		if (father == null) {
 			// get candidate for root node
 			myWord[] headArgs = head.getArgs();
@@ -137,9 +137,11 @@ public class RuleTree {
 				}
 			}
 			// enumerate the best combination(covers most positive and least negative) of head
-			// TODO greeadily choose the combination of maximum the likelihood |p|/|p|+|n|
 			// (Foil gain: |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))])
 			// use DFS to enumerate
+			@SuppressWarnings("unused")
+			ArrayList<myTerm> max_root_terms = new ArrayList<myTerm>();
+			double max_root_acc = -1.0;
 			for (int j = 0; j < rootCand.get(0).size(); j++) {
 				Stack<Tuple<Integer, Integer>> S = new Stack<Tuple<Integer, Integer>>();
 				ArrayList<Tuple<Integer, Integer>> visited = new ArrayList<Tuple<Integer, Integer>>();
@@ -154,21 +156,30 @@ public class RuleTree {
 						// For each neighbor of u (only connected to next layer)
 						if (u.x == rootCand.size() - 1) {
 							// reach the bottom, forms a temp rootTerm
-							System.out.println("=======");
-							ArrayList<myTerm> tmp_head = new ArrayList<myTerm>();
+							ArrayList<myTerm> tmp_root = new ArrayList<myTerm>();
 							for (Tuple<Integer, Integer> t : route) {
 								myTerm tmp_t = rootCand.get(t.x).get(t.y);
-								if (!tmp_head.contains(tmp_t)) {
-									tmp_head.add(tmp_t);
-									System.out.println(tmp_t.toPrologString());	
+								if (!tmp_root.contains(tmp_t)) {
+									tmp_root.add(tmp_t);
 								}
 							}
-							System.out.println("=======");
+							// build temporary formula
+							Formula root_f = new Formula();
+							root_f.pushBody(tmp_root);
+							root_f.pushHead(head);
+							// compute accuracy
+							double tmp_root_acc = computeAccuracy(root_f, label, data);
+							if (tmp_root_acc > max_root_acc) {
+								max_root_acc = tmp_root_acc;
+								max_root_terms = tmp_root;
+								System.out.println("=======");
+								System.out.println(tmp_root_acc + ": " + root_f.toString());	
+								System.out.println("=======");
+							}
 							visited.remove(u); // pop visited
 							if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
 								route.remove(visited.get(visited.size() - 1));
 							route.remove(u);
-							
 						} else {
 							for (int i = 0; i < rootCand.get(u.x + 1).size(); i++) {
 								S.push(new Tuple<Integer, Integer>(u.x + 1, i));
@@ -177,6 +188,7 @@ public class RuleTree {
 					}
 				}
 			}
+			
 		}
 		else {
 			node.setFather(father);
@@ -199,10 +211,22 @@ public class RuleTree {
 	 * @param data: list of instances
 	 * @return: accuracy
 	 */
-	private double computeAccuracy(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data ) {
-		
-		return 0.0;
+	private double computeAccuracy(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data) {
+		Eval eval = new Eval(prolog);
+		eval.setRule(f);
+		SatisfySamples sat = eval.evalAllSat(label, data);
+		int p = sat.getPositive().size();
+		int n =  sat.getNegative().size();
+		double re = (double) p/(p+n);
+		// IMPORTANT! must retract all rules
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return re;
 	}
+
 	/**
 	 * compute available terms
 	 * @node the node to build
@@ -330,7 +354,4 @@ public class RuleTree {
 		}
 		return re;
 	}
-	
-	
-
 }

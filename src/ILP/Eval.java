@@ -4,10 +4,12 @@
 package ILP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
+
 import jpl.*;
 import Logic.*;
 /**
@@ -23,12 +25,9 @@ public class Eval {
 	 * Initialization with formulae.
 	 */
 	
-	Sentence[] sentences;
-	Formula[] rules;
-	Predicate[] Q_Preds; // query predicates
-	int ruleLen;
-	int sentLen;
-	int predLen;
+	ArrayList<Formula> rules = new ArrayList<Formula>();
+	ArrayList<Predicate> Q_Preds = new ArrayList<Predicate>(); // query predicates
+	int ruleLen = 0;
 	Prolog prolog;
 	
 	/**
@@ -37,65 +36,149 @@ public class Eval {
 	 * @param program: logic rules
 	 * @param doc: document to be evaluated
 	 */
-	public Eval(Prolog plg, LogicProgram program, Document doc) {
+	public Eval(Prolog plg, LogicProgram program, Predicate[] preds) {
 		// Start prolog engine initialization
 		rules = program.getRules();
-		sentences = doc.getSentences();
-		ruleLen = rules.length;
-		sentLen = sentences.length;
-		// find out all query predicates
-		LinkedList<String> buff_preds = new LinkedList<String>();
-		for (Formula r : rules) {
-			for (myTerm t : r.getHead()) {
-				if (!buff_preds.contains(t.getPred().toString())) {
-//					System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
-					buff_preds.add(t.getPred().toString());
-				}
-			}
-		}
-		Q_Preds = new Predicate[buff_preds.size()];
-		predLen = buff_preds.size();
-		int i = 0;
-		for (Iterator<String> it = buff_preds.iterator(); it.hasNext();) {
-			Q_Preds[i] = new Predicate(it.next());
-			i++;
-		}
-		buff_preds = null;
-//		JPL.init();
+		Q_Preds = program.getHeadPred();
+		ruleLen = rules.size();
 		prolog = plg; 
-		// Prolog.dynamic(ALL_PREDICATES)
-		for (Predicate p : doc.getPredList()) {
-			prolog.dynamic(p);
-		}
+		assertDynamic(plg, preds);
 		// Prolog.assertz(ALL_RULES)
 		for (Formula r : rules) {
-			String clause = r.toPrologStr();
+			String clause = r.toPrologString();
 			if (clause.endsWith("."))
 				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
 			prolog.assertz(clause);
 		}
 	}
-	
-	public Eval() {
-		rules = null;
-		sentences = null;
-		Q_Preds = null;
-		ruleLen = 0;
-		sentLen = 0;
-		predLen = 0;
+	/**
+	 * initiate a evaluation only with prolog
+	 * @param p: prolog engine
+	 */
+	public Eval(Prolog p) {
+		prolog = p;
 		JPL.init();
 	}
 	/**
-	 * evaluate all sentenecs in documents
-	 * @return
+	 * IMPORTANT! must assert dynamicity of all predicates
+	 * @param plg: prolog engine
+	 * @param preds: predicate array
 	 */
-	public ArrayList<LinkedList<myTerm>> evalAll() {
-		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sentLen);
+	private void assertDynamic(Prolog plg, Predicate[] preds) {
+		// Prolog.dynamic(ALL_PREDICATES)
+		for (Predicate p : preds) {
+			plg.dynamic(p);
+		}
+	}
+	/**
+	 * setting rules for this evaluation
+	 * @param formulae: the input formlae
+	 */
+	public void setRules(LogicProgram program) {
+		for (Predicate p : program.getHeadPred()) {
+			if (!Q_Preds.contains(p))
+				Q_Preds.add(p);
+		}
+		for (Formula r : program.getRules()) {
+			if (!rules.contains(r))
+				rules.add(r);
+		}
+		// Prolog.dynamic(ALL_PREDICATES)
+		for (Predicate p : Q_Preds) {
+			prolog.dynamic(p);
+		}
+		// Prolog.assertz(ALL_RULES)
+		for (Formula r : program.getRules()) {
+			String clause = r.toPrologString();
+			if (clause.endsWith("."))
+				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+			prolog.assertz(clause);
+		}
+	}
+	/**
+	 * 
+	 * @param program
+	 */
+	public void setRule(Formula f) {
+		LogicProgram program = new LogicProgram();
+		program.addRule(f);
+		for (Predicate p : program.getHeadPred()) {
+			if (!Q_Preds.contains(p))
+				Q_Preds.add(p);
+		}
+		for (Formula r : program.getRules()) {
+			if (!rules.contains(r))
+				rules.add(r);
+		}
+		// Prolog.dynamic(ALL_PREDICATES)
+		for (Predicate p : Q_Preds) {
+			prolog.dynamic(p);
+		}
+		// Prolog.assertz(ALL_RULES)
+		for (Formula r : program.getRules()) {
+			String clause = r.toPrologString();
+			if (clause.endsWith("."))
+				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+			prolog.assertz(clause);
+		}
+	}
+	/**
+	 * evaluate all sentenecs in document
+	 * @return: all answers
+	 */
+	public ArrayList<LinkedList<myTerm>> evalAll(Document doc) {
+		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(doc.getSentences().length);
 		// Start evaluation sentences
-		for (int i = 0; i < sentLen; i++) {
-			LinkedList<myTerm> ans_list = evalSent(i);
+		for (int i = 0; i < doc.getSentences().length; i++) {
+			LinkedList<myTerm> ans_list = evalSent(doc.getSent(i));
 //			re.set(i, ans_list);
 			re.add(ans_list);
+		}
+		return re;
+	}
+	/**
+	 * evaluate all sentences in a list
+	 * @param sents: list of sentences
+	 * @return: all answers
+	 */
+	public ArrayList<LinkedList<myTerm>> evalAll(ArrayList<Sentence> sents) {
+		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sents.size());
+		// Start evaluation sentences
+		for (int i = 0; i < sents.size(); i++) {
+			LinkedList<myTerm> ans_list = eval(sents.get(i).getTerms());
+			re.add(ans_list);
+		}
+		return re;
+	}
+	/**
+	 * evaluate all term list
+	 * @param sents: the term list
+	 * @return: all answers
+	 */
+	public ArrayList<LinkedList<myTerm>> evalAllTermList(ArrayList<ArrayList<myTerm>> sents) {
+		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sents.size());
+		// Start evaluation sentences
+		for (int i = 0; i < sents.size(); i++) {
+			LinkedList<myTerm> ans_list = eval(sents.get(i).toArray(new myTerm[sents.get(i).size()]));
+			re.add(ans_list);
+		}
+		return re;
+	}
+	/**
+	 * evaluate a list of instances, record all covered positive and negative answers
+	 * @param labels: input labels of sentences
+	 * @param sents: input sentences
+	 * @return: set of negative and positive answers
+	 */
+	public SatisfySamples evalAllSat(ArrayList<ArrayList<myTerm>> labels, ArrayList<Sentence> sents) {
+		SatisfySamples re = new SatisfySamples(rules);
+		if (labels.size() != sents.size())
+			return null;
+		// Start evaluation sentences
+		for (int i = 0; i < sents.size(); i++) {
+			SatisfySamples sa = evalSentSat(labels.get(i), sents.get(i));
+			re.pushPositive(sa.getPositive());
+			re.pushNegative(sa.getNegative());
 		}
 		return re;
 	}
@@ -104,10 +187,22 @@ public class Eval {
 	 * @param i: the i-th sentence
 	 * @return: deduced answer
 	 */
-	public LinkedList<myTerm> evalSent(int i) {
+	public LinkedList<myTerm> evalSent(Sentence sent) {
 		// evaluate the i-th sentence
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
-		re = eval(sentences[i].getTerms()); 
+		re = eval(sent.getTerms()); 
+		return re;
+	}
+	/**
+	 * get satisfied samples of a sentence in labeled data
+	 * @param sent: input sentence
+	 * @param label: input label of the sentence
+	 * @return: satisfied samples
+	 */
+	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Sentence sent) {
+		SatisfySamples re = new SatisfySamples(rules);
+		LinkedList<myTerm> ans = eval(sent.getTerms());
+		re.setSatisifySamples(label, ans);
 		return re;
 	}
 	/**
@@ -160,5 +255,13 @@ public class Eval {
 		return re;
 	}
 	
-
+	public void unEval() throws Throwable {
+		for (Formula r : rules) {
+			String clause = r.toPrologString();
+			if (clause.endsWith("."))
+				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+			prolog.retract(clause);
+		}
+		this.finalize();
+	}
 }

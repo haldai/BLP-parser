@@ -24,14 +24,12 @@ public class Formula {
 	double weight = 1.0;
 	int headLen;
 	int bodyLen;
-	private ArrayList<myTerm> head;
-	private ArrayList<myTerm> body;
+	private ArrayList<myTerm> head = new ArrayList<myTerm>();
+	private ArrayList<myTerm> body = new ArrayList<myTerm>();
 	
 	public Formula() {
 		headLen = 0;
 		bodyLen = 0;
-		head = null;
-		body = null;
 	}
 	
 	public Formula(ArrayList<myTerm> h, ArrayList<myTerm> t) {
@@ -61,14 +59,14 @@ public class Formula {
 		bodyLen = body.size();
 	}
 
-	public void pushbody(ArrayList<myTerm> t) {
+	public void pushBody(ArrayList<myTerm> t) {
 		for (myTerm term : t) {
 			body.add(term);
 		}
 		bodyLen = body.size();
 	}
 	
-	public void pushbody(myTerm t) {
+	public void pushBody(myTerm t) {
 		body.add(t);
 		bodyLen = body.size();
 	}
@@ -99,7 +97,7 @@ public class Formula {
 		headLen = head.size();
 	}
 	
-	public myTerm popbody() {
+	public myTerm popBody() {
 		myTerm re = body.get(bodyLen - 1);
 		body.remove(bodyLen - 1);
 		bodyLen = body.size();
@@ -120,7 +118,7 @@ public class Formula {
 		return re;
 	}
 	
-	public myTerm getbody(int i) {
+	public myTerm getBody(int i) {
 		return body.get(i);
 	}
 	
@@ -128,7 +126,7 @@ public class Formula {
 		return head.get(i);
 	}
 	
-	public ArrayList<myTerm> getbody() {
+	public ArrayList<myTerm> getBody() {
 		return body;
 	}
 	
@@ -136,17 +134,17 @@ public class Formula {
 		return head;
 	}
 	// return a String in prolog style
-	public String toPrologStr() {
+	public String toPrologString() {
 		String s = "";
 		for (int i = 0; i < head.size(); i++) {
-			s = s + head.get(i).toString() + ',';
+			s = s + head.get(i).toPrologString() + ',';
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 2);
 			s = s + "):- ";
 		}
 		for (int i = 0; i < body.size(); i++) {
-			s = s + body.get(i).toString() + ',';
+			s = s + body.get(i).toPrologString() + ',';
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 1);
@@ -156,10 +154,27 @@ public class Formula {
 	}
 	
 	public String toString() {
-		return this.toPrologStr();
+		return this.toPrologString();
 	}
 
-
+	public boolean equals(Object o) {
+		if (!(o instanceof Formula))
+			return false;
+		else {
+			Formula f = (Formula) o;
+			for (myTerm t1 : f.getHead())
+				for (myTerm t2 : this.getHead()) {
+					if (!t1.equals(t2))
+						return false;
+				}
+			for (myTerm t1 : f.getBody())
+				for (myTerm t2 : this.getBody()) {
+					if (!t1.equals(t2))
+						return false;
+				}
+		}
+		return true;
+	}
 	
 //	// substitution
 //	public Formular substitution(myWord[] vars, myWord[] atms) {

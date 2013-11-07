@@ -119,4 +119,19 @@ public class Sentence {
 	public myWord[] getWords() {
 		return wordList;
 	}
+	/**
+	 * get a list of predicates in array list of terms
+	 * @param terms: input terms
+	 * @return: array list of predicates
+	 */
+	public ArrayList<Predicate> getAllPreds(ArrayList<myTerm> terms) {
+		ArrayList<Predicate> buff_preds = new ArrayList<Predicate>();
+		for (myTerm t : terms) {
+			if (!buff_preds.contains(t.getPred())) {
+//				System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
+				buff_preds.add(t.getPred());
+			}
+		}
+		return buff_preds;
+	}
 }

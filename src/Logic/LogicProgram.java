@@ -3,6 +3,8 @@
  */
 package Logic;
 
+import java.util.ArrayList;
+
 /**
  * @author Wang-Zhou
  *
@@ -13,17 +15,22 @@ public class LogicProgram {
 	 * LogicProgram is a set of (probabilistic) logic rules
 	 */
 	
-	Formula[] rules;
+	ArrayList<Formula> rules = new ArrayList<Formula>();
+	ArrayList<Predicate> headPred = new ArrayList<Predicate>();
+	ArrayList<Predicate> bodyPred = new ArrayList<Predicate>();
 	int length;
 	
 	public LogicProgram() {
 		length = 0;
 	}
 	
-	public LogicProgram(Formula[] p) {
-		// TODO Auto-generated constructor stub
+	public LogicProgram(ArrayList<Formula> p) {
 		rules = p;
-		length = rules.length;
+		length = rules.size();
+		// find out all query predicates
+		for (Formula r : rules) {
+			addPredicate(r);
+		}
 	}
 	
 	public int length() {
@@ -31,31 +38,54 @@ public class LogicProgram {
 	}
 	
 	public void addRule(Formula f) {
-		Formula[] p = rules;
-		rules = new Formula[length + 1];
-		length = length + 1;
-		for (int i = 0; i < length - 1; i++) {
-			rules[i] = p[i];
-		}
-		rules[length - 1] = f;
-		p = null;
+		rules.add(f);
+		addPredicate(f);
 	}
 	
 	public void removeLast() {
-		Formula[] p = rules.clone();
-		rules = new Formula[length - 1];
-		length = length - 1;
-		for (int i = 0; i < length; i++) {
-			rules[i] = p[i];
-		}
-		p = null;
+		rules.remove(rules.size() - 1);
 	}
 	
-	public Formula[] getRules() {
+	public ArrayList<Formula> getRules() {
 		return rules;
 	}
 	
 	public Formula getRule(int i) {
-		return rules[i];
+		return rules.get(i);
+	}
+	
+	public ArrayList<Predicate> getHeadPred() {
+		return headPred;
+	}
+	
+	public ArrayList<Predicate> getBodyPred() {
+		return bodyPred;
+	}
+
+	private void addPredicate(Formula r) {
+		ArrayList<Predicate> buff_preds = new ArrayList<Predicate>();
+		for (myTerm t : r.getHead()) {
+			if (!buff_preds.contains(t.getPred())) {
+//				System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
+				buff_preds.add(t.getPred());
+			}
+		}
+		for (Predicate ps : buff_preds) {
+			if (!headPred.contains(ps))
+				headPred.add(ps);
+		}
+		buff_preds = null;
+		buff_preds = new ArrayList<Predicate>();
+		for (myTerm t : r.getBody()) {
+			if (!buff_preds.contains(t.getPred())) {
+//				System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
+				buff_preds.add(t.getPred());
+			}
+		}
+		for (Predicate ps : buff_preds) {
+			if (!bodyPred.contains(ps))
+				bodyPred.add(ps);
+		}
+		buff_preds = null;
 	}
 }

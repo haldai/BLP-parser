@@ -22,7 +22,7 @@ public class tmptest {
 		prolog = new Prolog();
 		
 //		testEvaluation(doc, prolog);
-		testPathFind(doc);
+//		testPathFind(doc);
 		testRuleTree(doc, prolog);
 		testTuple();
 
@@ -43,8 +43,8 @@ public class tmptest {
 		f = new Formula("sem(X_2_var,X_1_var):-att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
 		// TODO in prolog, the value of myWord position is not important, can be removed ?
 		p.addRule(f);
-		Eval eval = new Eval(prolog, p, doc);
-		ArrayList<LinkedList<myTerm>> sems = eval.evalAll();
+		Eval eval = new Eval(prolog, p, doc.getPredList());
+		ArrayList<LinkedList<myTerm>> sems = eval.evalAll(doc);
 		int cnt = 0;
 		for (LinkedList<myTerm> l : sems) {
 			if (l == null) 
@@ -52,12 +52,17 @@ public class tmptest {
 			else {
 				for (myTerm t : l) {
 					cnt++;
-					System.out.println(t.toString());
+					System.out.println(t.toPrologString());
 				}
 				System.out.println("==============");
 			}
 		}
 		System.out.println("num of semantics: " + cnt);
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static ArrayList<LinkedList<myTerm>> findPath(myTerm label, Sentence sent) {
@@ -108,19 +113,19 @@ public class tmptest {
     		   for (LinkedList<myTerm> path : pf.getPaths()) {
     			   Substitute sub = new Substitute(new ArrayList<myTerm>(path));
     			   for (myWord w : sub.getWordList()) {
-    				   System.out.print(String.format("%s ", w.toString()));
+    				   System.out.print(String.format("%s ", w.toPrologString()));
     			   }
     			   System.out.println();
     			   for (myWord w : sub.getVarList()) {
-    				   System.out.print(String.format("%s ", w.toString()));
+    				   System.out.print(String.format("%s ", w.toPrologString()));
     			   }
     			   System.out.println();
     			   for (myTerm t : sub.getOriginTerms()) {
-    				   System.out.print(String.format("%s ", t.toString()));
+    				   System.out.print(String.format("%s ", t.toPrologString()));
     			   }
     			   System.out.println();
     			   for (myTerm t : sub.getSubTerms()) {
-    				   System.out.print(String.format("%s ", t.toString()));
+    				   System.out.print(String.format("%s ", t.toPrologString()));
     			   }
     			   System.out.println();
     		   }

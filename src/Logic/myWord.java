@@ -131,10 +131,17 @@ public class myWord {
 			return false;
 		else {
 			myWord w = (myWord) o;
-			if ((this.name.equals(w.getName())) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
-				return true;
-			else
-				return false;
+			if ((this.num == 0) || (w.num == 0)) {
+				if ((this.name.equals(w.getName())) && (this.pos.equals(w.getPos())))
+					return true;
+				else
+					return false;
+			} else {
+				if ((this.name.equals(w.getName())) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
+					return true;
+				else
+					return false;
+			}
 		}
 	}
 }
