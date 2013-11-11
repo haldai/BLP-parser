@@ -102,6 +102,7 @@ public class myWord {
 		return str;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public String toPrologString() {
 		char c = name.charAt(0);
 		String new_name = name;
@@ -131,17 +132,35 @@ public class myWord {
 			return false;
 		else {
 			myWord w = (myWord) o;
+			String t_name = this.name;
+			String o_name = w.name;
+			// cope with the "d"-addition of some prolog string
+			if (this.name.startsWith("d"))
+				t_name = t_name.substring(1);
+			if (w.name.startsWith("d"))
+				o_name = o_name.substring(1);
+			// deal with variable and constant comparing
 			if ((this.num == 0) || (w.num == 0)) {
-				if ((this.name.equals(w.getName())) && (this.pos.equals(w.getPos())))
+				if ((t_name.equals(o_name)) && (this.pos.equals(w.getPos())))
 					return true;
 				else
 					return false;
 			} else {
-				if ((this.name.equals(w.getName())) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
+				if ((t_name.equals(o_name)) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
 					return true;
 				else
 					return false;
 			}
 		}
+	}
+	
+	public myWord getZeroConst() {
+		myWord re = new myWord(this.toPrologString());
+		re.setNumZero();
+		return re;
+	}
+	
+	public void setNumZero() {
+		this.num = 0;
 	}
 }

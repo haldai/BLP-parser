@@ -43,26 +43,33 @@ public class HyperVertex {
 		return new myWord(this.name);
 	}
 	
-	public boolean equals(HyperVertex v) {
-		if (this.name.equals(v.name))
-			return true;
-		else
-			return false;
-	}
-	
-	public boolean equals(String v) {
-		if (this.name.equals(v))
-			return true;
-		else
-			return false;
-	}
-	
 	public boolean equals(myWord w) {
-		if (this.name.equals(w.toString()))
-			return true;
+		myWord t_wrd = new myWord(this.name);
+		return t_wrd.equals(w);
+	}
+	
+	public boolean equals(String s) {
+		myWord t_wrd = new myWord(this.name);
+		myWord o_wrd = new myWord(s);
+		return t_wrd.equals(o_wrd);
+	}
+	
+	public boolean equals(Object o) {
+		if (o instanceof myWord)
+			return equals((myWord) o);
+		else if (o instanceof String)
+			return equals((String) o);
+		else if (o instanceof HyperVertex){
+			HyperVertex w = (HyperVertex) o;
+			myWord t_wrd = new myWord(this.name);
+			myWord o_wrd = new myWord(w.name);
+			return t_wrd.equals(o_wrd);
+		}
 		else
 			return false;
 	}
+	
+
 	
 	public String toString() {
 		return name;

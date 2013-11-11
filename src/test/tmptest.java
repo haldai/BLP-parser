@@ -105,6 +105,9 @@ public class tmptest {
     	   for (myTerm label : doc.getLabel(cnt)) {
     		   HyperVertex start = new HyperVertex(label.getArg(0));
     		   HyperVertex end = new HyperVertex(label.getArg(1));
+    		   // following 2 lines testing searching paths with variables
+//    		   HyperVertex start = new HyperVertex(new myWord("刘德华_nr"));
+//    		   HyperVertex end = new HyperVertex(new myWord("爸爸_n"));
     		   HyperPathFind pf = new HyperPathFind(graph, start, end);
     		   LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
     		   pf.Search(visitedEdges);

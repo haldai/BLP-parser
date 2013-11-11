@@ -141,6 +141,8 @@ public class RuleTree {
 			// use DFS to enumerate
 			@SuppressWarnings("unused")
 			ArrayList<myTerm> max_root_terms = new ArrayList<myTerm>();
+			@SuppressWarnings("unused")
+			SentSat max_root_cov = new SentSat();
 			double max_root_acc = -1.0;
 			for (int j = 0; j < rootCand.get(0).size(); j++) {
 				Stack<Tuple<Integer, Integer>> S = new Stack<Tuple<Integer, Integer>>();
@@ -168,10 +170,13 @@ public class RuleTree {
 							root_f.pushBody(tmp_root);
 							root_f.pushHead(head);
 							// compute accuracy
-							double tmp_root_acc = computeAccuracy(root_f, label, data);
+							SentSat sat = getSatSamps(root_f, label, data);
+							sat.getTotal();
+							double tmp_root_acc = computeAccuracy(sat.toSatisfySamples());
 							if (tmp_root_acc > max_root_acc) {
 								max_root_acc = tmp_root_acc;
 								max_root_terms = tmp_root;
+								max_root_cov = sat;
 								System.out.println("=======");
 								System.out.println(tmp_root_acc + ": " + root_f.toString());	
 								System.out.println("=======");
@@ -188,43 +193,123 @@ public class RuleTree {
 					}
 				}
 			}
-			
+			// finally get the maximum accuracy root; add negative sample paths into candidate
+			for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
+				myTerm t = max_root_cov.getAllNeg(i);
+				ArrayList<myTerm> neg_cand = candFromNegSamps(t, max_root_cov.getWhichSent(t));
+				for (myTerm tt : neg_cand) {
+					if (!candidateTerms.contains(tt))
+						candidateTerms.add(tt);
+				}
+			}
+			System.out.println("all candidate terms after add negative examples");
+			for (myTerm t : candidateTerms) {
+				System.out.println(t.toPrologString());
+			}
 		}
 		else {
 			node.setFather(father);
-			// TODO if enough layer or accuracy, return
-			// TODO else split current node
-			// TODO use ILP coverage
-			double maxP = 0.0, minN = 0.0; // covered positive & covered negative
-			
-			for (myTerm t : availTerms) {
+			// TODO if father has enough layer or accuracy, return
+			if (true) {
 				
+			} else {
+				// TODO else split current node
+				// TODO use ILP coverage
+				double maxP = 0.0, minN = 0.0; // covered positive & covered negative
+				
+				for (myTerm t : availTerms) {
+					
+				}
 			}
 			
 		}
 		return node;
+	}
+	
+	private ArrayList<myTerm> candFromNegSamps(myTerm negSamp, Sentence sent) {
+		HyperGraph graph = new HyperGraph();
+ 	   	myTerm[] terms = sent.getTerms();
+ 	   	myWord[] words = sent.getWords();
+ 	   	for (myWord word : words) {
+ 	   		graph.addHyperVertex(word);
+ 	   	}
+ 	   	
+ 	   	for (myTerm term : terms) {
+ 	   		graph.addHyperEdge(term);
+ 	   	}
+ 	   	HyperVertex start = new HyperVertex(negSamp.getArg(0));
+ 	   	HyperVertex end = new HyperVertex(negSamp.getArg(1));
+ 	   	HyperPathFind pf = new HyperPathFind(graph, start, end);
+ 	   	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+ 	   	pf.Search(visitedEdges);
+ 	 	// place substitution
+ 	   	ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
+		// substitution and get more features (temporarily only use words themselves)
+ 	   	for (LinkedList<myTerm> path : pf.getPaths()) {
+ 	   		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
+ 	   		all_terms.add(negSamp);
+ 	   		all_terms.addAll(path);
+ 	   		Substitute subs = new Substitute(all_terms);
+ 	   		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
+ 	   		ArrayList<myWord> word_list = subs.getWordList();
+ 	   		ArrayList<myWord> var_list = subs.getVarList();
+ 	   		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
+ 			// set head term
+ 			this.setHead(all_sub_terms.get(0));
+ 			all_sub_terms.remove(0);
+ 			// add path as candidate terms, then build more feature as candidate terms
+ 			cand.addAll(feature);
+ 	   	}
+//		for (myTerm t : cand) {
+//			System.out.println(t.toPrologString());
+//		}
+ 	   	return cand;
 	}
 	/**
 	 * given a formula and a set of instances with label, compute the accuracy
 	 * @param f: formula
 	 * @param label: list of labels
 	 * @param data: list of instances
-	 * @return: accuracy
+	 * @return: satisfy samples (including negative samples)
 	 */
-	private double computeAccuracy(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data) {
+	private SentSat getSatSamps(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data) {
 		Eval eval = new Eval(prolog);
 		eval.setRule(f);
-		SatisfySamples sat = eval.evalAllSat(label, data);
-		int p = sat.getPositive().size();
-		int n =  sat.getNegative().size();
-		double re = (double) p/(p+n);
+		SentSat sat = eval.evalAllSat(label, data);
 		// IMPORTANT! must retract all rules
 		try {
 			eval.unEval();
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		return re;
+		return sat;
+	}
+	/**
+	 * given a formula and a doc, compute the accuracy
+	 * @param f: formula
+	 * @param doc: document
+	 * @return: satisfy samples (including negative samples)
+	 */
+	private SentSat getDocSatSamps(Formula f, Document doc) {
+		Eval eval = new Eval(prolog);
+		eval.setRule(f);
+		SentSat sat = eval.evalDocSat(doc);
+		// IMPORTANT! must retract all rules
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return sat;
+	}
+	/**
+	 * given satisfy samples then compute accuracy
+	 * @return: accuracy
+	 */
+	private double computeAccuracy(SatisfySamples sat) {
+		int p = sat.getPositive().size();
+		int n = sat.getNegative().size();
+		return (double) p/(p+n);
 	}
 
 	/**
@@ -339,11 +424,11 @@ public class RuleTree {
 	 * @param vars: variables that represent words
 	 * @return: a list of terms as feature
 	 */
-	private ArrayList<myTerm> buildFeature(ArrayList<myWord> words, ArrayList<myWord> vars) {
+	private ArrayList<myTerm> buildFeature(ArrayList<myWord> vars, ArrayList<myWord> words) {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		if (words.size() == vars.size()) {
 			for (int i = 0; i < words.size(); i++) {
-				myTerm tmp_term = new CommonPredicates().prologEqual(words.get(i), vars.get(i));
+				myTerm tmp_term = new CommonPredicates().prologEqual(vars.get(i), words.get(i).getZeroConst());
 //				myTerm tmp_neg_term = new CommonPredicates().prologEqual(words.get(i), vars.get(i));
 //				tmp_neg_term.setNegative();
 				re.add(tmp_term);

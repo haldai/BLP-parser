@@ -22,8 +22,8 @@ public class HyperPathFind {
 	 * 
 	 * 标记一个diff，每个节点只能被触发两次
 	 */
-    String start;
-    String end;
+    myWord start;
+    myWord end;
     HyperGraph graph;
     ArrayList<LinkedList<myTerm>> path = new ArrayList<LinkedList <myTerm>>();
     
@@ -31,20 +31,20 @@ public class HyperPathFind {
     
     public HyperPathFind(HyperGraph g, String s, String e) {
     	graph = g;
-    	start = s;
-    	end = e;
+    	start = new myWord(s);
+    	end = new myWord(e);
     }
     
     public HyperPathFind(HyperGraph g, HyperVertex s, HyperVertex e) {
     	graph = g;
-    	start = s.getName();
-    	end = e.getName();
+    	start = s.toMyWord();
+    	end = e.toMyWord();
     }
     
     public HyperPathFind(HyperGraph g, myWord s, myWord e) {
     	graph = g;
-    	start = s.toString();
-    	end = e.toString();
+    	start = s;
+    	end = e;
     }
     
     public ArrayList<LinkedList<myTerm>> Search(LinkedList<HyperEdge> visitedEdges) {
@@ -71,11 +71,21 @@ public class HyperPathFind {
     private LinkedList<HyperEdge> allEdgesContain(String node) {
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
     	for (HyperEdge edge : graph.getEdges()) {
-    		if (edge.containsVertex(start))
+    		if (edge.containsVertex(node))
     			re.add(edge);
     	}
 		return re;
 	}
+    
+    private LinkedList<HyperEdge> allEdgesContain(myWord node) {
+    	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
+    	for (HyperEdge edge : graph.getEdges()) {
+    		if (edge.containsVertex(node))
+    			re.add(edge);
+    	}
+		return re;
+	}
+    
     /**
      * Available edges in HyperPath: each node can only appears twice at most, or there will 
      * be redundant edges.
@@ -83,13 +93,13 @@ public class HyperPathFind {
 	private LinkedList<HyperEdge> adjAvailEdges(HyperEdge e, LinkedList<HyperEdge> visited) {
     	LinkedList<HyperEdge> edges = graph.adjacentEdges(e);
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
-    	LinkedList<String> node_1 = new LinkedList<String>();
+    	LinkedList<myWord> node_1 = new LinkedList<myWord>();
     	// very important!
     	node_1.add(start);
-    	LinkedList<String> node_2 = new LinkedList<String>();
+    	LinkedList<myWord> node_2 = new LinkedList<myWord>();
     	for (HyperEdge edge : visited) {
     		for (HyperVertex node : edge.getVerices()) {
-    			String tmp = node.getName();
+    			myWord tmp = node.toMyWord();
     			if (node_1.contains(tmp))
     				if (node_2.contains(tmp)) {
     					System.out.println("Redundancy Error !!");
@@ -112,7 +122,7 @@ public class HyperPathFind {
     			add = false;
     		}
     		for (HyperVertex node : edge.getVerices()) {
-    			if (node_2.contains(node.getName())) {
+    			if (node_2.contains(node)) {
     				add = false;
     				break;
     			}

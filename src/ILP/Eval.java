@@ -57,7 +57,6 @@ public class Eval {
 	 */
 	public Eval(Prolog p) {
 		prolog = p;
-		JPL.init();
 	}
 	/**
 	 * IMPORTANT! must assert dynamicity of all predicates
@@ -170,18 +169,32 @@ public class Eval {
 	 * @param sents: input sentences
 	 * @return: set of negative and positive answers
 	 */
-	public SatisfySamples evalAllSat(ArrayList<ArrayList<myTerm>> labels, ArrayList<Sentence> sents) {
-		SatisfySamples re = new SatisfySamples(rules);
+	public SentSat evalAllSat(ArrayList<ArrayList<myTerm>> labels, ArrayList<Sentence> sents) {
+		SentSat re = new SentSat();
 		if (labels.size() != sents.size())
 			return null;
 		// Start evaluation sentences
 		for (int i = 0; i < sents.size(); i++) {
 			SatisfySamples sa = evalSentSat(labels.get(i), sents.get(i));
-			re.pushPositive(sa.getPositive());
-			re.pushNegative(sa.getNegative());
+			re.addSentSat(sents.get(i), sa);
 		}
 		return re;
 	}
+	/**
+	 * evaluate the whole document
+	 * @param doc: input document
+	 * @return: satisfy samples
+	 */
+	public SentSat evalDocSat(Document doc) {
+		SentSat re = new SentSat();
+		// Start evaluation sentences
+		for (int i = 0; i < doc.length(); i++) {
+			SatisfySamples sa = evalSentSat(doc.getLabel(i), doc.getSent(i));
+			re.addSentSat(doc.getSent(i), sa);
+		}
+		return re;
+	}
+	
 	/**
 	 * evaluate a sentence
 	 * @param i: the i-th sentence
@@ -205,6 +218,14 @@ public class Eval {
 		re.setSatisifySamples(label, ans);
 		return re;
 	}
+	
+	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Document doc, int sentIdx) {
+		SatisfySamples re = new SatisfySamples(rules);
+		LinkedList<myTerm> ans = eval(doc.getSent(sentIdx).getTerms());
+		re.setSatisifySamples(label, ans);
+		return re;
+	}
+	
 	/**
 	 * evaluate current rules in facts
 	 * @param facts: facts of background knowledge
@@ -212,12 +233,12 @@ public class Eval {
 	 */
 	public LinkedList<myTerm> eval(myTerm[] facts) {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
-		// TODO evaluate all terms;
+		// evaluate all terms;
 		for (myTerm term : facts) {
 			prolog.assertz(term.toPrologString());
 //			System.out.println(term.toPrologString());
 		}
-		// TODO get answers
+		// get answers
 		for (Predicate pred : Q_Preds) {
 			String query = String.format("%s(", pred.getName());
 			// Build query string

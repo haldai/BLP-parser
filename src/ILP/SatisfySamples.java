@@ -18,13 +18,19 @@ public class SatisfySamples {
 	 * restore the instances that satisfied by a rule L, departed into Negative and Positive samples
 	 */
 	
-	ArrayList<Formula> formula;
+	ArrayList<Formula> formula = new ArrayList<Formula>();
 	ArrayList<myTerm> negative = new ArrayList<myTerm>();
 	ArrayList<myTerm> positive = new ArrayList<myTerm>();
+
+	double coverage = 0.0;
 	
 	public SatisfySamples(ArrayList<Formula> f) {
 		// TODO Auto-generated constructor stub
 		formula = f;
+	}
+	
+	public SatisfySamples() {
+		// TODO Auto-generated constructor stub
 	}
 	
 	public SatisfySamples(Formula f) {
@@ -35,6 +41,7 @@ public class SatisfySamples {
 
 	public void setSatisifySamples(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
 		for (myTerm t : evaled) {
+//			System.out.println(t.toString());
 			if (label.contains(t)) {
 				positive.add(t);
 			}
@@ -42,6 +49,7 @@ public class SatisfySamples {
 				negative.add(t);
 			}
 		}
+		coverage = (double) (positive.size() + negative.size())/label.size();
 	}
 	
 	public ArrayList<myTerm> getPositive() {

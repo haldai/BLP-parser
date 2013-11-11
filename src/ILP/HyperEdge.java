@@ -145,6 +145,14 @@ public class HyperEdge {
 		return false;
 	}
 	
+	public boolean containsVertex(myWord v) {
+		for (int i = 0; i < vertexLen; i++) {
+			if (this.getVertex(i).equals(v))
+				return true;
+		}
+		return false;
+	}
+	
 	public boolean containsVertex(String s) {
 		for (int i = 0; i < vertexLen; i++) {
 			if (this.getVertex(i).equals(s))
