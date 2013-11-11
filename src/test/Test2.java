@@ -1,7 +1,6 @@
 package test;
 
 import jpl.*;
-import jpl.Integer;
 /*
  * 该测试有问题
  */

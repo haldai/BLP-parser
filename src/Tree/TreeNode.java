@@ -30,7 +30,6 @@ public class TreeNode {
 	public TreeNode() {
 		// TODO Auto-generated constructor stub
 		termNodes = new ArrayList<myTerm>();
-		instances = new ArrayList<Sentence>();
 		candTerms = new ArrayList<myTerm>();
 		trueChild = null;
 		falseChild = null;
@@ -50,30 +49,30 @@ public class TreeNode {
 	
 	public void setTrueChild(TreeNode t) {
 		trueChild = t;
-		isLeaf = false;
+		this.isLeaf = false;
 	}
 	
 	public void setFalseChild(TreeNode t) {
 		falseChild = t;
-		isLeaf = false;
+		this.isLeaf = false;
 	}
 	
 	public void removeTrueChild() {
 		trueChild = null; 
-		isLeaf = true;
+		this.isLeaf = true;
 	}
 	
 	public void removeFalseChild() {
 		falseChild = null;
-		isLeaf = true;
+		this.isLeaf = true;
 	}
 	
 	public void setBranchPositive() {
-		isPositiveBranch = true;
+		this.isPositiveBranch = true;
 	}
 	
 	public void setBranchNegative() {
-		isPositiveBranch = false;
+		this.isPositiveBranch = false;
 	}
 	
 	public ArrayList<myTerm> getTermNodes() {
@@ -122,8 +121,8 @@ public class TreeNode {
 		while (f != null) {
 			for (myTerm t:f.getTermNodes()) {
 				re.add(t);
-				f = f.getFather();
 			}
+			f = f.getFather();
 		}
 		return re;
 	}
@@ -142,6 +141,10 @@ public class TreeNode {
 			re.add(t);
 		}
 		return re;
+	}
+	
+	public void setIsLeaf(boolean t) {
+		this.isLeaf = t;
 	}
 	
 }

@@ -22,8 +22,6 @@ public class SatisfySamples {
 	ArrayList<myTerm> negative = new ArrayList<myTerm>();
 	ArrayList<myTerm> positive = new ArrayList<myTerm>();
 
-	double coverage = 0.0;
-	
 	public SatisfySamples(ArrayList<Formula> f) {
 		// TODO Auto-generated constructor stub
 		formula = f;
@@ -49,7 +47,6 @@ public class SatisfySamples {
 				negative.add(t);
 			}
 		}
-		coverage = (double) (positive.size() + negative.size())/label.size();
 	}
 	
 	public ArrayList<myTerm> getPositive() {

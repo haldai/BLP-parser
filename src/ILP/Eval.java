@@ -4,12 +4,7 @@
 package ILP;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Set;
-
 import jpl.*;
 import Logic.*;
 /**
@@ -176,7 +171,7 @@ public class Eval {
 		// Start evaluation sentences
 		for (int i = 0; i < sents.size(); i++) {
 			SatisfySamples sa = evalSentSat(labels.get(i), sents.get(i));
-			re.addSentSat(sents.get(i), sa);
+			re.addSentSat(labels.get(i), sents.get(i), sa);
 		}
 		return re;
 	}
@@ -190,7 +185,7 @@ public class Eval {
 		// Start evaluation sentences
 		for (int i = 0; i < doc.length(); i++) {
 			SatisfySamples sa = evalSentSat(doc.getLabel(i), doc.getSent(i));
-			re.addSentSat(doc.getSent(i), sa);
+			re.addSentSat(doc.getLabel(i), doc.getSent(i), sa);
 		}
 		return re;
 	}
@@ -255,6 +250,7 @@ public class Eval {
 //			System.out.println("Query: " + q);
 			while (q.hasMoreSolutions()) {
 				String answer = new String(query);
+				@SuppressWarnings("rawtypes")
 				java.util.Hashtable ans = q.nextSolution();
 				// Build solution terms
 				for (int i = 0; i < pred.getArity(); i++) {

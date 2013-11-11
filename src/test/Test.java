@@ -1,7 +1,7 @@
 package test;
 
 import java.util.Hashtable;
-import jpl.Query;				// empirically, we need this, but I don't know why...
+
 import jpl.*;
 
 public class Test {
@@ -123,6 +123,7 @@ public class Test {
 
 		Term[] target = new Term[] {a,f_a,pair_a_b,new Variable("_")};
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 4 ){
@@ -160,6 +161,7 @@ public class Test {
 		Term[] x_target = new Term[] {a,a};
 		Term[] y_target = new Term[] {a,b};
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 2 ){
@@ -201,6 +203,7 @@ public class Test {
 
 		Term[] x_target = new Term[] {a};
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 1 ){
@@ -240,6 +243,7 @@ public class Test {
 				}
 			);
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 2 ){
@@ -304,6 +308,7 @@ public class Test {
 				}
 			);
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 2 ){
@@ -357,6 +362,7 @@ public class Test {
 				}
 			);
 
+		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions = query.allSolutions();
 		
 		if ( solutions.length != 1 ){
@@ -425,6 +431,7 @@ public class Test {
 			Variable  X = new Variable("X");
 			Query query = new Query( "tuple", new Term[] {X} );
 			
+			@SuppressWarnings("rawtypes")
 			java.util.Hashtable solution = query.oneSolution();
 			
 			Term result = (Term) solution.get("X");

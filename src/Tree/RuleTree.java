@@ -11,6 +11,7 @@ import java.util.Stack;
 import utils.*;
 import ILP.*;
 import Logic.*;
+
 /**
  * @author Wang-Zhou
  *
@@ -97,7 +98,7 @@ public class RuleTree {
 		for (myTerm t : cand) {
 			System.out.println(t.toPrologString());
 		}
-		root = create(label, data, cand, null);
+		root = create(label, data, cand, null, true);
 	}
 
 	
@@ -108,11 +109,24 @@ public class RuleTree {
 	 */
 	
 	public TreeNode create(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data,
-			 ArrayList<myTerm> candidateTerms, TreeNode father) {
+			 ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
+		/*
+		 * START
+		 */
 		TreeNode node = new TreeNode();
-		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); // get available terms to add
-		// if no father, this node is root, add terms that includes head variables
+		node.setFather(father);
+		if (father != null)
+			node.setHierarchy(father.getHierarchy() + 1); // set hierarchy of 1
+		
+		// get available terms to add
+		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
+		
+		// TODO should be put into a procedure
 		if (father == null) {
+			/*
+			 * BUILD ROOT NODE
+			 * if no father, this node is root, add terms that includes head variables
+			 */
 			// get candidate for root node
 			myWord[] headArgs = head.getArgs();
 			ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
@@ -139,9 +153,7 @@ public class RuleTree {
 			// enumerate the best combination(covers most positive and least negative) of head
 			// (Foil gain: |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))])
 			// use DFS to enumerate
-			@SuppressWarnings("unused")
 			ArrayList<myTerm> max_root_terms = new ArrayList<myTerm>();
-			@SuppressWarnings("unused")
 			SentSat max_root_cov = new SentSat();
 			double max_root_acc = -1.0;
 			for (int j = 0; j < rootCand.get(0).size(); j++) {
@@ -169,16 +181,17 @@ public class RuleTree {
 							Formula root_f = new Formula();
 							root_f.pushBody(tmp_root);
 							root_f.pushHead(head);
-							// compute accuracy
+							// all covered data
 							SentSat sat = getSatSamps(root_f, label, data);
-							sat.getTotal();
-							double tmp_root_acc = computeAccuracy(sat.toSatisfySamples());
+							sat.setTotal();
+							// compute accuracy
+							double tmp_root_acc = computeAccuracy(sat);
 							if (tmp_root_acc > max_root_acc) {
 								max_root_acc = tmp_root_acc;
 								max_root_terms = tmp_root;
 								max_root_cov = sat;
 								System.out.println("=======");
-								System.out.println(tmp_root_acc + ": " + root_f.toString());	
+								System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
 								System.out.println("=======");
 							}
 							visited.remove(u); // pop visited
@@ -206,24 +219,41 @@ public class RuleTree {
 			for (myTerm t : candidateTerms) {
 				System.out.println(t.toPrologString());
 			}
+			/*
+			 *  FINISHING ROOT NODE BUILDING
+			 */
+			node.setTermNodes(max_root_terms); // set splitting critira
+			node.setHierarchy(1); // root is first layer
+			node.setBranchPositive();
+			// remove all used candidate terms
+			for (myTerm tmp_term : node.getTermNodes()) {
+				candidateTerms.remove(tmp_term);
+			}
+			// create childrens
+			node.setFalseChild(create(max_root_cov.getAllLables(), max_root_cov.getAllSents(), candidateTerms, node, true));
+			node.setTrueChild(create(max_root_cov.getAllLables(), max_root_cov.getAllSents(), candidateTerms, node, false));
+			
+			return node;
 		}
 		else {
-			node.setFather(father);
+			/*
+			 * NOT ROOT NODE
+			 */
+			// TODO should be put into a procedure
 			// TODO if father has enough layer or accuracy, return
-			if (true) {
-				
+			if (node.getHierarchy() > utils.MAX_HIERARCHY_NUM) {
+				node.getFather().setIsLeaf(true);
+				return null;
 			} else {
 				// TODO else split current node
 				// TODO use ILP coverage
 				double maxP = 0.0, minN = 0.0; // covered positive & covered negative
-				
 				for (myTerm t : availTerms) {
 					
 				}
+				return node;
 			}
-			
 		}
-		return node;
 	}
 	
 	private ArrayList<myTerm> candFromNegSamps(myTerm negSamp, Sentence sent) {
@@ -306,9 +336,9 @@ public class RuleTree {
 	 * given satisfy samples then compute accuracy
 	 * @return: accuracy
 	 */
-	private double computeAccuracy(SatisfySamples sat) {
-		int p = sat.getPositive().size();
-		int n = sat.getNegative().size();
+	private double computeAccuracy(SentSat sat) {
+		int p = sat.getAllPosNum();
+		int n = sat.getAllNegNum();
 		return (double) p/(p+n);
 	}
 

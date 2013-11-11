@@ -47,7 +47,6 @@ public class Sentence {
 				args = args.substring(1, args.length() - 1);
 //				System.out.println(dep[i]);
 				String[] words = args.split(",");
-				Predicate pred = new Predicate(dep[i].split("\\(")[0], words.length);
 				for (int j = 0; j < words.length; j++) {
 					myWord tmp = new myWord(words[j]);
 					arg_words.add(tmp);

@@ -122,7 +122,7 @@ public class myWord {
 	}
 	// to judge if the word is a variable
 	public boolean isVar() {
-		if ((name.equals("X")) && (pos == "var")) 
+		if ((name.equals("X")) && (pos.equals("var"))) 
 			return true;
 		else return false;
 	}

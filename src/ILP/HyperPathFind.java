@@ -68,7 +68,8 @@ public class HyperPathFind {
     	return path;
     }
     
-    private LinkedList<HyperEdge> allEdgesContain(String node) {
+    @SuppressWarnings("unused")
+	private LinkedList<HyperEdge> allEdgesContain(String node) {
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
     	for (HyperEdge edge : graph.getEdges()) {
     		if (edge.containsVertex(node))
@@ -159,7 +160,8 @@ public class HyperPathFind {
         }
     }
 
-    private void printPath(LinkedList<HyperEdge> visitedEdges) {
+    @SuppressWarnings("unused")
+	private void printPath(LinkedList<HyperEdge> visitedEdges) {
     	debug++;
     	for (HyperEdge edge : visitedEdges) {
     		System.out.print(edge.toString());
