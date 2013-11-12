@@ -76,11 +76,27 @@ public class TreeNode {
 	}
 	
 	public ArrayList<myTerm> getTermNodes() {
+		if (isPositiveBranch)
+			for (myTerm t : termNodes) {
+				t.setPositive();
+			}
+		else
+			for (myTerm t : termNodes) {
+				t.setNegative();
+			}
 		return termNodes;
 	}
 	
 	public void setTermNodes(ArrayList<myTerm> n) {
 		termNodes = n;
+		if (isPositiveBranch)
+			for (myTerm t : termNodes) {
+				t.setPositive();
+			}
+		else
+			for (myTerm t : termNodes) {
+				t.setNegative();
+			}
 	}
 	
 	public ArrayList<Sentence> getInstances() {  

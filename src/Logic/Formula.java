@@ -39,23 +39,46 @@ public class Formula {
 	// build formula by String	
 	public Formula(String f) {
 		if (f.endsWith("."))
-			f = f.substring(0, f.length());
+			f = f.substring(0, f.length() - 1);
 		String[] comp = f.split("\\:-");
 		// read head;
 		String[] head_string = comp[0].split("\\;");
 		head = new ArrayList<myTerm>();
 		for (String s : head_string) {
-			head.add(new myTerm(s));
+			// detect wether the term is negative
+			boolean sym = true;
+			while (s.startsWith(" "))
+				s = s.substring(1);
+			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
+				s = s.substring(4, s.length() - 1);
+				sym = false;
+			}
+			myTerm tmp_t = new myTerm(s);
+			if (!sym)
+				tmp_t.setNegative();
+			head.add(tmp_t);
 		}
 		headLen = head.size();
 		// add body
 		String[] body_string = comp[1].split("\\;");
 		body = new ArrayList<myTerm>();
 		for (String s : body_string) {
-			body.add(new myTerm(s));
+			// detect wether the term is negative
+			boolean sym = true;
+			while (s.startsWith(" "))
+				s = s.substring(1);
+			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
+				s = s.substring(4, s.length() - 1);
+				sym = false;
+			}
+			myTerm tmp_t = new myTerm(s);
+			if (!sym)
+				tmp_t.setNegative();
+			body.add(tmp_t);
 		}
 		bodyLen = body.size();
 	}
+	
 
 	public void pushBody(ArrayList<myTerm> t) {
 		for (myTerm term : t) {
@@ -69,9 +92,21 @@ public class Formula {
 		bodyLen = body.size();
 	}
 	
-	public void pushbody(LinkedList<myTerm> terms) {
+	public void pushBodyToFirst(myTerm t) {
+		body.add(0, t);
+		bodyLen = body.size();
+	}
+	
+	public void pushBody(LinkedList<myTerm> terms) {
 		for (myTerm t : terms) {
 			body.add(t);
+		}
+		bodyLen = body.size();
+	}
+	
+	public void pushBodyToFirst(LinkedList<myTerm> terms) {
+		for (myTerm t : terms) {
+			body.add(0,t);
 		}
 		bodyLen = body.size();
 	}
@@ -174,15 +209,4 @@ public class Formula {
 		return true;
 	}
 	
-//	// substitution
-//	public Formular substitution(myWord[] vars, myWord[] atms) {
-//		// TODO myTerm substitution
-//		if (vars.length != atms.length) {
-//			System.out.println("Substitution variables and atoms are in different length!");
-//			throw new IllegalArgumentException();
-//		}
-//		for (int i = 0; i < body.length; i++) {
-//			
-//		}
-//	}
 }

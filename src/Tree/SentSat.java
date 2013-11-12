@@ -98,12 +98,12 @@ public class SentSat {
 		return allNeg.size();
 	}
 	
-	public SatisfySamples toSatisfySamples() {
-		SatisfySamples re = new SatisfySamples();
-		re.pushPositive(allPos);
-		re.pushNegative(allNeg);
-		return re;
-	}
+//	public SatisfySamples toSatisfySamples() {
+//		SatisfySamples re = new SatisfySamples();
+//		re.pushPositive(allPos);
+//		re.pushNegative(allNeg);
+//		return re;
+//	}
 	
 	public ArrayList<Sentence> getAllSents() {
 		return sents;
@@ -133,5 +133,13 @@ public class SentSat {
 	
 	public ArrayList<myTerm> getAllLabel(int i) {
 		return labels.get(i);
+	}
+	
+	public Data getCoveredData() {
+		return covered;
+	}
+	
+	public Data getUncoveredData() {
+		return uncovered;
 	}
 }

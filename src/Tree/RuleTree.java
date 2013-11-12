@@ -76,8 +76,6 @@ public class RuleTree {
 	 * @param path: path of available terms for split
 	 */
 	public void buildTree(Document doc, myTerm head, LinkedList<myTerm> path) {
-		ArrayList<Sentence> data = new ArrayList<Sentence>(Arrays.asList(doc.getSentences())); // data
-		ArrayList<ArrayList<myTerm>> label = doc.getLabels(); // labels
 		ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
 		// substitution and get more features (temporarily only use words themselves)
 		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
@@ -98,7 +96,8 @@ public class RuleTree {
 		for (myTerm t : cand) {
 			System.out.println(t.toPrologString());
 		}
-		root = create(label, data, cand, null, true);
+		Data data = new Data(doc);
+		root = create(data, cand, null, true);
 	}
 
 	
@@ -108,11 +107,12 @@ public class RuleTree {
 	 * @candidateTerms are the candidate terms for a tree 
 	 */
 	
-	public TreeNode create(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data,
-			 ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
+	public TreeNode create(Data d, ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
 		/*
 		 * START
 		 */
+		ArrayList<ArrayList<myTerm>> label = d.getLabels();
+		ArrayList<Sentence> data = d.getSents();
 		TreeNode node = new TreeNode();
 		node.setFather(father);
 		if (father != null)
@@ -120,6 +120,11 @@ public class RuleTree {
 		
 		// get available terms to add
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
+		
+		if (branch)
+			node.setBranchPositive();
+		else
+			node.setBranchNegative();
 		
 		// TODO should be put into a procedure
 		if (father == null) {
@@ -182,6 +187,8 @@ public class RuleTree {
 							root_f.pushBody(tmp_root);
 							root_f.pushHead(head);
 							// all covered data
+//							if ((tmp_root.size() == 1) && (tmp_root.get(0).getPred().toString().equals("adv/2")))
+//								System.out.println(tmp_root.get(0).toString());
 							SentSat sat = getSatSamps(root_f, label, data);
 							sat.setTotal();
 							// compute accuracy
@@ -230,9 +237,15 @@ public class RuleTree {
 				candidateTerms.remove(tmp_term);
 			}
 			// create childrens
-			node.setFalseChild(create(max_root_cov.getAllLables(), max_root_cov.getAllSents(), candidateTerms, node, true));
-			node.setTrueChild(create(max_root_cov.getAllLables(), max_root_cov.getAllSents(), candidateTerms, node, false));
-			
+//			node.setFalseChild(create(max_root_cov.getCoveredData(), candidateTerms, node, false));
+			// FIRST TERM IN PROLOG RULE MUST BE TRUE!!!
+			node.setTrueChild(create(max_root_cov.getUncoveredData(), candidateTerms, node, true));
+			node.setFalseChild(null);
+			System.out.println("=========================\nCOVERED INSTANCES\n==========================");
+			System.out.println(max_root_cov.getCoveredData());
+			System.out.println("=======================\nUNCOVERED INSTANCES\n==========================");
+			System.out.println(max_root_cov.getUncoveredData());
+//			System.exit(0);
 			return node;
 		}
 		else {
@@ -240,17 +253,19 @@ public class RuleTree {
 			 * NOT ROOT NODE
 			 */
 			// TODO should be put into a procedure
-			// TODO if father has enough layer or accuracy, return
+			// if father has enough layer or accuracy, return
 			if (node.getHierarchy() > utils.MAX_HIERARCHY_NUM) {
 				node.getFather().setIsLeaf(true);
 				return null;
 			} else {
 				// TODO else split current node
 				// TODO use ILP coverage
-				double maxAcc = 0.0, maxCov = 0.0; // covered positive & covered negative
-				
+				double maxGini = 0.0, maxCov = 0.0; // covered positive & covered negative
+				Formula cur_form = toFormula(father);
+				System.out.println(cur_form.toPrologString());
 				for (myTerm t : availTerms) {
-					
+					// TODO add t to body
+					// TODO compute gini coefficient
 				}
 				return node;
 			}
@@ -362,9 +377,18 @@ public class RuleTree {
 		}
 		for (myTerm t : candidateTerms) {
 			boolean banned = false;
-			for (myWord w : t.getArgs()) {
-				for (String s : appVars) {
-					if (s.equals(w.toPrologString()))
+			boolean found = false;
+			if (!appVars.isEmpty()) {
+				for (myWord w : t.getArgs()) {
+					if (w.isVar()) {
+						for (String s : appVars) {
+							if (s.equals(w.toPrologString())) {
+								found = true;
+								break;
+							}
+						}
+					}
+					if (!found)
 						banned = true;
 				}
 			}
@@ -381,9 +405,15 @@ public class RuleTree {
 	private Formula toFormula(TreeNode node) {
 		Formula re = new Formula();
 		re.pushHead(head);
-		re.pushbody(node.toTerms());
+		re.pushBodyToFirst(node.toTerms());
 		while (node.getFather() != null) {
-			re.pushbody(node.getFather().toTerms());
+			TreeNode tmp_node = node.getFather();
+			if (node.isPositiveBranch())
+				tmp_node.setBranchPositive();
+			else
+				tmp_node.setBranchNegative();
+			re.pushBodyToFirst(tmp_node.toTerms());
+			node = tmp_node;
 		}
 		return re;
 	}

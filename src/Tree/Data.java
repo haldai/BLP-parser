@@ -29,6 +29,12 @@ public class Data {
 		// TODO Auto-generated constructor stub
 	}
 	
+	public Data(Document doc) {
+		for (int i = 0; i < doc.length(); i++) {
+			this.addData(doc.getLabel(i), doc.getSent(i));
+		}
+	}
+	
 	public void addData(ArrayList<myTerm> label, Sentence sent) {
 		labels.add(label);
 		sentences.add(sent);
@@ -144,5 +150,13 @@ public class Data {
 	
 	public Sentence getSentOfTerm(myTerm t) {
 		return term_sent.get(t);
+	}
+	
+	public String toString() {
+		String re = "";
+		for (Sentence sent : sentences) {
+			re = re + String.format("%s\n", sent.toString());
+		}
+		return re;
 	}
 }
