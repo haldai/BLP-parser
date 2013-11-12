@@ -1,12 +1,13 @@
 /**
  * 
  */
-package ILP;
+package Tree;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import ILP.SatisfySamples;
 import Logic.*;
 
 /**
@@ -22,38 +23,41 @@ public class SentSat {
 	ArrayList<myTerm> allNeg = new ArrayList<myTerm>();
 	Map<myTerm, Sentence> term_sent = new HashMap<myTerm, Sentence>();
 	
-	int allData = 0;
-	int covData = 0;
+	/*
+	 * SPLITTING FOR ROBUSTNESS
+	 */
+	
+	Data covered = new Data();
+	Data uncovered = new Data();
 	
 	double coverage = 0.0;
 	/**
 	 * 
 	 */
-	public SentSat() {
-		// TODO Auto-generated constructor stub
-	}
+	public SentSat() {}
 	
 	public void addSentSat(ArrayList<myTerm> label, Sentence sent, SatisfySamples sat) {
-		allData++;
-		if (!(sat.getNegative().size() == 0 && sat.getPositive().size() == 0)) {
-			covData++;
+		if (sat.hasSolution()) {
+			// covered
 			sents.add(sent);
 			sats.add(sat);
 			labels.add(label);
 			for (myTerm t : sat.getNegative()){
 				term_sent.put(t, sent);
 			}
-		}
+			covered.addData(label, sent, sat);
+		} else
+			uncovered.addData(label, sent, sat);
 	}
 	
 	public Sentence getWhichSent(myTerm t) {
-		return term_sent.get(t);
+		return covered.getSentOfTerm(t);
 	}
 	
 	private void setAllNeg() {
 		allNeg = new ArrayList<myTerm>();
-		for (SatisfySamples sat : sats) {
-			for (myTerm t : sat.getNegative()) {
+		for (ArrayList<myTerm> tl : covered.negative) {
+			for (myTerm t : tl) {
 				allNeg.add(t);
 			}
 		}
@@ -61,18 +65,20 @@ public class SentSat {
 	
 	private void setAllPos() {
 		allPos = new ArrayList<myTerm>();
-		for (SatisfySamples sat : sats) {
-			for (myTerm t : sat.getPositive()) {
+		for (ArrayList<myTerm> tl : covered.positive) {
+			for (myTerm t : tl) {
 				allPos.add(t);
 			}
 		}
 	}
 	
 	public ArrayList<myTerm> getAllPos() {
+		setAllPos();
 		return allPos;
 	}
 	
 	public ArrayList<myTerm> getAllNeg() {
+		setAllNeg();
 		return allNeg;
 	}
 	
@@ -114,7 +120,7 @@ public class SentSat {
 	public void setTotal() {
 		setAllNeg();
 		setAllPos();
-		coverage = (double) covData/allData;
+		coverage = (double) covered.size()/(uncovered.size() + covered.size());
 	}
 	
 	public double getCov() {

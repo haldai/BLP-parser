@@ -247,7 +247,8 @@ public class RuleTree {
 			} else {
 				// TODO else split current node
 				// TODO use ILP coverage
-				double maxP = 0.0, minN = 0.0; // covered positive & covered negative
+				double maxAcc = 0.0, maxCov = 0.0; // covered positive & covered negative
+				
 				for (myTerm t : availTerms) {
 					
 				}

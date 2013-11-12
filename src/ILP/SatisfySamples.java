@@ -21,6 +21,7 @@ public class SatisfySamples {
 	ArrayList<Formula> formula = new ArrayList<Formula>();
 	ArrayList<myTerm> negative = new ArrayList<myTerm>();
 	ArrayList<myTerm> positive = new ArrayList<myTerm>();
+	private boolean hasSolution = false;
 
 	public SatisfySamples(ArrayList<Formula> f) {
 		// TODO Auto-generated constructor stub
@@ -38,6 +39,8 @@ public class SatisfySamples {
 	}
 
 	public void setSatisifySamples(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
+		if (!evaled.isEmpty())
+			hasSolution = true;
 		for (myTerm t : evaled) {
 //			System.out.println(t.toString());
 			if (label.contains(t)) {
@@ -71,5 +74,9 @@ public class SatisfySamples {
 	
 	public void pushNegative(ArrayList<myTerm> t) {
 		negative.addAll(t);
+	}
+	
+	public boolean hasSolution() {
+		return hasSolution;
 	}
 }

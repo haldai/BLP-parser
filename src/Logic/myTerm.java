@@ -92,14 +92,18 @@ public class myTerm {
 	
 	public String toPrologString() {
 		String pos = "";
-		if (!this.isPositive())
-			pos = "\\+ "; 
-		String s = String.format("%s%s(", pos, pred.getName());
+		if (!this.isPositive()) {
+			if (pred.getName().equals("=="))
+				pos = " \\+";
+			else
+				pos = "not";
+		}
+		String s = String.format("%s(%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toPrologString() + ",";
 		}
 		if (s.endsWith(","))
-			s = s.substring(0, s.length() - 1) + ")";
+			s = s.substring(0, s.length() - 1) + "))";
 		return s;
 	}
 	
