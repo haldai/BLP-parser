@@ -4,6 +4,7 @@
 package Logic;
 
 import jpl.Atom;
+import utils.*;
 /**
  * @author daiwz
  *
@@ -61,8 +62,13 @@ public class myWord {
 			pos = args[2];
 		} else if (args.length == 2) {
 			// is a prolog term
-			num = 0;
-			pos = args[1];
+			if (args[0].equals("X") && utils.isNumeric(args[1])) {
+				num = Integer.parseInt(args[1]);
+				pos = "var";
+			} else {
+				num = 0;
+				pos = args[1];
+			}
 		} else if (args.length == 1) {
 			// is a single word
 			num = 0;
@@ -89,23 +95,26 @@ public class myWord {
 	
 	public String toString() {
 		String str;
-		if (num != 0)
+		if (!this.isVar())
 			str = String.format("%s_%s_%s", name, num, pos);
 		else
 			str = String.format("%s_%s", name, pos);
 		return str;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public String toPrologString() {
 		char c = name.charAt(0);
 		String new_name = name;
-		if (Character.isDigit(c) || (Character.isUpperCase(c)) || Character.isSpace(c)) {
+		if (Character.isDigit(c) || Character.isSpace(c)) {
 		new_name = "d" + new_name;
 		}
 		new_name = new_name.replaceAll(" ", "SPACE");
-		String str = String.format("%s_%s", new_name, pos);
+		if (!this.isVar())
+			return String.format("%s_%s", new_name, pos);
+		else
+			return String.format("%s_%d", new_name, num);
 //		String str = String.format("%s_%s_%s", new_name, num, pos);
-		return str;
 	}
 
 	public Atom toAtom() {
@@ -113,15 +122,45 @@ public class myWord {
 	}
 	// to judge if the word is a variable
 	public boolean isVar() {
-		if ((name.equals("X")) && (pos == "var")) 
+		if ((name.equals("X")) && (pos.equals("var"))) 
 			return true;
 		else return false;
 	}
 	
-	public boolean equals(myWord w) {
-		if ((this.name.equals(w.name)) && (this.num == w.num) && (this.pos == w.pos))
-			return true;
-		else
+	public boolean equals(Object o) {
+		if (!(o instanceof myWord))
 			return false;
+		else {
+			myWord w = (myWord) o;
+			String t_name = this.name;
+			String o_name = w.name;
+			// cope with the "d"-addition of some prolog string
+			if (this.name.startsWith("d"))
+				t_name = t_name.substring(1);
+			if (w.name.startsWith("d"))
+				o_name = o_name.substring(1);
+			// deal with variable and constant comparing
+			if ((this.num == 0) || (w.num == 0)) {
+				if ((t_name.equals(o_name)) && (this.pos.equals(w.getPos())))
+					return true;
+				else
+					return false;
+			} else {
+				if ((t_name.equals(o_name)) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
+					return true;
+				else
+					return false;
+			}
+		}
+	}
+	
+	public myWord getZeroConst() {
+		myWord re = new myWord(this.toPrologString());
+		re.setNumZero();
+		return re;
+	}
+	
+	public void setNumZero() {
+		this.num = 0;
 	}
 }

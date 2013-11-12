@@ -47,11 +47,16 @@ public class Predicate {
 		arity = a;
 	}
 	
-	public boolean equals(Predicate p) {
-		if ((this.name.equals(p.getName())) && (this.arity == p.getArity()))
-			return true;
-		else 
+	public boolean equals(Object o) {
+		if (!(o instanceof Predicate))
 			return false;
+		else {
+			Predicate p = (Predicate) o;
+			if ((this.name.equals(p.getName())) && (this.arity == p.getArity()))
+				return true;
+			else 
+				return false;
+		}
 	}
 	
 	public String toString() {

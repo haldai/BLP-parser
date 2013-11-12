@@ -47,7 +47,6 @@ public class Sentence {
 				args = args.substring(1, args.length() - 1);
 //				System.out.println(dep[i]);
 				String[] words = args.split(",");
-				Predicate pred = new Predicate(dep[i].split("\\(")[0], words.length);
 				for (int j = 0; j < words.length; j++) {
 					myWord tmp = new myWord(words[j]);
 					arg_words.add(tmp);
@@ -71,6 +70,8 @@ public class Sentence {
 		}
 		
 		for (int i = 0; i < wd.size(); i++ ) {
+//			System.out.println(wd.get(i));
+//			System.out.println(l.get(i+1) - 1);
 			buff_words[l.get(i + 1) - 1] = wd.get(i);
 		}
 		
@@ -116,5 +117,20 @@ public class Sentence {
 	
 	public myWord[] getWords() {
 		return wordList;
+	}
+	/**
+	 * get a list of predicates in array list of terms
+	 * @param terms: input terms
+	 * @return: array list of predicates
+	 */
+	public ArrayList<Predicate> getAllPreds(ArrayList<myTerm> terms) {
+		ArrayList<Predicate> buff_preds = new ArrayList<Predicate>();
+		for (myTerm t : terms) {
+			if (!buff_preds.contains(t.getPred())) {
+//				System.out.println(t.getPred().getName() + '/' + t.getPred().getArity());
+				buff_preds.add(t.getPred());
+			}
+		}
+		return buff_preds;
 	}
 }

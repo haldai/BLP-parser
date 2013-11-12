@@ -17,7 +17,7 @@ public class TreeNode {
 	/**
 	 * TreeNode. It may be a term or a word feature.
 	 */
-	private myTerm termNode;	// name of current node (splitting criteria)
+	private ArrayList<myTerm> termNodes;	// name of current node (splitting criteria)
 	private ArrayList<Sentence> instances; // instances had been assigned to current node
 	private ArrayList<myTerm> candTerms; // candidate terms for splitting
 	private int hierarchy;
@@ -25,17 +25,18 @@ public class TreeNode {
 	private TreeNode trueChild;
 	private TreeNode falseChild;
 	private boolean isLeaf;
+	private boolean isPositiveBranch;
 	
 	public TreeNode() {
 		// TODO Auto-generated constructor stub
-		termNode = new myTerm();
-		instances = new ArrayList<Sentence>();
+		termNodes = new ArrayList<myTerm>();
 		candTerms = new ArrayList<myTerm>();
 		trueChild = null;
 		falseChild = null;
 		hierarchy = 0;
 		father = null;
-		isLeaf = false;
+		isPositiveBranch = true;
+		isLeaf = true;
 	}
 	
 	public TreeNode getTrueChild() {
@@ -47,19 +48,55 @@ public class TreeNode {
 	}
 	
 	public void setTrueChild(TreeNode t) {
-		trueChild = t; 
+		trueChild = t;
+		this.isLeaf = false;
 	}
 	
 	public void setFalseChild(TreeNode t) {
-		falseChild = t; 
+		falseChild = t;
+		this.isLeaf = false;
 	}
 	
-	public myTerm getTermNode() {
-		return termNode;
+	public void removeTrueChild() {
+		trueChild = null; 
+		this.isLeaf = true;
 	}
 	
-	public void setTermNode(myTerm n) {
-		termNode = n;
+	public void removeFalseChild() {
+		falseChild = null;
+		this.isLeaf = true;
+	}
+	
+	public void setBranchPositive() {
+		this.isPositiveBranch = true;
+	}
+	
+	public void setBranchNegative() {
+		this.isPositiveBranch = false;
+	}
+	
+	public ArrayList<myTerm> getTermNodes() {
+		if (isPositiveBranch)
+			for (myTerm t : termNodes) {
+				t.setPositive();
+			}
+		else
+			for (myTerm t : termNodes) {
+				t.setNegative();
+			}
+		return termNodes;
+	}
+	
+	public void setTermNodes(ArrayList<myTerm> n) {
+		termNodes = n;
+		if (isPositiveBranch)
+			for (myTerm t : termNodes) {
+				t.setPositive();
+			}
+		else
+			for (myTerm t : termNodes) {
+				t.setNegative();
+			}
 	}
 	
 	public ArrayList<Sentence> getInstances() {  
@@ -94,11 +131,13 @@ public class TreeNode {
 		hierarchy = h;
 	}
 	
-	public ArrayList<myTerm> getHistoryNodes() {
+	public ArrayList<myTerm> getAncestorNodes() {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		TreeNode f = this.getFather();
 		while (f != null) {
-			re.add(f.getTermNode());
+			for (myTerm t:f.getTermNodes()) {
+				re.add(t);
+			}
 			f = f.getFather();
 		}
 		return re;
@@ -106,6 +145,22 @@ public class TreeNode {
 	
 	public boolean isLeaf() {
 		return isLeaf;
+	}
+	
+	public boolean isPositiveBranch() {
+		return isPositiveBranch;
+	}
+	
+	public LinkedList<myTerm> toTerms() {
+		LinkedList<myTerm> re = new LinkedList<myTerm>();
+		for (myTerm t : termNodes) {
+			re.add(t);
+		}
+		return re;
+	}
+	
+	public void setIsLeaf(boolean t) {
+		this.isLeaf = t;
 	}
 	
 }

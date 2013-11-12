@@ -216,7 +216,8 @@ public class HyperGraph {
 //    }
     
     public boolean isConnected(String node1, String node2) {
-        Set adjacent = adjMap.get(node1);
+        @SuppressWarnings("rawtypes")
+		Set adjacent = adjMap.get(node1);
         if(adjacent == null) {
             return false;
         }

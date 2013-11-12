@@ -1,14 +1,13 @@
 package test;
 
-import java.util.Hashtable;
 import jpl.*;
-import jpl.Query;
 /*
  * 不要读取pl数据库，除非文件头已经定义dynamic. 在jpl.JPL中声明新的predicate自动被判定为dynamic，
  * 除非被compile_predicate/1修改。
  */
 public class Family
 {
+	@SuppressWarnings("rawtypes")
 	public static void
 	main( String argv[] )
 	{

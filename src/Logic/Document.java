@@ -8,10 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import static utils.utils.MAX_LABEL_LEN;;
+import java.util.List;;
 /**
  * @author daiwz
  *
@@ -25,17 +22,17 @@ public class Document {
 	             // training data has labels, while testing data does not.
 	int length;
 	Sentence[] sentList;
-	ArrayList<LinkedList<myTerm>> labelList;
+	ArrayList<ArrayList<myTerm>> labelList;
 	Predicate[] predList;
 	// reading path of predicate file and sentence file.
 	public Document(String path_pred, String path_sent, boolean train) {
 		// read file		
 		String[] fpred = readFileByLines(path_pred);
-		System.out.println(fpred.length);
+		System.out.println("Predicate number: " + fpred.length);
 		String[] fsent = readFileByLines(path_sent);
 //		for (int i = 0; i < fsent.length; i++)
 //			System.out.println(fsent[i]);
-		System.out.println(fsent.length);
+		System.out.println("Sentence number:" + fsent.length);
 		length = fsent.length;
 		// parse into sentences(train or test).
 		// predicates
@@ -49,19 +46,24 @@ public class Document {
 		// sentences
 		Sentence[] buff_sentList = new Sentence[fsent.length];
 //		myTerm[][] myTerm[fsent.length][MAX_LABEL_LEN];
-		ArrayList<LinkedList<myTerm>>buff_label_list = new ArrayList<LinkedList<myTerm>>();
+		ArrayList<ArrayList<myTerm>>buff_label_list = new ArrayList<ArrayList<myTerm>>();
 		String line = null;
 		String[] buff_line = new String[2];
 		for (int i = 0; i < fsent.length; i++) {
 			line = fsent[i];
 			buff_line = line.split("\\:-");
 //			System.out.println(buff_line[0]);
+			ArrayList<myTerm> tmp_label_list = new ArrayList<myTerm>(); // current sentence
 			if (train) {
 				// training data, split the labels
-				String[] buff_label = buff_line[0].split("\\,");
+				String[] buff_label = buff_line[0].split("\\;");
 				for (int j = 0; j < buff_label.length; j++) {
-					buff_label_list.get(i).add(new myTerm(buff_label[j]));
+					String tmp_label = buff_label[j];
+					if (tmp_label.indexOf('(') == 0)
+						tmp_label = "sem" + tmp_label;
+					tmp_label_list.add(new myTerm(tmp_label));
 				}
+				buff_label_list.add(tmp_label_list);
 				// parse sentences
 			}
 			buff_sentList[i] = new Sentence(buff_line[buff_line.length - 1]);
@@ -121,8 +123,12 @@ public class Document {
 		return sentList[num];
 	}
 	
-	public LinkedList<myTerm> getLabel(int num) {
+	public ArrayList<myTerm> getLabel(int num) {
 		return labelList.get(num);
+	}
+	
+	public ArrayList<ArrayList<myTerm>> getLabels() {
+		return labelList;
 	}
 	
 	public Predicate[] getPredList() {

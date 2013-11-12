@@ -77,7 +77,7 @@ public class Prolog {
 	
 	public void equalTerm(String s1, String s2) {
 		String clause;
-		clause = String.format("\\==(%s,%s)", s1, s2);
+		clause = String.format("==(%s,%s)", s1, s2);
 		Query q = new Query(clause);
 		try {
 			q.hasSolution();
@@ -90,7 +90,7 @@ public class Prolog {
 	
 	public void unifyTerm(String s1, String s2) {
 		String clause;
-		clause = String.format("\\=(%s,%s)", s1, s2);
+		clause = String.format("=(%s,%s)", s1, s2);
 		Query q = new Query(clause);
 		try {
 			q.hasSolution();
@@ -103,7 +103,7 @@ public class Prolog {
 	
 	public void not(String s) {
 		String clause;
-		clause = String.format(" \\+(%s)", s);
+		clause = String.format("\\+(%s)", s);
 		Query q = new Query(clause);
 		try {
 			q.hasSolution();

@@ -22,63 +22,27 @@ public class myTerm {
 	 */
 	Predicate pred;
 	myWord[] args;
-	double weight;
-	boolean positive = true;
+	double weight = 0.0;
+	boolean isPositive = true;
 	
-	public myTerm(String n, myWord[] words, double w) {
-		pred = new Predicate(n, words.length);
-		args = words;
-		weight = w;
-	}
-	
-	public myTerm(String n, myWord[] words) {
-		pred = new Predicate(n, words.length);
-		args = words;
-		weight = 0.0;
-	}
-	
-	public myTerm(Predicate p, myWord[] words, double w) {
-		pred = p;
-		args = words;
-		weight = w;
+	public myTerm(String n, ArrayList<myWord> words) {
+		pred = new Predicate(n, words.size());
+		args = words.toArray(new myWord[words.size()]);
 	}
 	
 	public myTerm(Predicate p, myWord[] words) {
 		pred = p;
 		args = words;
-		weight = 0.0;
+	}
+	
+	public myTerm(Predicate p, ArrayList<myWord> words) {
+		pred = p;
+		args = words.toArray(new myWord[words.size()]);
 	}
 	/**
 	 * another realization of directly reading string into myWord and Predicate
 	 * @param s: string to be parsed
-	 * @param w: weight
 	 */
-	public myTerm(String s, double w) {
-		// find arguments
-		Pattern p = Pattern.compile("\\(.*?\\)");
-		Matcher m = p.matcher(s);
-		boolean found = m.find();
-		String[] tmp_args = null;
-		List<myWord> buff_words = new ArrayList<myWord>();
-		if (found) {
-			String tmp_s = m.group();
-			tmp_s = tmp_s.substring(1, tmp_s.lastIndexOf(')'));
-			tmp_args = tmp_s.split("\\,");
-			for (int i = 0; i < tmp_args.length; i++) {
-				buff_words.add(new myWord(tmp_args[i]));
-			}
-			args = new myWord[buff_words.size()];
-			for (int i = 0; i < buff_words.size(); i++) {
-				args[i] = buff_words.get(i);
-			}
-		} else {
-			System.out.println("arguments of " + s + " not found!");
-			System.exit(0);
-		}
-		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
-		weight = w;
-	}
-	
 	public myTerm(String s) {
 		// find arguments
 		Pattern p = Pattern.compile("\\(.*?\\)");
@@ -102,7 +66,6 @@ public class myTerm {
 			System.exit(0);
 		}
 		pred = new Predicate(s.split("\\(")[0], tmp_args.length);
-		weight = 0.0;
 	}
 	
 	public myTerm() {
@@ -115,7 +78,10 @@ public class myTerm {
 	}
 	
 	public String toString() {
-		String s = String.format("%s(", pred.getName());
+		String pos = "";
+		if (!this.isPositive())
+			pos = "not: "; 
+		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toString() + ",";
 		}
@@ -125,12 +91,19 @@ public class myTerm {
 	}
 	
 	public String toPrologString() {
-		String s = String.format("%s(", pred.getName());
+		String pos = "";
+		if (!this.isPositive()) {
+			if (pred.getName().equals("=="))
+				pos = " \\+";
+			else
+				pos = " not";
+		}
+		String s = String.format("%s(%s(", pos, pred.getName());
 		for (myWord w : args) {
 			s = s + w.toPrologString() + ",";
 		}
 		if (s.endsWith(","))
-			s = s.substring(0, s.length() - 1) + ")";
+			s = s.substring(0, s.length() - 1) + "))";
 		return s;
 	}
 	
@@ -160,16 +133,21 @@ public class myTerm {
 		return new myTerm(this.pred, a);
 	}
 	
-	public boolean equals(myTerm t) {
-		if (!this.pred.equals(t.pred))
+	public boolean equals(Object o) {
+		if (!(o instanceof myTerm))
 			return false;
 		else {
-			for (int i = 0; i < this.pred.arity; i++) {
-				if (this.args[i] != t.getArg(i))
-					return false;
+			myTerm t = (myTerm) o;
+			if (!this.pred.equals(t.pred))
+				return false;
+			else {
+				for (int i = 0; i < this.pred.arity; i++) {
+					if (!this.args[i].equals(t.getArg(i)))
+						return false;
+				}
 			}
+			return true;
 		}
-		return true;
 	}
 	
 	public void setWeight(double w) {
@@ -180,14 +158,19 @@ public class myTerm {
 		return weight;
 	}
 	/**
-	 * set this term as a positive or a negative term
-	 * @param b
+	 * set this term as a positive term
 	 */
-	public void setPositive(boolean b) {
-		positive = b;
+	public void setPositive() {
+		isPositive = true;
+	}
+	/**
+	 * set this term to negative
+	 */
+	public void setNegative() {
+		isPositive = false;
 	}
 	
-	public boolean getPositive() {
-		return positive;
+	public boolean isPositive() {
+		return isPositive;
 	}
 }

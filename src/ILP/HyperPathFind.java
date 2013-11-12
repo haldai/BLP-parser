@@ -22,8 +22,8 @@ public class HyperPathFind {
 	 * 
 	 * 标记一个diff，每个节点只能被触发两次
 	 */
-    String start;
-    String end;
+    myWord start;
+    myWord end;
     HyperGraph graph;
     ArrayList<LinkedList<myTerm>> path = new ArrayList<LinkedList <myTerm>>();
     
@@ -31,31 +31,31 @@ public class HyperPathFind {
     
     public HyperPathFind(HyperGraph g, String s, String e) {
     	graph = g;
-    	start = s;
-    	end = e;
+    	start = new myWord(s);
+    	end = new myWord(e);
     }
     
     public HyperPathFind(HyperGraph g, HyperVertex s, HyperVertex e) {
     	graph = g;
-    	start = s.getName();
-    	end = e.getName();
+    	start = s.toMyWord();
+    	end = e.toMyWord();
     }
     
     public HyperPathFind(HyperGraph g, myWord s, myWord e) {
     	graph = g;
-    	start = s.toString();
-    	end = e.toString();
+    	start = s;
+    	end = e;
     }
     
     public ArrayList<LinkedList<myTerm>> Search(LinkedList<HyperEdge> visitedEdges) {
     	
-    	System.out.format("start %s, end %s\n", start, end);
+//    	System.out.format("start %s, end %s\n", start, end);
     	LinkedList<HyperEdge> start_edges = allEdgesContain(start);
     	for (HyperEdge edge : start_edges) {
     		// visit start_edges
     		if (edge.containsVertex(end)) {
     			visitedEdges.add(edge);
-        		printPath(visitedEdges);
+//        		printPath(visitedEdges);
         		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		continue;
@@ -68,14 +68,25 @@ public class HyperPathFind {
     	return path;
     }
     
-    private LinkedList<HyperEdge> allEdgesContain(String node) {
+    @SuppressWarnings("unused")
+	private LinkedList<HyperEdge> allEdgesContain(String node) {
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
     	for (HyperEdge edge : graph.getEdges()) {
-    		if (edge.containsVertex(start))
+    		if (edge.containsVertex(node))
     			re.add(edge);
     	}
 		return re;
 	}
+    
+    private LinkedList<HyperEdge> allEdgesContain(myWord node) {
+    	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
+    	for (HyperEdge edge : graph.getEdges()) {
+    		if (edge.containsVertex(node))
+    			re.add(edge);
+    	}
+		return re;
+	}
+    
     /**
      * Available edges in HyperPath: each node can only appears twice at most, or there will 
      * be redundant edges.
@@ -83,13 +94,13 @@ public class HyperPathFind {
 	private LinkedList<HyperEdge> adjAvailEdges(HyperEdge e, LinkedList<HyperEdge> visited) {
     	LinkedList<HyperEdge> edges = graph.adjacentEdges(e);
     	LinkedList<HyperEdge> re = new LinkedList<HyperEdge>();
-    	LinkedList<String> node_1 = new LinkedList<String>();
+    	LinkedList<myWord> node_1 = new LinkedList<myWord>();
     	// very important!
     	node_1.add(start);
-    	LinkedList<String> node_2 = new LinkedList<String>();
+    	LinkedList<myWord> node_2 = new LinkedList<myWord>();
     	for (HyperEdge edge : visited) {
     		for (HyperVertex node : edge.getVerices()) {
-    			String tmp = node.getName();
+    			myWord tmp = node.toMyWord();
     			if (node_1.contains(tmp))
     				if (node_2.contains(tmp)) {
     					System.out.println("Redundancy Error !!");
@@ -112,7 +123,7 @@ public class HyperPathFind {
     			add = false;
     		}
     		for (HyperVertex node : edge.getVerices()) {
-    			if (node_2.contains(node.getName())) {
+    			if (node_2.contains(node)) {
     				add = false;
     				break;
     			}
@@ -132,7 +143,7 @@ public class HyperPathFind {
             }
             if (edge.containsVertex(end)) {
             	visitedEdges.add(edge);
-        		printPath(visitedEdges);
+//        		printPath(visitedEdges);
         		path.add(returnPath(visitedEdges));
         		visitedEdges.removeLast();
         		break;
@@ -149,27 +160,32 @@ public class HyperPathFind {
         }
     }
 
-    private void printPath(LinkedList<HyperEdge> visitedEdges) {
+    @SuppressWarnings("unused")
+	private void printPath(LinkedList<HyperEdge> visitedEdges) {
     	debug++;
-        for (HyperEdge edge : visitedEdges) {
-            System.out.print(edge.toString());
-            System.out.print(" ");
+    	for (HyperEdge edge : visitedEdges) {
+    		System.out.print(edge.toString());
+			System.out.print(" ");
         }
-        System.out.println(debug);
-        if (debug >= 2) {
-        	System.out.println("Multi Paths in Tree!!!");
-        	System.exit(0);
-        }
+    	System.out.println(debug);
+    	if (debug >= 2) {
+    		System.out.println("Multi Paths in Tree!!!");
+    		System.exit(0);
+    	}
     }
     
     private LinkedList<myTerm> returnPath(LinkedList<HyperEdge> visitedEdges) {
     	LinkedList<myTerm> re = new LinkedList<myTerm>();
-        for (HyperEdge edge : visitedEdges) {
+    	for (HyperEdge edge : visitedEdges) {
         	re.add(edge.toMyTerm());
         }
-        if (re.size() > 0)
-        	return re;
-        else
-        	return null;
+    	if (re.size() > 0)
+			return re;
+    	else
+    		return null;
     }
+    
+	public ArrayList<LinkedList<myTerm>> getPaths() {
+		return path;
+	}
 }
