@@ -4,6 +4,7 @@
 package ILP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import jpl.*;
@@ -141,7 +142,9 @@ public class Eval {
 		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sents.size());
 		// Start evaluation sentences
 		for (int i = 0; i < sents.size(); i++) {
-			LinkedList<myTerm> ans_list = eval(sents.get(i).getTerms());
+			ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sents.get(i).getTerms()));
+			terms.addAll(sents.get(i).getFeatures());
+			LinkedList<myTerm> ans_list = eval(terms);
 			re.add(ans_list);
 		}
 		return re;
@@ -151,11 +154,13 @@ public class Eval {
 	 * @param sents: the term list
 	 * @return: all answers
 	 */
-	public ArrayList<LinkedList<myTerm>> evalAllTermList(ArrayList<ArrayList<myTerm>> sents) {
+	public ArrayList<LinkedList<myTerm>> evalAllTermList(ArrayList<ArrayList<myTerm>> sents, ArrayList<ArrayList<myTerm>> feats) {
 		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(sents.size());
 		// Start evaluation sentences
 		for (int i = 0; i < sents.size(); i++) {
-			LinkedList<myTerm> ans_list = eval(sents.get(i).toArray(new myTerm[sents.get(i).size()]));
+			ArrayList<myTerm> terms = sents.get(i);
+			terms.addAll(feats.get(i));
+			LinkedList<myTerm> ans_list = eval(terms);
 			re.add(ans_list);
 		}
 		return re;
@@ -200,7 +205,9 @@ public class Eval {
 	public LinkedList<myTerm> evalSent(Sentence sent) {
 		// evaluate the i-th sentence
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
-		re = eval(sent.getTerms()); 
+		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
+		terms.addAll(sent.getFeatures());
+		re = eval(terms); 
 		return re;
 	}
 	/**
@@ -211,14 +218,18 @@ public class Eval {
 	 */
 	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Sentence sent) {
 		SatisfySamples re = new SatisfySamples(rules);
-		LinkedList<myTerm> ans = eval(sent.getTerms());
+		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
+		terms.addAll(sent.getFeatures());
+		LinkedList<myTerm> ans = eval(terms);
 		re.setSatisifySamples(label, ans);
 		return re;
 	}
 	
 	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Document doc, int sentIdx) {
 		SatisfySamples re = new SatisfySamples(rules);
-		LinkedList<myTerm> ans = eval(doc.getSent(sentIdx).getTerms());
+		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(doc.getSent(sentIdx).getTerms()));
+		terms.addAll(doc.getSent(sentIdx).getFeatures());
+		LinkedList<myTerm> ans = eval(terms);
 		re.setSatisifySamples(label, ans);
 		return re;
 	}
@@ -228,7 +239,7 @@ public class Eval {
 	 * @param facts: facts of background knowledge
 	 * @return: linked list of true groundings deduced from facts and current rules
 	 */
-	public LinkedList<myTerm> eval(myTerm[] facts) {
+	public LinkedList<myTerm> eval(ArrayList<myTerm> facts) {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		// evaluate all terms;
 		for (myTerm term : facts) {

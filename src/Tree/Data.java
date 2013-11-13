@@ -148,7 +148,7 @@ public class Data {
 		return sentences.size();
 	}
 	
-	public Sentence getSentOfTerm(myTerm t) {
+	public Sentence getSentFromTerm(myTerm t) {
 		return term_sent.get(t);
 	}
 	

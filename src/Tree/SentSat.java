@@ -50,8 +50,12 @@ public class SentSat {
 			uncovered.addData(label, sent, sat);
 	}
 	
-	public Sentence getWhichSent(myTerm t) {
-		return covered.getSentOfTerm(t);
+	public Sentence getCovSentFromTerm(myTerm t) {
+		return covered.getSentFromTerm(t);
+	}
+	
+	public Sentence getUncovSentFromTerm(myTerm t) {
+		return uncovered.getSentFromTerm(t);
 	}
 	
 	private void setAllNeg() {

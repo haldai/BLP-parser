@@ -216,8 +216,8 @@ public class RuleTree {
 			// finally get the maximum accuracy root; add negative sample paths into candidate
 			for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
 				myTerm t = max_root_cov.getAllNeg(i);
-				ArrayList<myTerm> neg_cand = candFromNegSamps(t, max_root_cov.getWhichSent(t));
-				for (myTerm tt : neg_cand) {
+				ArrayList<myTerm> neo_cand = candFromSamps(t, max_root_cov.getCovSentFromTerm(t));
+				for (myTerm tt : neo_cand) {
 					if (!candidateTerms.contains(tt))
 						candidateTerms.add(tt);
 				}
@@ -272,45 +272,7 @@ public class RuleTree {
 		}
 	}
 	
-	private ArrayList<myTerm> candFromNegSamps(myTerm negSamp, Sentence sent) {
-		HyperGraph graph = new HyperGraph();
- 	   	myTerm[] terms = sent.getTerms();
- 	   	myWord[] words = sent.getWords();
- 	   	for (myWord word : words) {
- 	   		graph.addHyperVertex(word);
- 	   	}
- 	   	
- 	   	for (myTerm term : terms) {
- 	   		graph.addHyperEdge(term);
- 	   	}
- 	   	HyperVertex start = new HyperVertex(negSamp.getArg(0));
- 	   	HyperVertex end = new HyperVertex(negSamp.getArg(1));
- 	   	HyperPathFind pf = new HyperPathFind(graph, start, end);
- 	   	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
- 	   	pf.Search(visitedEdges);
- 	 	// place substitution
- 	   	ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
-		// substitution and get more features (temporarily only use words themselves)
- 	   	for (LinkedList<myTerm> path : pf.getPaths()) {
- 	   		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
- 	   		all_terms.add(negSamp);
- 	   		all_terms.addAll(path);
- 	   		Substitute subs = new Substitute(all_terms);
- 	   		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
- 	   		ArrayList<myWord> word_list = subs.getWordList();
- 	   		ArrayList<myWord> var_list = subs.getVarList();
- 	   		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
- 			// set head term
- 			this.setHead(all_sub_terms.get(0));
- 			all_sub_terms.remove(0);
- 			// add path as candidate terms, then build more feature as candidate terms
- 			cand.addAll(feature);
- 	   	}
-//		for (myTerm t : cand) {
-//			System.out.println(t.toPrologString());
-//		}
- 	   	return cand;
-	}
+
 	/**
 	 * given a formula and a set of instances with label, compute the accuracy
 	 * @param f: formula
@@ -492,12 +454,56 @@ public class RuleTree {
 				myTerm tmp_term = new CommonPredicates().prologEqual(vars.get(i), words.get(i).getZeroConst());
 //				myTerm tmp_neg_term = new CommonPredicates().prologEqual(words.get(i), vars.get(i));
 //				tmp_neg_term.setNegative();
-				re.add(tmp_term);
+				if (!re.contains(tmp_term))
+					re.add(tmp_term);
+				tmp_term = new CommonPredicates().posTag(vars.get(i), words.get(i).toPostagWord());
 //				re.add(tmp_neg_term);
+				if (!re.contains(tmp_term))
+					re.add(tmp_term);
 			}
 		} else {
 			System.out.println("Number of words and number of variables does not meet");
 		}
 		return re;
+	}
+	
+	private ArrayList<myTerm> candFromSamps(myTerm negSamp, Sentence sent) {
+		HyperGraph graph = new HyperGraph();
+ 	   	myTerm[] terms = sent.getTerms();
+ 	   	myWord[] words = sent.getWords();
+ 	   	for (myWord word : words) {
+ 	   		graph.addHyperVertex(word);
+ 	   	}
+ 	   	
+ 	   	for (myTerm term : terms) {
+ 	   		graph.addHyperEdge(term);
+ 	   	}
+ 	   	HyperVertex start = new HyperVertex(negSamp.getArg(0));
+ 	   	HyperVertex end = new HyperVertex(negSamp.getArg(1));
+ 	   	HyperPathFind pf = new HyperPathFind(graph, start, end);
+ 	   	LinkedList<HyperEdge> visitedEdges = new LinkedList<HyperEdge>();
+ 	   	pf.Search(visitedEdges);
+ 	 	// place substitution
+ 	   	ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
+		// substitution and get more features (temporarily only use words themselves)
+ 	   	for (LinkedList<myTerm> path : pf.getPaths()) {
+ 	   		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
+ 	   		all_terms.add(negSamp);
+ 	   		all_terms.addAll(path);
+ 	   		Substitute subs = new Substitute(all_terms);
+ 	   		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
+ 	   		ArrayList<myWord> word_list = subs.getWordList();
+ 	   		ArrayList<myWord> var_list = subs.getVarList();
+ 	   		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
+ 			// set head term
+ 			this.setHead(all_sub_terms.get(0));
+ 			all_sub_terms.remove(0);
+ 			// add path as candidate terms, then build more feature as candidate terms
+ 			cand.addAll(feature);
+ 	   	}
+//		for (myTerm t : cand) {
+//			System.out.println(t.toPrologString());
+//		}
+ 	   	return cand;
 	}
 }

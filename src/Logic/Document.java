@@ -67,14 +67,16 @@ public class Document {
 				// parse sentences
 			}
 			buff_sentList[i] = new Sentence(buff_line[buff_line.length - 1]);
+			// build feature
 //			System.out.println(i);
 		}
 		sentList = buff_sentList;
 		labelList = buff_label_list;
 		buff_sentList = null;
 		buff_label_list = null;
-		// TODO test parse results
 	}
+	
+	
 	
 	public static String[] readFileByLines(String fileName) {
 		File file = new File(fileName);
@@ -138,4 +140,7 @@ public class Document {
 	public Sentence[] getSentences() {
 		return sentList;
 	}
+	
+
+
 }

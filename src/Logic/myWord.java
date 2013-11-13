@@ -127,6 +127,12 @@ public class myWord {
 		else return false;
 	}
 	
+	public boolean isPos() {
+		if (pos.equals("POS") && num == 0) 
+			return true;
+		else return false;
+	}
+	
 	public boolean equals(Object o) {
 		if (!(o instanceof myWord))
 			return false;
@@ -146,6 +152,7 @@ public class myWord {
 				else
 					return false;
 			} else {
+				// constant
 				if ((t_name.equals(o_name)) && (this.num == w.getNum()) && (this.pos.equals(w.getPos())))
 					return true;
 				else
@@ -162,5 +169,10 @@ public class myWord {
 	
 	public void setNumZero() {
 		this.num = 0;
+	}
+	
+	public myWord toPostagWord() {
+		myWord re = new myWord(this.getPos() + "_" + "POS");
+		return re;
 	}
 }
