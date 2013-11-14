@@ -175,4 +175,5 @@ public class myWord {
 		myWord re = new myWord(this.getPos() + "_" + "POS");
 		return re;
 	}
+	
 }

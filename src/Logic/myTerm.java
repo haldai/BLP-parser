@@ -96,7 +96,7 @@ public class myTerm {
 			if (pred.getName().equals("=="))
 				pos = " \\+";
 			else
-				pos = " not";
+				pos = " \\+";
 		}
 		String s = String.format("%s(%s(", pos, pred.getName());
 		for (myWord w : args) {
@@ -173,4 +173,5 @@ public class myTerm {
 	public boolean isPositive() {
 		return isPositive;
 	}
+	
 }

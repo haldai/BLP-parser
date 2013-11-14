@@ -68,7 +68,7 @@ public class Formula {
 			while (s.startsWith(" "))
 				s = s.substring(1);
 			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
-				s = s.substring(4, s.length() - 1);
+				s = s.substring(3, s.length() - 1);
 				sym = false;
 			}
 			myTerm tmp_t = new myTerm(s);
@@ -137,6 +137,13 @@ public class Formula {
 		return re;
 	}
 	
+	public myTerm popBodyFirst() {
+		myTerm re = body.get(0);
+		body.remove(0);
+		bodyLen = body.size();
+		return re;
+	}
+	
 	public double getWeight() {
 		return weight;
 	}
@@ -148,6 +155,12 @@ public class Formula {
 	public myTerm popHead() {
 		myTerm re = head.get(headLen - 1);
 		head.remove(headLen - 1);
+		return re;
+	}
+	
+	public myTerm popHeadFirst() {
+		myTerm re = head.get(0);
+		head.remove(0);
 		return re;
 	}
 	

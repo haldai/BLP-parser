@@ -17,6 +17,7 @@ public class tmptest {
 		for (int i = 0; i < doc.length(); i++) {
 			System.out.println(doc.getSent(i).toString());
 			System.out.println(doc.getLabel(i).toString());
+			System.out.println(doc.getSent(i).getFeatures().toString());
 		}
 		
 		prolog = new Prolog();
@@ -24,7 +25,8 @@ public class tmptest {
 //		testEvaluation(doc, prolog);
 //		testPathFind(doc);
 		testRuleTree(doc, prolog);
-		testTuple();
+//		testTuple();
+//		System.out.println(Math.log(0.0000000000000000000001));
 
 	}
 	
@@ -40,7 +42,9 @@ public class tmptest {
 		Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
 		LogicProgram p = new LogicProgram();
 //		p.addRule(f);
-		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
+		f = new Formula("sem(X_1_var,X_2_var):- att(X_2_var,X_1_var); \\+(postag(X_1_var,u_POS)).");
+//		f = new Formula("sem(X_2_var,X_1_var):- not(postag(X_2_var,u_POS));att(X_1_var,X_2_var).");
+//		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
 		// TODO in prolog, the value of myWord position is not important, can be removed ?
 		p.addRule(f);
@@ -152,6 +156,7 @@ public class tmptest {
 		System.out.println("Test RuleTree!");
 		// find all paths;
 		for (int i = 0; i < doc.length(); i++) {
+//			i = 1;
 			ArrayList<myTerm> labels = doc.getLabel(i);
 			Sentence sent = doc.getSent(i);
 			for (myTerm label : labels) {
@@ -161,6 +166,7 @@ public class tmptest {
 					tree.buildTree(doc, label, path);
 				}
 			}
+//			System.exit(0);
 		}
 	}
 }

@@ -21,7 +21,6 @@ public class SentSat {
 	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>();
 	ArrayList<myTerm> allPos = new ArrayList<myTerm>();
 	ArrayList<myTerm> allNeg = new ArrayList<myTerm>();
-	Map<myTerm, Sentence> term_sent = new HashMap<myTerm, Sentence>();
 	
 	/*
 	 * SPLITTING FOR ROBUSTNESS
@@ -37,14 +36,11 @@ public class SentSat {
 	public SentSat() {}
 	
 	public void addSentSat(ArrayList<myTerm> label, Sentence sent, SatisfySamples sat) {
+		labels.add(label);
+		sents.add(sent);
+		sats.add(sat);
 		if (sat.hasSolution()) {
 			// covered
-			sents.add(sent);
-			sats.add(sat);
-			labels.add(label);
-			for (myTerm t : sat.getNegative()){
-				term_sent.put(t, sent);
-			}
 			covered.addData(label, sent, sat);
 		} else
 			uncovered.addData(label, sent, sat);
@@ -145,5 +141,13 @@ public class SentSat {
 	
 	public Data getUncoveredData() {
 		return uncovered;
+	}
+	
+	public int getLabelNum() {
+		int re = 0;
+		for (ArrayList<myTerm> l : labels) {
+			re = re + l.size();
+		}
+		return re;
 	}
 }

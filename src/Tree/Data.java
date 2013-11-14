@@ -128,6 +128,22 @@ public class Data {
 		return negative.get(i);
 	}
 	
+	public int getNegativeSentSize() {
+		int re = 0;
+		for (ArrayList<myTerm> l : negative)
+			if (!l.isEmpty())
+				re++;
+		return re;
+	}
+	
+	public int getPositiveSentSize() {
+		int re = 0;
+		for (ArrayList<myTerm> l : positive)
+			if (!l.isEmpty())
+				re++;
+		return re;
+	}
+	
 	public int numAllNegative() {
 		int re = 0;
 		for (ArrayList<myTerm> ne : negative) {

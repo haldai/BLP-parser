@@ -4,9 +4,9 @@
 package Tree;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Stack;
+import java.lang.Math;
 
 import utils.*;
 import ILP.*;
@@ -35,6 +35,8 @@ public class RuleTree {
 	myTerm head; // logical term - head:-body., must have variable
 	LinkedList<String> rules = new LinkedList<String>();
 	Prolog prolog;
+	
+	
 	private int maxHeight;
 	
 	public RuleTree(Prolog p) {
@@ -50,6 +52,7 @@ public class RuleTree {
 	public void setHead(myTerm h) {
 		head = h;
 	}
+	
 	
 	public TreeNode getRoot() {
 		return root;
@@ -222,29 +225,30 @@ public class RuleTree {
 						candidateTerms.add(tt);
 				}
 			}
-			System.out.println("all candidate terms after add negative examples");
-			for (myTerm t : candidateTerms) {
-				System.out.println(t.toPrologString());
-			}
+//			System.out.println("all candidate terms after add negative examples");
+//			for (myTerm t : candidateTerms) {
+//				System.out.println(t.toPrologString());
+//			}
 			/*
 			 *  FINISHING ROOT NODE BUILDING
 			 */
 			node.setTermNodes(max_root_terms); // set splitting critira
 			node.setHierarchy(1); // root is first layer
 			node.setBranchPositive();
+			node.setSentSat(true, max_root_cov);
 			// remove all used candidate terms
 			for (myTerm tmp_term : node.getTermNodes()) {
 				candidateTerms.remove(tmp_term);
 			}
 			// create childrens
-//			node.setFalseChild(create(max_root_cov.getCoveredData(), candidateTerms, node, false));
+//			node.setFalseChild(create(max_root_cov.getUncoveredData(), candidateTerms, node, false));
 			// FIRST TERM IN PROLOG RULE MUST BE TRUE!!!
-			node.setTrueChild(create(max_root_cov.getUncoveredData(), candidateTerms, node, true));
+			node.setTrueChild(create(max_root_cov.getCoveredData(), candidateTerms, node, true));
 			node.setFalseChild(null);
-			System.out.println("=========================\nCOVERED INSTANCES\n==========================");
-			System.out.println(max_root_cov.getCoveredData());
-			System.out.println("=======================\nUNCOVERED INSTANCES\n==========================");
-			System.out.println(max_root_cov.getUncoveredData());
+//			System.out.println("=========================\nCOVERED INSTANCES\n==========================");
+//			System.out.println(max_root_cov.getCoveredData());
+//			System.out.println("=======================\nUNCOVERED INSTANCES\n==========================");
+//			System.out.println(max_root_cov.getUncoveredData());
 //			System.exit(0);
 			return node;
 		}
@@ -260,13 +264,43 @@ public class RuleTree {
 			} else {
 				// TODO else split current node
 				// TODO use ILP coverage
-				double maxGini = 0.0, maxCov = 0.0; // covered positive & covered negative
+				double maxGain = -100.0; // covered positive & covered negative
+				myTerm max_gain_term = new myTerm();
 				Formula cur_form = toFormula(father);
 				System.out.println(cur_form.toPrologString());
 				for (myTerm t : availTerms) {
-					// TODO add t to body
-					// TODO compute gini coefficient
+					// add t to body
+					cur_form.pushBody(t);
+//					System.out.println(cur_form.toString());
+					// compute criterion and pop
+					SentSat sat = getSatSamps(cur_form, label, data);
+					sat.setTotal();
+//					double tmp_acc = computeAccuracy(sat);
+					double pos_foilgain = foilGain(sat, node.getFather().getSentSat(branch));
+//					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
+//					System.out.println(pos_foilgain + ": " + cur_form.toString());	
+					cur_form.popBody();
+					// Try falsed term
+					t.setNegative();
+					cur_form.pushBody(t);
+//					System.out.println(cur_form.toString());	
+					// TODO compute criterion and pop
+					sat = getSatSamps(cur_form, label, data);
+					sat.setTotal();
+//					tmp_acc = computeAccuracy(sat);
+					double neg_foilgain = foilGain(sat, node.getFather().getSentSat(branch));
+//					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
+//					System.out.println(neg_foilgain + ": " + cur_form.toString());	
+					cur_form.popBody();
+					/*
+					 * retain the best
+					 */
+					if (maxGain < Math.abs(pos_foilgain - neg_foilgain)) {
+						maxGain = Math.abs(pos_foilgain - neg_foilgain);
+						max_gain_term = t;
+					}
 				}
+				System.out.println(maxGain + ": " + max_gain_term.toPrologString());	
 				return node;
 			}
 		}
@@ -317,7 +351,10 @@ public class RuleTree {
 	private double computeAccuracy(SentSat sat) {
 		int p = sat.getAllPosNum();
 		int n = sat.getAllNegNum();
-		return (double) p/(p+n);
+		double t = (double) p + n;
+		if (t == 0)
+			t = 0.000000000000001;
+		return (double) p/t;
 	}
 
 	/**
@@ -505,5 +542,40 @@ public class RuleTree {
 //			System.out.println(t.toPrologString());
 //		}
  	   	return cand;
+	}
+	/**
+	 * Gain(R0, R1) := t * ( log2(p1/(p1+n1)) - log2(p0/(p0+n0)) ).
+	 * R0 denotes a rule before adding a new literal.
+	 * R1 is an extesion of R0.
+	 * p0 denotes the number of positive tupels, covered by R0,
+	 * p1 the number of positive tupels, covered by R1.
+	 * n0 and n1 are the number of negative tupels, covered by the according rule.
+	 * t is the number of positive tupels, covered by R0 as well as by R1.
+	 * @param r1
+	 * @param r0
+	 * @return
+	 */
+	private double foilGain(SentSat r1, SentSat r0) {
+		@SuppressWarnings("unchecked")
+		ArrayList<myTerm> r1_all_pos = (ArrayList<myTerm>) r1.getAllPos().clone();
+		@SuppressWarnings("unchecked")
+		ArrayList<myTerm> r0_all_pos = (ArrayList<myTerm>) r0.getAllPos().clone();
+		r0_all_pos.retainAll(r1_all_pos);
+		int t = r0_all_pos.size();
+		double acc1 = computeAccuracy(r1);
+		if (acc1 == 0.0)
+			acc1 = 0.000000000000001;
+		double acc0 = computeAccuracy(r0);
+		if (acc0 == 0.0)
+			acc0 = 0.000000000000001;
+		double re = (double) t*(Math.log(acc1) - Math.log(acc0));
+		return re;
+	}
+	
+	private double splitInfo(SentSat sat) {
+		double p = sat.getCov();
+		if (p == 0)
+				p = 0.000000000000001;
+		return (double) -(p*Math.log(p) + (1-p)*Math.log(1-p));
 	}
 }

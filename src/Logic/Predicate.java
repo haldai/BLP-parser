@@ -62,4 +62,5 @@ public class Predicate {
 	public String toString() {
 		return String.format("%s/%d", name, arity);
 	}
+	
 }

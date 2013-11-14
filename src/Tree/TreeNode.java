@@ -26,6 +26,8 @@ public class TreeNode {
 	private TreeNode falseChild;
 	private boolean isLeaf;
 	private boolean isPositiveBranch;
+	SentSat t_sentsat = new SentSat();
+	SentSat f_sentsat = new SentSat();
 	
 	public TreeNode() {
 		// TODO Auto-generated constructor stub
@@ -163,4 +165,18 @@ public class TreeNode {
 		this.isLeaf = t;
 	}
 	
+	public SentSat getSentSat(boolean b) {
+		if (b)
+			return t_sentsat;
+		else
+			return f_sentsat;
+	}
+	
+	public void setSentSat(boolean b, SentSat s) {
+		if (b)
+			t_sentsat = s;
+		else
+			f_sentsat = s;
+	}
+
 }
