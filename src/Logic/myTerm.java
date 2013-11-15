@@ -174,4 +174,10 @@ public class myTerm {
 		return isPositive;
 	}
 	
+	public void flip() {
+		if (isPositive)
+			isPositive = false;
+		else
+			isPositive = true;
+	}
 }

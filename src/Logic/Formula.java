@@ -105,8 +105,8 @@ public class Formula {
 	}
 	
 	public void pushBodyToFirst(LinkedList<myTerm> terms) {
-		for (myTerm t : terms) {
-			body.add(0,t);
+		for (int i = terms.size() - 1; i >= 0; i--) {
+			body.add(0,terms.get(i));
 		}
 		bodyLen = body.size();
 	}
@@ -200,7 +200,22 @@ public class Formula {
 	}
 	
 	public String toString() {
-		return this.toPrologString();
+		String s = "";
+		for (int i = 0; i < head.size(); i++) {
+			s = s + head.get(i).toPrologString() + ',';
+		}
+		if (s.endsWith(",")) {
+			s = s.substring(0, s.length() - 2);
+			s = s + "):- ";
+		}
+		for (int i = 0; i < body.size(); i++) {
+			s = s + body.get(i).toPrologString() + ';';
+		}
+		if (s.endsWith(";")) {
+			s = s.substring(0, s.length() - 1);
+			s = s + '.';
+		}
+		return s;
 	}
 
 	public boolean equals(Object o) {

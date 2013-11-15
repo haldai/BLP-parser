@@ -39,10 +39,12 @@ public class tmptest {
 	
 	public static void testEvaluation(Document doc, Prolog prolog) {
 		System.out.println("Test Evaluation!");
-		Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
+		Formula f = new Formula("sem(X_1,X_2):-att(X_2,X_3);de(X_3,X_1);postag(X_1,v_POS)."); 
 		LogicProgram p = new LogicProgram();
 //		p.addRule(f);
-		f = new Formula("sem(X_1_var,X_2_var):- att(X_2_var,X_1_var); \\+(postag(X_1_var,u_POS)).");
+//		f = new Formula("sem(X_1,X_2):- sbv(X_2,X_1);\\==(X_2,X_1);\\==(X_1,谁_r);==(X_1,高_a).");
+		f = new Formula("sem(X_1,X_2):- sbv(X_2,X_1);\\==(X_2,X_1);\\==(X_1,谁_r);\\==(X_1,高_a).");
+//		f = new Formula("sem(X_1_var,X_2_var):- att(X_2_var,X_1_var); \\+(postag(X_1_var,u_POS)).");
 //		f = new Formula("sem(X_2_var,X_1_var):- not(postag(X_2_var,u_POS));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
@@ -156,7 +158,7 @@ public class tmptest {
 		System.out.println("Test RuleTree!");
 		// find all paths;
 		for (int i = 0; i < doc.length(); i++) {
-//			i = 1;
+			i = 1;
 			ArrayList<myTerm> labels = doc.getLabel(i);
 			Sentence sent = doc.getSent(i);
 			for (myTerm label : labels) {
@@ -166,7 +168,7 @@ public class tmptest {
 					tree.buildTree(doc, label, path);
 				}
 			}
-//			System.exit(0);
+			System.exit(0);
 		}
 	}
 }

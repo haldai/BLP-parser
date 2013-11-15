@@ -17,29 +17,18 @@ public class TreeNode {
 	/**
 	 * TreeNode. It may be a term or a word feature.
 	 */
-	private ArrayList<myTerm> termNodes;	// name of current node (splitting criteria)
-	private ArrayList<Sentence> instances; // instances had been assigned to current node
-	private ArrayList<myTerm> candTerms; // candidate terms for splitting
-	private int hierarchy;
-	private TreeNode father;
-	private TreeNode trueChild;
-	private TreeNode falseChild;
-	private boolean isLeaf;
-	private boolean isPositiveBranch;
+	private ArrayList<myTerm> termNodes = new ArrayList<myTerm>();	// name of current node (splitting criteria)
+	private ArrayList<myTerm> candTerms = new ArrayList<myTerm>(); // candidate terms for splitting
+	private int hierarchy = 0;
+	private TreeNode father = null;
+	private TreeNode trueChild = null;
+	private TreeNode falseChild = null;
+	private boolean isLeaf = true;
+	private boolean isPositiveBranch = true;
 	SentSat t_sentsat = new SentSat();
 	SentSat f_sentsat = new SentSat();
 	
-	public TreeNode() {
-		// TODO Auto-generated constructor stub
-		termNodes = new ArrayList<myTerm>();
-		candTerms = new ArrayList<myTerm>();
-		trueChild = null;
-		falseChild = null;
-		hierarchy = 0;
-		father = null;
-		isPositiveBranch = true;
-		isLeaf = true;
-	}
+	public TreeNode() {}
 	
 	public TreeNode getTrueChild() {
 		return trueChild;
@@ -80,34 +69,45 @@ public class TreeNode {
 	public ArrayList<myTerm> getTermNodes() {
 		if (isPositiveBranch)
 			for (myTerm t : termNodes) {
-				t.setPositive();
+				if (t.isPositive())
+					t.setPositive();
+				else
+					t.setNegative();
 			}
 		else
 			for (myTerm t : termNodes) {
-				t.setNegative();
+				if (t.isPositive())
+					t.setNegative();
+				else
+					t.setPositive();
 			}
 		return termNodes;
 	}
 	
-	public void setTermNodes(ArrayList<myTerm> n) {
-		termNodes = n;
-		if (isPositiveBranch)
-			for (myTerm t : termNodes) {
-				t.setPositive();
-			}
-		else
-			for (myTerm t : termNodes) {
-				t.setNegative();
-			}
+	@SuppressWarnings("unchecked")
+	public void addTermNodes(ArrayList<myTerm> n) {
+		termNodes.addAll((ArrayList<myTerm>) n.clone());
+//		if (isPositiveBranch)
+//			for (myTerm t : termNodes) {
+//				t.setPositive();
+//			}
+//		else
+//			for (myTerm t : termNodes) {
+//				t.setNegative();
+//			}
 	}
 	
-	public ArrayList<Sentence> getInstances() {  
-        return instances;  
-	}  
-	
-	public void setInstances(ArrayList<Sentence> ins) {  
-	    this.instances = ins;  
-	}  
+	public void addTermNodes(myTerm n) {
+		termNodes.add(n);
+//		if (isPositiveBranch)
+//			for (myTerm t : termNodes) {
+//				t.setPositive();
+//			}
+//		else
+//			for (myTerm t : termNodes) {
+//				t.setNegative();
+//			}
+	}
 	
 	public ArrayList<myTerm> getCandTerms() {  
 		return candTerms;  

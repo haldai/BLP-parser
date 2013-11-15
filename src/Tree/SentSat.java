@@ -30,6 +30,7 @@ public class SentSat {
 	Data uncovered = new Data();
 	
 	double coverage = 0.0;
+	double accuracy = 0.0;
 	/**
 	 * 
 	 */
@@ -121,6 +122,11 @@ public class SentSat {
 		setAllNeg();
 		setAllPos();
 		coverage = (double) covered.size()/(uncovered.size() + covered.size());
+		double p = this.getAllPosNum();
+		double t = this.getAllNegNum() + this.getAllPosNum();
+		if (t == 0.0)
+			t = p = 0.000000000000001;
+		accuracy = p/t;
 	}
 	
 	public double getCov() {
@@ -143,6 +149,9 @@ public class SentSat {
 		return uncovered;
 	}
 	
+	public double getAccuracy() {
+		return accuracy;
+	}
 	public int getLabelNum() {
 		int re = 0;
 		for (ArrayList<myTerm> l : labels) {

@@ -118,8 +118,11 @@ public class RuleTree {
 		ArrayList<Sentence> data = d.getSents();
 		TreeNode node = new TreeNode();
 		node.setFather(father);
-		if (father != null)
+		
+		if (father != null) {
 			node.setHierarchy(father.getHierarchy() + 1); // set hierarchy of 1
+			father.setIsLeaf(false);
+		}
 		
 		// get available terms to add
 		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
@@ -187,6 +190,15 @@ public class RuleTree {
 							}
 							// build temporary formula
 							Formula root_f = new Formula();
+							
+							/*
+							 * ADD UNEQUAL VARS INTO THE NODE
+							 */
+							ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(tmp_root));
+							for (myTerm t : uneq) {
+								if (!tmp_root.contains(t))
+										tmp_root.add(t);
+							}
 							root_f.pushBody(tmp_root);
 							root_f.pushHead(head);
 							// all covered data
@@ -216,15 +228,17 @@ public class RuleTree {
 					}
 				}
 			}
-			// finally get the maximum accuracy root; add negative sample paths into candidate
-			for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
-				myTerm t = max_root_cov.getAllNeg(i);
-				ArrayList<myTerm> neo_cand = candFromSamps(t, max_root_cov.getCovSentFromTerm(t));
-				for (myTerm tt : neo_cand) {
-					if (!candidateTerms.contains(tt))
-						candidateTerms.add(tt);
-				}
-			}
+			// finally use the maximum accuracy root
+			// add negative sample paths into candidate
+			candidateTerms = addTermFromNegSamps(max_root_cov, candidateTerms);
+//			for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
+//				myTerm t = max_root_cov.getAllNeg(i);
+//				ArrayList<myTerm> neo_cand = candFromSamps(t, max_root_cov.getCovSentFromTerm(t));
+//				for (myTerm tt : neo_cand) {
+//					if (!candidateTerms.contains(tt))
+//						candidateTerms.add(tt);
+//				}
+//			}
 //			System.out.println("all candidate terms after add negative examples");
 //			for (myTerm t : candidateTerms) {
 //				System.out.println(t.toPrologString());
@@ -232,7 +246,7 @@ public class RuleTree {
 			/*
 			 *  FINISHING ROOT NODE BUILDING
 			 */
-			node.setTermNodes(max_root_terms); // set splitting critira
+			node.addTermNodes(max_root_terms); // set splitting critira
 			node.setHierarchy(1); // root is first layer
 			node.setBranchPositive();
 			node.setSentSat(true, max_root_cov);
@@ -258,55 +272,133 @@ public class RuleTree {
 			 */
 			// TODO should be put into a procedure
 			// if father has enough layer or accuracy, return
-			if (node.getHierarchy() > utils.MAX_HIERARCHY_NUM) {
-				node.getFather().setIsLeaf(true);
-				return null;
+			if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
+				node.setIsLeaf(true);
+				Formula form = toFormula(father, branch);
+				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				return node;
+			} else if(father.getSentSat(branch).getAccuracy() > utils.MAX_ACC_CRI) {
+				// TODO father's accuracy is enough for a positivesample
+				node.setIsLeaf(true);
+				Formula form = toFormula(father, branch);
+				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				return node;
+			} else if(father.getSentSat(branch).getAccuracy() < utils.MAX_INACC_CRI) {
+				// TODO father's accuracy is enough for a negative sample
+				node.setIsLeaf(true);
+				Formula form = toFormula(father, branch);
+				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				return node;
 			} else {
 				// TODO else split current node
 				// TODO use ILP coverage
 				double maxGain = -100.0; // covered positive & covered negative
 				myTerm max_gain_term = new myTerm();
-				Formula cur_form = toFormula(father);
+				ArrayList<myTerm> max_form_body = new ArrayList<myTerm>();
+				ArrayList<myTerm> no_improve_terms = new ArrayList<myTerm>();
+				SentSat maxPosSat = new SentSat();
+				SentSat maxNegSat = new SentSat();
+				Formula cur_form = toFormula(father, branch);
+				System.out.println("=================cur_form===================");
 				System.out.println(cur_form.toPrologString());
+				System.out.println("=================cur_form===================");
 				for (myTerm t : availTerms) {
 					// add t to body
+					t.setPositive();
 					cur_form.pushBody(t);
 //					System.out.println(cur_form.toString());
 					// compute criterion and pop
-					SentSat sat = getSatSamps(cur_form, label, data);
-					sat.setTotal();
+					SentSat PosSat = getSatSamps(cur_form, label, data);
+					PosSat.setTotal();
 //					double tmp_acc = computeAccuracy(sat);
-					double pos_foilgain = foilGain(sat, node.getFather().getSentSat(branch));
+					double pos_foilgain = foilGain(PosSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-//					System.out.println(pos_foilgain + ": " + cur_form.toString());	
+					System.out.println(pos_foilgain + ": " + cur_form.toString());	
 					cur_form.popBody();
 					// Try falsed term
 					t.setNegative();
 					cur_form.pushBody(t);
 //					System.out.println(cur_form.toString());	
 					// TODO compute criterion and pop
-					sat = getSatSamps(cur_form, label, data);
-					sat.setTotal();
+					SentSat NegSat = getSatSamps(cur_form, label, data);
+					NegSat.setTotal();
 //					tmp_acc = computeAccuracy(sat);
-					double neg_foilgain = foilGain(sat, node.getFather().getSentSat(branch));
+					double neg_foilgain = foilGain(NegSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-//					System.out.println(neg_foilgain + ": " + cur_form.toString());	
-					cur_form.popBody();
+					System.out.println(neg_foilgain + ": " + cur_form.toString());	
+
 					/*
 					 * retain the best
 					 */
-					if (maxGain < Math.abs(pos_foilgain - neg_foilgain)) {
+					if (maxGain <= Math.abs(pos_foilgain - neg_foilgain)) {
 						maxGain = Math.abs(pos_foilgain - neg_foilgain);
+						maxPosSat = PosSat;
+						maxNegSat = NegSat;
+						t.setPositive();
 						max_gain_term = t;
+						max_form_body = cur_form.getBody(); 
 					}
+					if (Math.abs(pos_foilgain - neg_foilgain) <= 0.0)
+						no_improve_terms.add(t);
+					cur_form.popBody();
 				}
-				System.out.println(maxGain + ": " + max_gain_term.toPrologString());	
+//				System.out.println(maxGain + ": " + max_gain_term.toPrologString());
+				/*
+				 * ADD NEW TERM AS NODE
+				 * 1. create node;
+				 * 2. remove candidate node;
+				 * 3. create node's children.
+				 */
+				node.addTermNodes(max_gain_term);
+				// add unequality constraints
+				ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(max_form_body));
+				for (myTerm t : uneq) {
+					if (!max_form_body.contains(t))
+							node.addTermNodes(t);
+				}
+				// store satisfication info
+				node.setSentSat(true, maxPosSat);
+				node.setSentSat(false, maxNegSat);
+				// deal with candidate forms
+				// remove t
+				
+				// add negative candidates
+//				candidateTerms.removeAll(no_improve_terms);
+				@SuppressWarnings("unchecked")
+				ArrayList<myTerm> pos_candidateTerms = (ArrayList<myTerm>) candidateTerms.clone();
+				@SuppressWarnings("unchecked")
+				ArrayList<myTerm> neg_candidateTerms = (ArrayList<myTerm>) candidateTerms.clone();
+				pos_candidateTerms = addTermFromNegSamps(maxPosSat, pos_candidateTerms);
+				neg_candidateTerms = addTermFromNegSamps(maxNegSat, neg_candidateTerms);
+				for (myTerm t : node.getTermNodes()) {
+					pos_candidateTerms.remove(t);
+					neg_candidateTerms.remove(t);
+				}
+				pos_candidateTerms.removeAll(no_improve_terms);
+				neg_candidateTerms.removeAll(no_improve_terms);
+				// create children
+				node.setFalseChild(create(maxNegSat.covered, pos_candidateTerms, node, false));
+				node.setTrueChild(create(maxPosSat.covered, neg_candidateTerms, node, true));
 				return node;
 			}
 		}
 	}
-	
-
+	/**
+	 * add features extracted from negative samples
+	 * @param sat: satisfaction info of node, contains negative samples
+	 * @param cand: candidate terms
+	 */
+	private ArrayList<myTerm> addTermFromNegSamps(SentSat sat, ArrayList<myTerm> cand) {
+		for (int i = 0; i < sat.getAllNegNum(); i ++) {
+			myTerm t = sat.getAllNeg(i);
+			ArrayList<myTerm> neo_cand = candFromSamps(t, sat.getCovSentFromTerm(t));
+			for (myTerm tt : neo_cand) {
+				if (!cand.contains(tt))
+					cand.add(tt);
+			}
+		}
+		return cand;
+	}
 	/**
 	 * given a formula and a set of instances with label, compute the accuracy
 	 * @param f: formula
@@ -401,18 +493,25 @@ public class RuleTree {
 	 * @param node
 	 * @return
 	 */
-	private Formula toFormula(TreeNode node) {
+	@SuppressWarnings("unchecked")
+	private Formula toFormula(TreeNode node, boolean son_branch) {
 		Formula re = new Formula();
 		re.pushHead(head);
-		re.pushBodyToFirst(node.toTerms());
+		LinkedList<myTerm> fa = (LinkedList<myTerm>) node.toTerms().clone();
+		if (!son_branch)
+			for (myTerm t : fa) {
+				t.flip();
+			}
+		re.pushBodyToFirst(fa);
 		while (node.getFather() != null) {
-			TreeNode tmp_node = node.getFather();
-			if (node.isPositiveBranch())
-				tmp_node.setBranchPositive();
-			else
-				tmp_node.setBranchNegative();
-			re.pushBodyToFirst(tmp_node.toTerms());
-			node = tmp_node;
+			TreeNode tmp_father_node = node.getFather();
+			fa = (LinkedList<myTerm>) tmp_father_node.toTerms().clone();
+			if (!node.isPositiveBranch()) {
+				for (myTerm t : fa)
+					t.flip();
+			}
+			re.pushBodyToFirst(fa);
+			node = tmp_father_node;
 		}
 		return re;
 	}
@@ -477,7 +576,38 @@ public class RuleTree {
 		}
 		return re_rule;
 	}
-	
+	/**
+	 * find all variables in a list of terms
+	 * @param terms
+	 * @return
+	 */
+	private ArrayList<myWord> getAllVars(ArrayList<myTerm> terms) {
+		ArrayList<myWord> re = new ArrayList<myWord>();
+		for (myTerm t : terms) {
+			for (myWord arg : t.getArgs()) {
+				if (!re.contains(arg) && arg.isVar())
+					re.add(arg);
+			}
+		}
+		return re;
+	}
+	/**
+	 * add unequal constraints
+	 * @param vars
+	 * @return
+	 */
+	private ArrayList<myTerm> buildUnequalFeature(ArrayList<myWord> vars) {
+		ArrayList<myTerm> re = new ArrayList<myTerm>();
+		for (int i = 0; i < vars.size(); i++)
+			for (int j = i + 1; j < vars.size(); j++) {
+				if (!vars.get(i).equals(vars.get(j))) {
+					myTerm tmp_term = new CommonPredicates().prologEqual(vars.get(i), vars.get(j));
+					tmp_term.setNegative();
+					re.add(tmp_term);
+				}
+			}
+		return re;
+	}
 	/**
 	 * Add feature of each word in path
 	 * @param words: words in path
