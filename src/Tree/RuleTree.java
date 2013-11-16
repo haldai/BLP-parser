@@ -110,6 +110,9 @@ public class RuleTree {
 	 * @candidateTerms are the candidate terms for a tree 
 	 */
 	
+	
+	
+	@SuppressWarnings("unchecked")
 	public TreeNode create(Data d, ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
 		/*
 		 * START
@@ -132,141 +135,10 @@ public class RuleTree {
 		else
 			node.setBranchNegative();
 		
-		// TODO should be put into a procedure
 		if (father == null) {
-			/*
-			 * BUILD ROOT NODE
-			 * if no father, this node is root, add terms that includes head variables
-			 */
-			// get candidate for root node
-			myWord[] headArgs = head.getArgs();
-			ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
-			for (int i = 0; i < headArgs.length; i++) {
-				rootCand.add(new ArrayList<myTerm>());
-			}
-			for (myTerm t : availTerms) {
-				boolean is_feat = false;
-				for (myWord w : t.getArgs())
-					if (!w.isVar())
-						is_feat = true;
-				if (is_feat)
-					continue;
-				for (myWord w : t.getArgs()) {
-					for (int i = 0; i < headArgs.length; i++) {
-						myWord arg = headArgs[i];
-						if (arg.equals(w)) {
-							rootCand.get(i).add(t);
-							break;
-						}
-					}
-				}
-			}
-			// enumerate the best combination(covers most positive and least negative) of head
-			// (Foil gain: |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))])
-			// use DFS to enumerate
-			ArrayList<myTerm> max_root_terms = new ArrayList<myTerm>();
-			SentSat max_root_cov = new SentSat();
-			double max_root_acc = -1.0;
-			for (int j = 0; j < rootCand.get(0).size(); j++) {
-				Stack<Tuple<Integer, Integer>> S = new Stack<Tuple<Integer, Integer>>();
-				ArrayList<Tuple<Integer, Integer>> visited = new ArrayList<Tuple<Integer, Integer>>();
-				ArrayList<Tuple<Integer, Integer>> route = new ArrayList<Tuple<Integer, Integer>>();
-				Tuple<Integer, Integer> tup = new Tuple<Integer, Integer>(0, j);
-				S.push(tup);
-				while (!S.isEmpty()) {
-					Tuple<Integer, Integer> u = S.pop();
-					if (!visited.contains(u)) {
-						visited.add(u);
-						route.add(u);
-						// For each neighbor of u (only connected to next layer)
-						if (u.x == rootCand.size() - 1) {
-							// reach the bottom, forms a temp rootTerm
-							ArrayList<myTerm> tmp_root = new ArrayList<myTerm>();
-							for (Tuple<Integer, Integer> t : route) {
-								myTerm tmp_t = rootCand.get(t.x).get(t.y);
-								if (!tmp_root.contains(tmp_t)) {
-									tmp_root.add(tmp_t);
-								}
-							}
-							// build temporary formula
-							Formula root_f = new Formula();
-							
-							/*
-							 * ADD UNEQUAL VARS INTO THE NODE
-							 */
-							ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(tmp_root));
-							for (myTerm t : uneq) {
-								if (!tmp_root.contains(t))
-										tmp_root.add(t);
-							}
-							root_f.pushBody(tmp_root);
-							root_f.pushHead(head);
-							// all covered data
-//							if ((tmp_root.size() == 1) && (tmp_root.get(0).getPred().toString().equals("adv/2")))
-//								System.out.println(tmp_root.get(0).toString());
-							SentSat sat = getSatSamps(root_f, label, data);
-							sat.setTotal();
-							// compute accuracy
-							double tmp_root_acc = computeAccuracy(sat);
-							if (tmp_root_acc > max_root_acc) {
-								max_root_acc = tmp_root_acc;
-								max_root_terms = tmp_root;
-								max_root_cov = sat;
-								System.out.println("=======");
-								System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
-								System.out.println("=======");
-							}
-							visited.remove(u); // pop visited
-							if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
-								route.remove(visited.get(visited.size() - 1));
-							route.remove(u);
-						} else {
-							for (int i = 0; i < rootCand.get(u.x + 1).size(); i++) {
-								S.push(new Tuple<Integer, Integer>(u.x + 1, i));
-							}
-						}
-					}
-				}
-			}
-			// finally use the maximum accuracy root
-			// add negative sample paths into candidate
-			candidateTerms = addTermFromNegSamps(max_root_cov, candidateTerms);
-//			for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
-//				myTerm t = max_root_cov.getAllNeg(i);
-//				ArrayList<myTerm> neo_cand = candFromSamps(t, max_root_cov.getCovSentFromTerm(t));
-//				for (myTerm tt : neo_cand) {
-//					if (!candidateTerms.contains(tt))
-//						candidateTerms.add(tt);
-//				}
-//			}
-//			System.out.println("all candidate terms after add negative examples");
-//			for (myTerm t : candidateTerms) {
-//				System.out.println(t.toPrologString());
-//			}
-			/*
-			 *  FINISHING ROOT NODE BUILDING
-			 */
-			node.addTermNodes(max_root_terms); // set splitting critira
-			node.setHierarchy(1); // root is first layer
-			node.setBranchPositive();
-			node.setSentSat(true, max_root_cov);
-			// remove all used candidate terms
-			for (myTerm tmp_term : node.getTermNodes()) {
-				candidateTerms.remove(tmp_term);
-			}
-			// create childrens
-//			node.setFalseChild(create(max_root_cov.getUncoveredData(), candidateTerms, node, false));
-			// FIRST TERM IN PROLOG RULE MUST BE TRUE!!!
-			node.setTrueChild(create(max_root_cov.getCoveredData(), candidateTerms, node, true));
-			node.setFalseChild(null);
-//			System.out.println("=========================\nCOVERED INSTANCES\n==========================");
-//			System.out.println(max_root_cov.getCoveredData());
-//			System.out.println("=======================\nUNCOVERED INSTANCES\n==========================");
-//			System.out.println(max_root_cov.getUncoveredData());
-//			System.exit(0);
-			return node;
-		}
-		else {
+			// ROOT NODE
+			return createRoot(d, candidateTerms);
+		} else {
 			/*
 			 * NOT ROOT NODE
 			 */
@@ -335,8 +207,8 @@ public class RuleTree {
 						maxPosSat = PosSat;
 						maxNegSat = NegSat;
 						t.setPositive();
-						max_gain_term = t;
-						max_form_body = cur_form.getBody(); 
+						max_gain_term = t.clone();
+						max_form_body = (ArrayList<myTerm>) cur_form.getBody().clone(); 
 					}
 					if (Math.abs(pos_foilgain - neg_foilgain) <= 0.0)
 						no_improve_terms.add(t);
@@ -349,6 +221,7 @@ public class RuleTree {
 				 * 2. remove candidate node;
 				 * 3. create node's children.
 				 */
+				
 				node.addTermNodes(max_gain_term);
 				// add unequality constraints
 				ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(max_form_body));
@@ -383,6 +256,145 @@ public class RuleTree {
 			}
 		}
 	}
+	
+	private TreeNode createRoot(Data d, ArrayList<myTerm> candidateTerms) {
+		/*
+		 * BUILD ROOT NODE
+		 * if no father, this node is root, add terms that includes head variables
+		 */
+		ArrayList<ArrayList<myTerm>> label = d.getLabels();
+		ArrayList<Sentence> data = d.getSents();
+		TreeNode node = new TreeNode();
+		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
+		// get candidate for root node
+		myWord[] headArgs = head.getArgs();
+		ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
+		for (int i = 0; i < headArgs.length; i++) {
+			rootCand.add(new ArrayList<myTerm>());
+		}
+		for (myTerm t : availTerms) {
+			boolean is_feat = false;
+			for (myWord w : t.getArgs())
+				if (!w.isVar())
+					is_feat = true;
+			if (is_feat)
+				continue;
+			for (myWord w : t.getArgs()) {
+				for (int i = 0; i < headArgs.length; i++) {
+					myWord arg = headArgs[i];
+					if (arg.equals(w)) {
+						rootCand.get(i).add(t);
+						break;
+					}
+				}
+			}
+		}
+		// enumerate the best combination(covers most positive and least negative) of head
+		// (Foil gain: |p|*[log2(|p|/(|p|+|n|)) – log2(|P|/(|P|+|N|))])
+		// use DFS to enumerate
+		ArrayList<myTerm> max_root_terms = new ArrayList<myTerm>();
+		SentSat max_root_cov = new SentSat();
+		double max_root_acc = -1.0;
+		for (int j = 0; j < rootCand.get(0).size(); j++) {
+			Stack<Tuple<Integer, Integer>> S = new Stack<Tuple<Integer, Integer>>();
+			ArrayList<Tuple<Integer, Integer>> visited = new ArrayList<Tuple<Integer, Integer>>();
+			ArrayList<Tuple<Integer, Integer>> route = new ArrayList<Tuple<Integer, Integer>>();
+			Tuple<Integer, Integer> tup = new Tuple<Integer, Integer>(0, j);
+			S.push(tup);
+			while (!S.isEmpty()) {
+				Tuple<Integer, Integer> u = S.pop();
+				if (!visited.contains(u)) {
+					visited.add(u);
+					route.add(u);
+					// For each neighbor of u (only connected to next layer)
+					if (u.x == rootCand.size() - 1) {
+						// reach the bottom, forms a temp rootTerm
+						ArrayList<myTerm> tmp_root = new ArrayList<myTerm>();
+						for (Tuple<Integer, Integer> t : route) {
+							myTerm tmp_t = rootCand.get(t.x).get(t.y);
+							if (!tmp_root.contains(tmp_t)) {
+								tmp_root.add(tmp_t);
+							}
+						}
+						// build temporary formula
+						Formula root_f = new Formula();
+						
+						/*
+						 * ADD UNEQUAL VARS INTO THE NODE
+						 */
+						ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(tmp_root));
+						for (myTerm t : uneq) {
+							if (!tmp_root.contains(t))
+									tmp_root.add(t);
+						}
+						root_f.pushBody(tmp_root);
+						root_f.pushHead(head);
+						// all covered data
+//						if ((tmp_root.size() == 1) && (tmp_root.get(0).getPred().toString().equals("adv/2")))
+//							System.out.println(tmp_root.get(0).toString());
+						SentSat sat = getSatSamps(root_f, label, data);
+						sat.setTotal();
+						// compute accuracy
+						double tmp_root_acc = computeAccuracy(sat);
+						if (tmp_root_acc > max_root_acc) {
+							max_root_acc = tmp_root_acc;
+							max_root_terms = tmp_root;
+							max_root_cov = sat;
+							System.out.println("=======");
+							System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
+							System.out.println("=======");
+						}
+						visited.remove(u); // pop visited
+						if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
+							route.remove(visited.get(visited.size() - 1));
+						route.remove(u);
+					} else {
+						for (int i = 0; i < rootCand.get(u.x + 1).size(); i++) {
+							S.push(new Tuple<Integer, Integer>(u.x + 1, i));
+						}
+					}
+				}
+			}
+		}
+		// finally use the maximum accuracy root
+		// add negative sample paths into candidate
+		candidateTerms = addTermFromNegSamps(max_root_cov, candidateTerms);
+//		for (int i = 0; i < max_root_cov.getAllNegNum(); i ++) {
+//			myTerm t = max_root_cov.getAllNeg(i);
+//			ArrayList<myTerm> neo_cand = candFromSamps(t, max_root_cov.getCovSentFromTerm(t));
+//			for (myTerm tt : neo_cand) {
+//				if (!candidateTerms.contains(tt))
+//					candidateTerms.add(tt);
+//			}
+//		}
+//		System.out.println("all candidate terms after add negative examples");
+//		for (myTerm t : candidateTerms) {
+//			System.out.println(t.toPrologString());
+//		}
+		/*
+		 *  FINISHING ROOT NODE BUILDING
+		 */
+		node.addTermNodes(max_root_terms); // set splitting critira
+		node.setHierarchy(1); // root is first layer
+		node.setBranchPositive();
+		node.setSentSat(true, max_root_cov);
+		// remove all used candidate terms
+		for (myTerm tmp_term : node.getTermNodes()) {
+			candidateTerms.remove(tmp_term);
+		}
+		// create childrens
+//		node.setFalseChild(create(max_root_cov.getUncoveredData(), candidateTerms, node, false));
+		// FIRST TERM IN PROLOG RULE MUST BE TRUE!!!
+		node.setTrueChild(create(max_root_cov.getCoveredData(), candidateTerms, node, true));
+		node.setFalseChild(null);
+//		System.out.println("=========================\nCOVERED INSTANCES\n==========================");
+//		System.out.println(max_root_cov.getCoveredData());
+//		System.out.println("=======================\nUNCOVERED INSTANCES\n==========================");
+//		System.out.println(max_root_cov.getUncoveredData());
+//		System.exit(0);
+		return node;
+	}
+	
 	/**
 	 * add features extracted from negative samples
 	 * @param sat: satisfaction info of node, contains negative samples

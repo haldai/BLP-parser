@@ -9,7 +9,7 @@ import utils.*;
  * @author daiwz
  *
  */
-public class myWord {
+public class myWord implements Cloneable{
 
 	/**
 	 * myWord is a word in input data, e.g. "刘德华_1_nr"，"刘德华"is name,
@@ -176,4 +176,15 @@ public class myWord {
 		return re;
 	}
 	
+	public myWord clone() {
+		try {
+			return (myWord) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
+	}
+	
+	public void setPos(String string) {
+		this.pos = string;		
+	}
 }

@@ -11,7 +11,7 @@ package Logic;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class Formula {
+public class Formula implements Cloneable {
 
 	/**
 	 * Logic formular in prolog form, e.g., "grandfather(X, Y):-father(X,Z),father(Z,Y)."
@@ -235,6 +235,21 @@ public class Formula {
 				}
 		}
 		return true;
+	}
+	
+	public Formula clone() {
+		try {
+			Formula re = (Formula) super.clone();
+			re.head = new ArrayList<myTerm>();
+			re.body = new ArrayList<myTerm>();
+			for (myTerm t : this.head)
+				re.head.add(t.clone());
+			for (myTerm t : this.body)
+				re.body.add(t.clone());
+			return re;
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 	
 }

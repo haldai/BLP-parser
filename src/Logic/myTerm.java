@@ -13,7 +13,7 @@ import java.util.List;
  * @author daiwz
  *
  */
-public class myTerm {
+public class myTerm implements Cloneable{
 
 	/**
 	 * myTerm is a term type, which have a predicate and some arguments.
@@ -45,6 +45,13 @@ public class myTerm {
 	 */
 	public myTerm(String s) {
 		// find arguments
+		if (s.startsWith("\\+(")) {
+			s = s.substring(3, s.length() - 1);
+			isPositive = false;
+		} else if (s.startsWith("not(")) {
+			s = s.substring(4, s.length() - 1);
+			isPositive = false;
+		}
 		Pattern p = Pattern.compile("\\(.*?\\)");
 		Matcher m = p.matcher(s);
 		boolean found = m.find();
@@ -72,7 +79,7 @@ public class myTerm {
 		pred = null;
 		args = null;
 	}
-	
+
 	public Predicate getPred() {
 		return pred;
 	}
@@ -174,10 +181,41 @@ public class myTerm {
 		return isPositive;
 	}
 	
+	public void setArgs(myWord[] a) {
+		if (a.length == args.length)
+			args = a;
+	}
+	
+	public void setArg(int i, myWord w) {
+		// TODO Auto-generated method stub
+		args[i] = w;
+		
+	}
+	
+	public void setPred(Predicate p) {
+		if (p.getArity() == pred.getArity())
+			pred = p;
+	}
+	
 	public void flip() {
 		if (isPositive)
 			isPositive = false;
 		else
 			isPositive = true;
 	}
+	
+	public myTerm clone() {
+		try {
+			myTerm re =  (myTerm) super.clone();
+			re.args = new myWord[this.args.length];
+			for (int i = 0; i < this.args.length; i++)
+				re.args[i] = this.args[i].clone();
+			return re;
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
+	}
+
+
+	
 }

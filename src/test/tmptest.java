@@ -27,7 +27,33 @@ public class tmptest {
 		testRuleTree(doc, prolog);
 //		testTuple();
 //		System.out.println(Math.log(0.0000000000000000000001));
+//		testClone();
+		
 
+	}
+	
+	public static void testClone() {
+		System.out.println("testing clone:");
+		myWord wd0 = new myWord("answer_42_yes");
+		myWord wd1 = wd0.clone();
+		wd1.setNumZero();
+		wd1.setPos("wrong");
+		System.out.println(wd0.toString() + ":::" + wd1.toString());
+		Predicate p0 = new Predicate("dead/2");
+		Predicate p1 = p0.clone();
+		p1.setName("phuck");
+		System.out.println(p0.toString() + ":::" + p1.toString());
+		myTerm t0 = new myTerm("dead(answer_42_yes,answer_0_yes)");
+		myTerm t1 = t0.clone();
+		t1.setPred(p1);
+		t1.setNegative();
+		t1.setArg(0, wd1);
+		System.out.println(t0.toPrologString() + ":::" + t1.toPrologString());
+		Formula f0 = new Formula("sem(X_1,X_2):-att(X_2,X_3);de(X_3,X_1);postag(X_1,v_POS).");
+		Formula f1 = f0.clone();
+		f1.popBody();
+		f1.pushBody(new myTerm("not(postag(X_1,u_POS))"));
+		System.out.println(f0.toPrologString() + ":::" + f1.toPrologString());
 	}
 	
 	public static void testTuple() {

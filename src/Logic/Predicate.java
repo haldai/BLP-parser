@@ -7,7 +7,7 @@ package Logic;
  * @author daiwz
  *
  */
-public class Predicate {
+public class Predicate implements Cloneable{
 
 	/**
 	 * Logic Predicate, with its arity, e.g., "att/2" means att(_,_).
@@ -61,6 +61,14 @@ public class Predicate {
 	
 	public String toString() {
 		return String.format("%s/%d", name, arity);
+	}
+	
+	public Predicate clone() {
+		try {
+			return (Predicate) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 	
 }
