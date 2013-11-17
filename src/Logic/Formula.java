@@ -88,45 +88,52 @@ public class Formula implements Cloneable {
 	}
 	
 	public void pushBody(myTerm t) {
-		body.add(t);
+		myTerm nt = t.clone();
+		body.add(nt);
 		bodyLen = body.size();
 	}
 	
 	public void pushBodyToFirst(myTerm t) {
-		body.add(0, t);
+		myTerm nt = t.clone();
+		body.add(0, nt);
 		bodyLen = body.size();
 	}
 	
 	public void pushBody(LinkedList<myTerm> terms) {
 		for (myTerm t : terms) {
-			body.add(t);
+			myTerm nt = t.clone();
+			body.add(nt);
 		}
 		bodyLen = body.size();
 	}
 	
 	public void pushBodyToFirst(LinkedList<myTerm> terms) {
 		for (int i = terms.size() - 1; i >= 0; i--) {
-			body.add(0,terms.get(i));
+			myTerm nt = terms.get(i).clone();
+			body.add(0, nt);
 		}
 		bodyLen = body.size();
 	}
 	
 	public void pushHead(ArrayList<myTerm> h) {
 		for (myTerm term : h) {
-			head.add(term);
+			myTerm nt = term.clone();
+			head.add(nt);
 		}
 		headLen = head.size();
 	}
 	
 	public void pushHead(LinkedList<myTerm> terms) {
 		for (myTerm t : terms) {
-			head.add(t);
+			myTerm nt = t.clone();
+			head.add(nt);
 		}
 		headLen = head.size();
 	}
 	
 	public void pushHead(myTerm h) {
-		head.add(h);
+		myTerm nt = h.clone();
+		head.add(nt);
 		headLen = head.size();
 	}
 	

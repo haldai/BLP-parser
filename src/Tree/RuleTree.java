@@ -185,7 +185,7 @@ public class RuleTree {
 //					double tmp_acc = computeAccuracy(sat);
 					double pos_foilgain = foilGain(PosSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-					System.out.println(pos_foilgain + ": " + cur_form.toString());	
+//					System.out.println(pos_foilgain + ": " + cur_form.toString());	
 					cur_form.popBody();
 					// Try falsed term
 					t.setNegative();
@@ -197,7 +197,7 @@ public class RuleTree {
 //					tmp_acc = computeAccuracy(sat);
 					double neg_foilgain = foilGain(NegSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-					System.out.println(neg_foilgain + ": " + cur_form.toString());	
+//					System.out.println(neg_foilgain + ": " + cur_form.toString());	
 
 					/*
 					 * retain the best
@@ -206,9 +206,12 @@ public class RuleTree {
 						maxGain = Math.abs(pos_foilgain - neg_foilgain);
 						maxPosSat = PosSat;
 						maxNegSat = NegSat;
-						t.setPositive();
 						max_gain_term = t.clone();
-						max_form_body = (ArrayList<myTerm>) cur_form.getBody().clone(); 
+						max_gain_term.setPositive();
+						max_form_body = new ArrayList<myTerm>();
+						for (myTerm tmp_term : cur_form.getBody()) {
+							max_form_body.add(tmp_term.clone());
+						}
 					}
 					if (Math.abs(pos_foilgain - neg_foilgain) <= 0.0)
 						no_improve_terms.add(t);
@@ -237,10 +240,14 @@ public class RuleTree {
 				
 				// add negative candidates
 //				candidateTerms.removeAll(no_improve_terms);
-				@SuppressWarnings("unchecked")
-				ArrayList<myTerm> pos_candidateTerms = (ArrayList<myTerm>) candidateTerms.clone();
-				@SuppressWarnings("unchecked")
-				ArrayList<myTerm> neg_candidateTerms = (ArrayList<myTerm>) candidateTerms.clone();
+				ArrayList<myTerm> pos_candidateTerms = new ArrayList<myTerm>();
+				for (myTerm tmp_term : candidateTerms) {
+					pos_candidateTerms.add(tmp_term.clone());
+				}
+				ArrayList<myTerm> neg_candidateTerms = new ArrayList<myTerm>();
+				for (myTerm tmp_term : candidateTerms) {
+					neg_candidateTerms.add(tmp_term.clone());
+				}
 				pos_candidateTerms = addTermFromNegSamps(maxPosSat, pos_candidateTerms);
 				neg_candidateTerms = addTermFromNegSamps(maxNegSat, neg_candidateTerms);
 				for (myTerm t : node.getTermNodes()) {
@@ -509,15 +516,21 @@ public class RuleTree {
 	private Formula toFormula(TreeNode node, boolean son_branch) {
 		Formula re = new Formula();
 		re.pushHead(head);
-		LinkedList<myTerm> fa = (LinkedList<myTerm>) node.toTerms().clone();
-		if (!son_branch)
-			for (myTerm t : fa) {
-				t.flip();
-			}
+		// deep clone
+		LinkedList<myTerm> fa = new LinkedList<myTerm>();
+		for (myTerm t : node.toTerms()) {
+			myTerm n_t = t.clone();
+			if (!son_branch)
+				n_t.flip();
+			fa.add(n_t);
+		}
 		re.pushBodyToFirst(fa);
 		while (node.getFather() != null) {
 			TreeNode tmp_father_node = node.getFather();
-			fa = (LinkedList<myTerm>) tmp_father_node.toTerms().clone();
+			fa = new LinkedList<myTerm>();
+			for (myTerm tmp_t : tmp_father_node.toTerms()) {
+				fa.add(tmp_t.clone());
+			}
 			if (!node.isPositiveBranch()) {
 				for (myTerm t : fa)
 					t.flip();
@@ -698,10 +711,12 @@ public class RuleTree {
 	 * @return
 	 */
 	private double foilGain(SentSat r1, SentSat r0) {
-		@SuppressWarnings("unchecked")
-		ArrayList<myTerm> r1_all_pos = (ArrayList<myTerm>) r1.getAllPos().clone();
-		@SuppressWarnings("unchecked")
-		ArrayList<myTerm> r0_all_pos = (ArrayList<myTerm>) r0.getAllPos().clone();
+		ArrayList<myTerm> r1_all_pos = new ArrayList<myTerm>();
+		for (myTerm tmp_term : r1.getAllPos())
+			r1_all_pos.add(tmp_term.clone());
+		ArrayList<myTerm> r0_all_pos = new ArrayList<myTerm>();
+		for (myTerm tmp_term : r0.getAllPos())
+			r0_all_pos.add(tmp_term.clone());
 		r0_all_pos.retainAll(r1_all_pos);
 		int t = r0_all_pos.size();
 		double acc1 = computeAccuracy(r1);

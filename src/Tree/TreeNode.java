@@ -67,26 +67,22 @@ public class TreeNode {
 	}
 	
 	public ArrayList<myTerm> getTermNodes() {
-		if (isPositiveBranch)
+		ArrayList<myTerm> re = new ArrayList<myTerm>();
+		if (!isPositiveBranch)
 			for (myTerm t : termNodes) {
-				if (t.isPositive())
-					t.setPositive();
-				else
-					t.setNegative();
+				myTerm nt = t.clone();
+				nt.flip();
+				re.add(nt);
 			}
-		else
-			for (myTerm t : termNodes) {
-				if (t.isPositive())
-					t.setNegative();
-				else
-					t.setPositive();
-			}
-		return termNodes;
+		return re;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void addTermNodes(ArrayList<myTerm> n) {
-		termNodes.addAll((ArrayList<myTerm>) n.clone());
+		ArrayList<myTerm> n_terms = new ArrayList<myTerm>();
+		for (myTerm t : n) {
+			n_terms.add(t.clone());
+		}
+		termNodes.addAll(n_terms);
 //		if (isPositiveBranch)
 //			for (myTerm t : termNodes) {
 //				t.setPositive();
@@ -177,6 +173,10 @@ public class TreeNode {
 			t_sentsat = s;
 		else
 			f_sentsat = s;
+	}
+	
+	public String toString() {
+		return termNodes.toString();
 	}
 
 }

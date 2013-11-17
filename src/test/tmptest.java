@@ -54,6 +54,14 @@ public class tmptest {
 		f1.popBody();
 		f1.pushBody(new myTerm("not(postag(X_1,u_POS))"));
 		System.out.println(f0.toPrologString() + ":::" + f1.toPrologString());
+		ArrayList<myTerm> tl0 = new ArrayList<myTerm>();
+		tl0.add(t0);
+		tl0.add(t1);
+		System.out.println(tl0);
+		ArrayList<myTerm> tl1 = (ArrayList<myTerm>) tl0.clone();
+		t0.setNegative();
+		tl1.get(1).setPositive();
+		System.out.println(tl0.toString() + ":::" + tl1.toString());
 	}
 	
 	public static void testTuple() {
@@ -184,7 +192,7 @@ public class tmptest {
 		System.out.println("Test RuleTree!");
 		// find all paths;
 		for (int i = 0; i < doc.length(); i++) {
-			i = 1;
+//			i = 1;
 			ArrayList<myTerm> labels = doc.getLabel(i);
 			Sentence sent = doc.getSent(i);
 			for (myTerm label : labels) {
@@ -194,7 +202,7 @@ public class tmptest {
 					tree.buildTree(doc, label, path);
 				}
 			}
-			System.exit(0);
+//			System.exit(0);
 		}
 	}
 }
