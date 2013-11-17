@@ -7,6 +7,8 @@ public class utils {
 	public static final int MAX_LABEL_LEN = 5; //max length of labels (max num of labeled 
 											  //logic facts in label of a sentence)
 	public static final int MAX_HIERARCHY_NUM = 4; // max layer numbers
+	public static final double MAX_ACC_CRI = 0.95;
+	public static final double MAX_INACC_CRI = 0.05;
 	
 	public static boolean isNumeric(String str) {
 		for (int i = str.length();--i>=0;) {   

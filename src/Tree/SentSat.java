@@ -21,7 +21,6 @@ public class SentSat {
 	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>();
 	ArrayList<myTerm> allPos = new ArrayList<myTerm>();
 	ArrayList<myTerm> allNeg = new ArrayList<myTerm>();
-	Map<myTerm, Sentence> term_sent = new HashMap<myTerm, Sentence>();
 	
 	/*
 	 * SPLITTING FOR ROBUSTNESS
@@ -31,27 +30,29 @@ public class SentSat {
 	Data uncovered = new Data();
 	
 	double coverage = 0.0;
+	double accuracy = 0.0;
 	/**
 	 * 
 	 */
 	public SentSat() {}
 	
 	public void addSentSat(ArrayList<myTerm> label, Sentence sent, SatisfySamples sat) {
+		labels.add(label);
+		sents.add(sent);
+		sats.add(sat);
 		if (sat.hasSolution()) {
 			// covered
-			sents.add(sent);
-			sats.add(sat);
-			labels.add(label);
-			for (myTerm t : sat.getNegative()){
-				term_sent.put(t, sent);
-			}
 			covered.addData(label, sent, sat);
 		} else
 			uncovered.addData(label, sent, sat);
 	}
 	
-	public Sentence getWhichSent(myTerm t) {
-		return covered.getSentOfTerm(t);
+	public Sentence getCovSentFromTerm(myTerm t) {
+		return covered.getSentFromTerm(t);
+	}
+	
+	public Sentence getUncovSentFromTerm(myTerm t) {
+		return uncovered.getSentFromTerm(t);
 	}
 	
 	private void setAllNeg() {
@@ -121,6 +122,11 @@ public class SentSat {
 		setAllNeg();
 		setAllPos();
 		coverage = (double) covered.size()/(uncovered.size() + covered.size());
+		double p = this.getAllPosNum();
+		double t = this.getAllNegNum() + this.getAllPosNum();
+		if (t == 0.0)
+			t = p = 0.000000000000001;
+		accuracy = p/t;
 	}
 	
 	public double getCov() {
@@ -141,5 +147,16 @@ public class SentSat {
 	
 	public Data getUncoveredData() {
 		return uncovered;
+	}
+	
+	public double getAccuracy() {
+		return accuracy;
+	}
+	public int getLabelNum() {
+		int re = 0;
+		for (ArrayList<myTerm> l : labels) {
+			re = re + l.size();
+		}
+		return re;
 	}
 }

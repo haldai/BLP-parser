@@ -22,6 +22,7 @@ public class Sentence {
 	int wordLen;
 	myTerm[] termList;
 	myWord[] wordList;
+	ArrayList<myTerm> featList = new ArrayList<myTerm>();
 	
 	public Sentence(String deps) {
 		// read sentence from string
@@ -82,6 +83,7 @@ public class Sentence {
 		termList = buff_terms;
 		wordList = buff_words;
 		wordLen = wordList.length;
+		buildFeature();
 //		for (int i = 0; i < buff_words.length; i++) {
 //			System.out.println(wordList[i].str);
 //		}
@@ -133,4 +135,28 @@ public class Sentence {
 		}
 		return buff_preds;
 	}
+	
+	/**
+	 * get feature from current sentence
+	 * @param sent: input sentence
+	 * @return: list of feature term
+	 */
+	private void buildFeature() {
+		// POSTAG feature
+		for (myWord w : this.getWords()) {
+			myTerm tmp_term = new CommonPredicates().posTag(w, w.toPostagWord());
+			if (!featList.contains(tmp_term))
+				featList.add(tmp_term);
+		}
+		// TODO More
+	}
+	
+	public ArrayList<myTerm> getFeatures() {
+		return featList;
+	}
+	
+	public myTerm getFeature(int i) {
+		return featList.get(i);
+	}
+	
 }

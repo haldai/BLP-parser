@@ -17,6 +17,7 @@ public class tmptest {
 		for (int i = 0; i < doc.length(); i++) {
 			System.out.println(doc.getSent(i).toString());
 			System.out.println(doc.getLabel(i).toString());
+			System.out.println(doc.getSent(i).getFeatures().toString());
 		}
 		
 		prolog = new Prolog();
@@ -24,8 +25,43 @@ public class tmptest {
 //		testEvaluation(doc, prolog);
 //		testPathFind(doc);
 		testRuleTree(doc, prolog);
-		testTuple();
+//		testTuple();
+//		System.out.println(Math.log(0.0000000000000000000001));
+//		testClone();
+		
 
+	}
+	
+	public static void testClone() {
+		System.out.println("testing clone:");
+		myWord wd0 = new myWord("answer_42_yes");
+		myWord wd1 = wd0.clone();
+		wd1.setNumZero();
+		wd1.setPos("wrong");
+		System.out.println(wd0.toString() + ":::" + wd1.toString());
+		Predicate p0 = new Predicate("dead/2");
+		Predicate p1 = p0.clone();
+		p1.setName("phuck");
+		System.out.println(p0.toString() + ":::" + p1.toString());
+		myTerm t0 = new myTerm("dead(answer_42_yes,answer_0_yes)");
+		myTerm t1 = t0.clone();
+		t1.setPred(p1);
+		t1.setNegative();
+		t1.setArg(0, wd1);
+		System.out.println(t0.toPrologString() + ":::" + t1.toPrologString());
+		Formula f0 = new Formula("sem(X_1,X_2):-att(X_2,X_3);de(X_3,X_1);postag(X_1,v_POS).");
+		Formula f1 = f0.clone();
+		f1.popBody();
+		f1.pushBody(new myTerm("not(postag(X_1,u_POS))"));
+		System.out.println(f0.toPrologString() + ":::" + f1.toPrologString());
+		ArrayList<myTerm> tl0 = new ArrayList<myTerm>();
+		tl0.add(t0);
+		tl0.add(t1);
+		System.out.println(tl0);
+		ArrayList<myTerm> tl1 = (ArrayList<myTerm>) tl0.clone();
+		t0.setNegative();
+		tl1.get(1).setPositive();
+		System.out.println(tl0.toString() + ":::" + tl1.toString());
 	}
 	
 	public static void testTuple() {
@@ -37,10 +73,14 @@ public class tmptest {
 	
 	public static void testEvaluation(Document doc, Prolog prolog) {
 		System.out.println("Test Evaluation!");
-		Formula f = new Formula("sem(X_1_var,X_2_var):-att(X_2_var,X_3_var);de(X_3_var,X_1_var)."); 
+		Formula f = new Formula("sem(X_1,X_2):-att(X_2,X_3);de(X_3,X_1);postag(X_1,v_POS)."); 
 		LogicProgram p = new LogicProgram();
 //		p.addRule(f);
-		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
+//		f = new Formula("sem(X_1,X_2):- sbv(X_2,X_1);\\==(X_2,X_1);\\==(X_1,谁_r);==(X_1,高_a).");
+		f = new Formula("sem(X_1,X_2):- sbv(X_2,X_1);\\==(X_2,X_1);\\==(X_1,谁_r);\\==(X_1,高_a).");
+//		f = new Formula("sem(X_1_var,X_2_var):- att(X_2_var,X_1_var); \\+(postag(X_1_var,u_POS)).");
+//		f = new Formula("sem(X_2_var,X_1_var):- not(postag(X_2_var,u_POS));att(X_1_var,X_2_var).");
+//		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
 		// TODO in prolog, the value of myWord position is not important, can be removed ?
 		p.addRule(f);
@@ -152,6 +192,7 @@ public class tmptest {
 		System.out.println("Test RuleTree!");
 		// find all paths;
 		for (int i = 0; i < doc.length(); i++) {
+//			i = 1;
 			ArrayList<myTerm> labels = doc.getLabel(i);
 			Sentence sent = doc.getSent(i);
 			for (myTerm label : labels) {
@@ -161,6 +202,7 @@ public class tmptest {
 					tree.buildTree(doc, label, path);
 				}
 			}
+//			System.exit(0);
 		}
 	}
 }

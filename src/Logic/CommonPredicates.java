@@ -20,4 +20,12 @@ public class CommonPredicates {
 		args.add(arg2);
 		return new myTerm(eq, args);
 	}
+	
+	public myTerm posTag(myWord arg1, myWord arg2) {
+		Predicate eq = new Predicate("postag", 2);
+		ArrayList<myWord> args = new ArrayList<myWord>(2);
+		args.add(arg1);
+		args.add(arg2);
+		return new myTerm(eq, args);
+	}
 }

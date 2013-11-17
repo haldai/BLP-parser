@@ -11,7 +11,7 @@ package Logic;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class Formula {
+public class Formula implements Cloneable {
 
 	/**
 	 * Logic formular in prolog form, e.g., "grandfather(X, Y):-father(X,Z),father(Z,Y)."
@@ -68,7 +68,7 @@ public class Formula {
 			while (s.startsWith(" "))
 				s = s.substring(1);
 			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
-				s = s.substring(4, s.length() - 1);
+				s = s.substring(3, s.length() - 1);
 				sym = false;
 			}
 			myTerm tmp_t = new myTerm(s);
@@ -88,51 +88,65 @@ public class Formula {
 	}
 	
 	public void pushBody(myTerm t) {
-		body.add(t);
+		myTerm nt = t.clone();
+		body.add(nt);
 		bodyLen = body.size();
 	}
 	
 	public void pushBodyToFirst(myTerm t) {
-		body.add(0, t);
+		myTerm nt = t.clone();
+		body.add(0, nt);
 		bodyLen = body.size();
 	}
 	
 	public void pushBody(LinkedList<myTerm> terms) {
 		for (myTerm t : terms) {
-			body.add(t);
+			myTerm nt = t.clone();
+			body.add(nt);
 		}
 		bodyLen = body.size();
 	}
 	
 	public void pushBodyToFirst(LinkedList<myTerm> terms) {
-		for (myTerm t : terms) {
-			body.add(0,t);
+		for (int i = terms.size() - 1; i >= 0; i--) {
+			myTerm nt = terms.get(i).clone();
+			body.add(0, nt);
 		}
 		bodyLen = body.size();
 	}
 	
 	public void pushHead(ArrayList<myTerm> h) {
 		for (myTerm term : h) {
-			head.add(term);
+			myTerm nt = term.clone();
+			head.add(nt);
 		}
 		headLen = head.size();
 	}
 	
 	public void pushHead(LinkedList<myTerm> terms) {
 		for (myTerm t : terms) {
-			head.add(t);
+			myTerm nt = t.clone();
+			head.add(nt);
 		}
 		headLen = head.size();
 	}
 	
 	public void pushHead(myTerm h) {
-		head.add(h);
+		myTerm nt = h.clone();
+		head.add(nt);
 		headLen = head.size();
 	}
 	
 	public myTerm popBody() {
 		myTerm re = body.get(bodyLen - 1);
 		body.remove(bodyLen - 1);
+		bodyLen = body.size();
+		return re;
+	}
+	
+	public myTerm popBodyFirst() {
+		myTerm re = body.get(0);
+		body.remove(0);
 		bodyLen = body.size();
 		return re;
 	}
@@ -148,6 +162,12 @@ public class Formula {
 	public myTerm popHead() {
 		myTerm re = head.get(headLen - 1);
 		head.remove(headLen - 1);
+		return re;
+	}
+	
+	public myTerm popHeadFirst() {
+		myTerm re = head.get(0);
+		head.remove(0);
 		return re;
 	}
 	
@@ -174,7 +194,7 @@ public class Formula {
 		}
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 2);
-			s = s + "):- ";
+			s = s + ") :- ";
 		}
 		for (int i = 0; i < body.size(); i++) {
 			s = s + body.get(i).toPrologString() + ',';
@@ -187,7 +207,22 @@ public class Formula {
 	}
 	
 	public String toString() {
-		return this.toPrologString();
+		String s = "";
+		for (int i = 0; i < head.size(); i++) {
+			s = s + head.get(i).toPrologString() + ',';
+		}
+		if (s.endsWith(",")) {
+			s = s.substring(0, s.length() - 2);
+			s = s + "):- ";
+		}
+		for (int i = 0; i < body.size(); i++) {
+			s = s + body.get(i).toPrologString() + ';';
+		}
+		if (s.endsWith(";")) {
+			s = s.substring(0, s.length() - 1);
+			s = s + '.';
+		}
+		return s;
 	}
 
 	public boolean equals(Object o) {
@@ -207,6 +242,21 @@ public class Formula {
 				}
 		}
 		return true;
+	}
+	
+	public Formula clone() {
+		try {
+			Formula re = (Formula) super.clone();
+			re.head = new ArrayList<myTerm>();
+			re.body = new ArrayList<myTerm>();
+			for (myTerm t : this.head)
+				re.head.add(t.clone());
+			for (myTerm t : this.body)
+				re.body.add(t.clone());
+			return re;
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 	
 }
