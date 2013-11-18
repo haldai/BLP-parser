@@ -78,7 +78,7 @@ public class RuleTree {
 	 * @param doc: training instances in document
 	 * @param path: path of available terms for split
 	 */
-	public void buildTree(Document doc, myTerm head, LinkedList<myTerm> path) {
+	public void buildTree(Data data, myTerm head, LinkedList<myTerm> path) {
 		ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
 		// substitution and get more features (temporarily only use words themselves)
 		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
@@ -99,7 +99,6 @@ public class RuleTree {
 		for (myTerm t : cand) {
 			System.out.println(t.toPrologString());
 		}
-		Data data = new Data(doc);
 		root = create(data, cand, null, true);
 	}
 
@@ -147,23 +146,22 @@ public class RuleTree {
 			if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() > utils.MAX_ACC_CRI) {
-				// TODO father's accuracy is enough for a positivesample
+				// father's accuracy is enough for a positivesample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() < utils.MAX_INACC_CRI) {
-				// TODO father's accuracy is enough for a negative sample
+				// father's accuracy is enough for a negative sample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
 				return node;
 			} else {
-				// TODO else split current node
-				// TODO use ILP coverage
+				// else split current node
 				double maxGain = -100.0; // covered positive & covered negative
 				myTerm max_gain_term = new myTerm();
 				ArrayList<myTerm> max_form_body = new ArrayList<myTerm>();

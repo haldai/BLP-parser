@@ -159,4 +159,24 @@ public class Sentence {
 		return featList.get(i);
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Sentence))
+			return false;
+		else {
+			Sentence s = (Sentence) o;
+			if (s.termLen != this.termLen || s.wordLen != this.wordLen)
+				return false;
+			else {
+				for (int i = 0; i < s.termLen; i++)
+					if (!s.getTerm(i).equals(this.getTerm(i)))
+						return false;
+				for (int i = 0; i < s.wordLen; i++)
+					if (!s.getWord(i).equals(this.getWord(i)))
+						return false;
+				return true;
+			}
+		}
+	}
+	
 }

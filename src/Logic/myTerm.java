@@ -139,7 +139,7 @@ public class myTerm implements Cloneable{
 		}
 		return new myTerm(this.pred, a);
 	}
-	
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof myTerm))
 			return false;
@@ -203,7 +203,7 @@ public class myTerm implements Cloneable{
 		else
 			isPositive = true;
 	}
-	
+	@Override
 	public myTerm clone() {
 		try {
 			myTerm re =  (myTerm) super.clone();

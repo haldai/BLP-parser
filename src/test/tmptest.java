@@ -7,6 +7,7 @@ import Logic.*;
 import ILP.*;
 import Tree.*;
 import utils.*;
+import Boosting.*;
 
 public class tmptest {
 	static Prolog prolog;
@@ -24,12 +25,18 @@ public class tmptest {
 		
 //		testEvaluation(doc, prolog);
 //		testPathFind(doc);
-		testRuleTree(doc, prolog);
+//		testRuleTree(doc, prolog);
 //		testTuple();
 //		System.out.println(Math.log(0.0000000000000000000001));
 //		testClone();
+		testAdaBoost(prolog, doc);
 		
 
+	}
+	
+	public static void testAdaBoost(Prolog prolog, Document doc) {
+		AdaBoost boost = new AdaBoost(prolog);
+		AdaBoostOutput boost_out = boost.train(doc);
 	}
 	
 	public static void testClone() {
@@ -199,7 +206,7 @@ public class tmptest {
 				ArrayList<LinkedList<myTerm>> paths = findPath(label, sent);
 				for (LinkedList<myTerm> path : paths) {
 					RuleTree tree = new RuleTree(prolog);
-					tree.buildTree(doc, label, path);
+					tree.buildTree(new Data(doc), label, path);
 				}
 			}
 //			System.exit(0);
