@@ -5,7 +5,9 @@ package Boosting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import ILP.*;
 import Logic.*;
@@ -76,10 +78,15 @@ public class AdaBoost {
 					all_heads.add(labels.get(i).get(j));
 					all_paths.addAll(findPath(labels.get(i).get(j), sentences.get(i)));
 				}
-			
+
+			for (int i = 0; i < all_paths.size(); i++) {
+				System.out.println(all_heads.get(i) + ":-" + all_paths.get(i));
+			}
+			System.out.println();
 			// substitute all the paths and store the pattern with its frequency
 			ArrayList<ArrayList<myTerm>> all_sub_paths = new ArrayList<ArrayList<myTerm>>();
 			ArrayList<Integer> all_sub_paths_count = new ArrayList<Integer>();
+			Map<ArrayList<myTerm>, ArrayList<Integer>> pat_path_map = new HashMap<ArrayList<myTerm>, ArrayList<Integer>>();
 			for (int i = 0; i < all_paths.size(); i++) {
 				LinkedList<myTerm> path = all_paths.get(i);
 				myTerm head = all_heads.get(i);
@@ -88,14 +95,32 @@ public class AdaBoost {
 				all_terms.addAll(path);
 				Substitute subs = new Substitute(all_terms);
 				ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
-				if (all_sub_paths.contains(all_sub_terms)) {
-					int path_idx = all_sub_paths.indexOf(all_sub_terms);
-					all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
-				} else {
-					all_sub_paths.add(all_sub_terms);
-					all_sub_paths_count.add(0);
+				
+				
+				for (int k = 0; k < all_sub_terms.size(); k++) {
+					System.out.print(all_sub_terms.get(k).toPrologString() + ", ");
 				}
+				System.out.println();
+				
+//				if (all_sub_paths.contains(all_sub_terms)) {
+//					int path_idx = all_sub_paths.indexOf(all_sub_terms);
+//					all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
+//					pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
+//				} else {
+//					if (pat_path_map.get(all_sub_terms) == null)
+//						pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
+//					pat_path_map.get(all_sub_terms).add(i);
+//					all_sub_paths.add(all_sub_terms);
+//					all_sub_paths_count.add(1);
+//				}
 			}
+			
+//			for (int i = 0; i < all_sub_paths.size(); i++) {
+//				for (int j = 0; j < all_sub_paths.get(i).size(); j++) {
+//					System.out.print(all_sub_paths.get(i).get(j).toPrologString() + ", ");
+//				}
+//				System.out.println();
+//			}
 			
 			// find the most frequent pattern
 			int max_freq = -100, max_freq_idx = 0;			
@@ -105,9 +130,10 @@ public class AdaBoost {
 					max_freq_idx = i;
 				}
 			
-			// TODO use the head and path that represents the most frequent pattern to build tree
-			myTerm head = null;
-			LinkedList<myTerm> path = null;
+			// TODO use the head and path that represents the most frequent pattern to build tree, BUG
+			System.out.println(pat_path_map.get(all_sub_paths.get(max_freq_idx)));
+			myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
+			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			rule.buildTree(data, head, path);
 		}
 		return re;
