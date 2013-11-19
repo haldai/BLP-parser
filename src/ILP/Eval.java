@@ -49,6 +49,14 @@ public class Eval {
 			prolog.assertz(clause);
 		}
 	}
+	
+	public Eval(Prolog plg, Predicate[] preds) {
+		// Start prolog engine initialization
+		ruleLen = rules.size();
+		prolog = plg; 
+		assertDynamic(plg, preds);
+	}
+	
 	/**
 	 * initiate a evaluation only with prolog
 	 * @param p: prolog engine
@@ -217,7 +225,7 @@ public class Eval {
 	 * @return: satisfied samples
 	 */
 	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Sentence sent) {
-		SatisfySamples re = new SatisfySamples(rules);
+		SatisfySamples re = new SatisfySamples();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
 		terms.addAll(sent.getFeatures());
 		LinkedList<myTerm> ans = eval(terms);
@@ -226,7 +234,7 @@ public class Eval {
 	}
 	
 	public SatisfySamples evalSentSat(ArrayList<myTerm> label, Document doc, int sentIdx) {
-		SatisfySamples re = new SatisfySamples(rules);
+		SatisfySamples re = new SatisfySamples();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(doc.getSent(sentIdx).getTerms()));
 		terms.addAll(doc.getSent(sentIdx).getFeatures());
 		LinkedList<myTerm> ans = eval(terms);
@@ -286,12 +294,57 @@ public class Eval {
 	}
 	
 	public void unEval() throws Throwable {
+		retractRules();
+		this.finalize();
+	}
+	
+	private void retractRules() {
 		for (Formula r : rules) {
 			String clause = r.toPrologString();
 			if (clause.endsWith("."))
 				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
 			prolog.retract(clause);
 		}
-		this.finalize();
+	}
+	
+/**
+ * Evaluate given document by each formula alone, and add weight for each outcome
+ * @param prog: logic programs that should be evaled one by one;
+ * @param labels: labels 
+ * @param sent: sentences
+ * @return: array list of sentence stisfication answers for each rule
+ */
+	public ArrayList<SentSat> evalOneByOne(LogicProgram prog, ArrayList<ArrayList<myTerm>> labels,
+				ArrayList<Sentence> sents) {
+		// if all rules are set, clear rule and prolog engine
+		if (rules.size() > 0) {
+			retractRules();
+		} else {
+			System.out.println("Please set up rules first!");
+			return null;
+		}
+		
+		ArrayList<SentSat> ans_by_rules = new ArrayList<SentSat>();
+		for (Formula f : prog.getRules()) {
+			this.setRule(f);
+			
+			SentSat ans = new SentSat();
+			for (int i = 0; i < sents.size(); i++) {
+				SatisfySamples tmp_sat = evalSentSat(labels.get(i), sents.get(i));
+				
+				/*
+				 * TODO SET PROBABILITY for ans
+				 */
+				ans.addSentSat(labels.get(i), sents.get(i), tmp_sat);
+			}
+
+			ans_by_rules.add(ans);
+			this.retractRules();
+		}
+		
+		/*
+		 * TODO PUT ALL TOGETHER
+		 */
+		return ans_by_rules;
 	}
 }

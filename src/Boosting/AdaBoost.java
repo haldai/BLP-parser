@@ -50,9 +50,10 @@ public class AdaBoost {
 			}
 		}
 		
-		int turn = 0;
+		int turn = -1;
 		// repeat training until meets the turn limit
 		while (turn <= T) {
+			turn++;
 			
 			RuleTree rule = new RuleTree(prolog);
 			
@@ -63,7 +64,7 @@ public class AdaBoost {
 			} else {
 				for (int i = 0; i < labels.size(); i++) {
 					for (int j = 0; j < labels.get(i).size(); j++) {
-						double rand = Math.random();
+						double rand = Math.random()/5;
 						if (label_weights.get(i).get(j) > rand)
 							data.addData(labels.get(i).get(j), sentences.get(i));
 					}
@@ -73,10 +74,10 @@ public class AdaBoost {
 			// paths from current data
 			ArrayList<LinkedList<myTerm>> all_paths = new ArrayList<LinkedList<myTerm>>();
 			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();
-			for (int i = 0; i < sentences.size(); i++)
-				for (int j = 0; j < labels.get(i).size(); j++) {
-					all_heads.add(labels.get(i).get(j));
-					all_paths.addAll(findPath(labels.get(i).get(j), sentences.get(i)));
+			for (int i = 0; i < data.getSents().size(); i++)
+				for (int j = 0; j < data.getLabel(i).size(); j++) {
+					all_heads.add(data.getLabel(i).get(j));
+					all_paths.addAll(findPath(data.getLabel(i).get(j), data.getSent(i)));
 				}
 
 			for (int i = 0; i < all_paths.size(); i++) {
@@ -102,25 +103,26 @@ public class AdaBoost {
 				}
 				System.out.println();
 				
-//				if (all_sub_paths.contains(all_sub_terms)) {
-//					int path_idx = all_sub_paths.indexOf(all_sub_terms);
-//					all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
-//					pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
-//				} else {
-//					if (pat_path_map.get(all_sub_terms) == null)
-//						pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
-//					pat_path_map.get(all_sub_terms).add(i);
-//					all_sub_paths.add(all_sub_terms);
-//					all_sub_paths_count.add(1);
-//				}
+				if (all_sub_paths.contains(all_sub_terms)) {
+					int path_idx = all_sub_paths.indexOf(all_sub_terms);
+					all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
+					pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
+				} else {
+					if (pat_path_map.get(all_sub_terms) == null)
+						pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
+					pat_path_map.get(all_sub_terms).add(i);
+					all_sub_paths.add(all_sub_terms);
+					all_sub_paths_count.add(1);
+				}
 			}
 			
-//			for (int i = 0; i < all_sub_paths.size(); i++) {
-//				for (int j = 0; j < all_sub_paths.get(i).size(); j++) {
-//					System.out.print(all_sub_paths.get(i).get(j).toPrologString() + ", ");
-//				}
-//				System.out.println();
-//			}
+			System.out.println("=============patterns================");
+			for (int i = 0; i < all_sub_paths.size(); i++) {
+				for (int j = 0; j < all_sub_paths.get(i).size(); j++) {
+					System.out.print(all_sub_paths.get(i).get(j).toPrologString() + ", ");
+				}
+				System.out.println();
+			}
 			
 			// find the most frequent pattern
 			int max_freq = -100, max_freq_idx = 0;			
@@ -130,11 +132,14 @@ public class AdaBoost {
 					max_freq_idx = i;
 				}
 			
-			// TODO use the head and path that represents the most frequent pattern to build tree, BUG
+			// use the head and path that represents the most frequent pattern to build tree
 			System.out.println(pat_path_map.get(all_sub_paths.get(max_freq_idx)));
 			myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			rule.buildTree(data, head, path);
+			
+			// TODO use the rule to evaluate the whole document and reset the weight
+			rule.evaluate(new Data(doc));
 		}
 		return re;
 	}

@@ -25,11 +25,11 @@ public class tmptest {
 		
 //		testEvaluation(doc, prolog);
 //		testPathFind(doc);
-//		testRuleTree(doc, prolog);
+		testRuleTree(doc, prolog);
 //		testTuple();
 //		System.out.println(Math.log(0.0000000000000000000001));
 //		testClone();
-		testAdaBoost(prolog, doc);
+//		testAdaBoost(prolog, doc);
 		
 
 	}

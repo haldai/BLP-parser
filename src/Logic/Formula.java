@@ -207,7 +207,7 @@ public class Formula implements Cloneable {
 	}
 	
 	public String toString() {
-		String s = "";
+		String s = String.format("%s::", weight);
 		for (int i = 0; i < head.size(); i++) {
 			s = s + head.get(i).toPrologString() + ',';
 		}

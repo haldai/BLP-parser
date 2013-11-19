@@ -33,7 +33,7 @@ public class RuleTree {
 	
 	TreeNode root; // tree root - the first splitting node;
 	myTerm head; // logical term - head:-body., must have variable
-	LinkedList<String> rules = new LinkedList<String>();
+	LinkedList<Formula> rules = new LinkedList<Formula>();
 	Prolog prolog;
 	
 	
@@ -70,7 +70,7 @@ public class RuleTree {
 		maxHeight = h;
 	}
 	
-	public LinkedList<String> getPrologRules() {
+	public LinkedList<Formula> getPrologRules() {
 		return rules;
 	}
 	/**
@@ -111,7 +111,6 @@ public class RuleTree {
 	
 	
 	
-	@SuppressWarnings("unchecked")
 	public TreeNode create(Data d, ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
 		/*
 		 * START
@@ -136,29 +135,34 @@ public class RuleTree {
 		
 		if (father == null) {
 			// ROOT NODE
-			return createRoot(d, candidateTerms);
+			return createRoot(label, data, candidateTerms, availTerms);
 		} else {
 			/*
 			 * NOT ROOT NODE
 			 */
-			// TODO should be put into a procedure
 			// if father has enough layer or accuracy, return
 			if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+				System.out.println(data.size() + "/" + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() > utils.MAX_ACC_CRI) {
 				// father's accuracy is enough for a positivesample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+				System.out.println(data.size() + "/"  + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() < utils.MAX_INACC_CRI) {
 				// father's accuracy is enough for a negative sample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(data.size() + "/" + father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+				form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+				System.out.println(data.size() + "/" + form.toString());
 				return node;
 			} else {
 				// else split current node
@@ -189,7 +193,7 @@ public class RuleTree {
 					t.setNegative();
 					cur_form.pushBody(t);
 //					System.out.println(cur_form.toString());	
-					// TODO compute criterion and pop
+					// compute criterion and pop
 					SentSat NegSat = getSatSamps(cur_form, label, data);
 					NegSat.setTotal();
 //					tmp_acc = computeAccuracy(sat);
@@ -261,16 +265,13 @@ public class RuleTree {
 			}
 		}
 	}
-	
-	private TreeNode createRoot(Data d, ArrayList<myTerm> candidateTerms) {
+		
+	private TreeNode createRoot(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms, ArrayList<myTerm> availTerms) {
 		/*
 		 * BUILD ROOT NODE
 		 * if no father, this node is root, add terms that includes head variables
 		 */
-		ArrayList<ArrayList<myTerm>> label = d.getLabels();
-		ArrayList<Sentence> data = d.getSents();
 		TreeNode node = new TreeNode();
-		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
 		// get candidate for root node
 		myWord[] headArgs = head.getArgs();
 		ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
@@ -510,7 +511,6 @@ public class RuleTree {
 	 * @param node
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	private Formula toFormula(TreeNode node, boolean son_branch) {
 		Formula re = new Formula();
 		re.pushHead(head);
@@ -539,66 +539,64 @@ public class RuleTree {
 		return re;
 	}
 	
-	/**
-	 * get Prolog rule string from current tree
-	 * @return string as prolog rule
-	 */
-	public void toPrologRules() {
-		rules = null;
-		LinkedList<myTerm> re = new LinkedList<myTerm>();
-		visit(root, re);
-	}
-	/**
-	 * visit current node and trace the prolog rule until meet leaf node
-	 * @param current: current node to be visited
-	 * @param visited: visited terms
-	 */
-	private void visit(TreeNode current, LinkedList<myTerm> visited) {
-		if (current.isLeaf()) {
-			for (myTerm t : current.toTerms()) {
-				t.setPositive();
-				visited.add(t);
-			}
-			rules.add(returnPrologRule(visited));
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-
-		} else {
-			// visit True child, push positive current node terms
-			for (myTerm t : current.toTerms()) {
-				t.setPositive();
-				visited.add(t);
-			}
-			visit(current.getTrueChild(), visited);
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-
-			// visit False child, push negative current node terms
-			for (myTerm t : current.toTerms()) {
-				t.setNegative();
-				visited.add(t);
-			}
-			visit(current.getFalseChild(), visited);
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-		}
-	}
-	
-	/**
-	 * return a prolog rule from visited terms stack
-	 * @param visited: stack for visited terms
-	 * @return
-	 */
-	private String returnPrologRule(LinkedList<myTerm> visited) {
-		String re_rule = "";
-		for (myTerm t : visited) {
-			re_rule = re_rule + t.toPrologString();
-		}
-		return re_rule;
-	}
+//	/**
+//	 * get Prolog rule string from current tree
+//	 * @return string as prolog rule
+//	 */
+//	public ArrayList<String> getPrologRules() {
+//		return rules;
+//	}
+//	/**
+//	 * visit current node and trace the prolog rule until meet leaf node
+//	 * @param current: current node to be visited
+//	 * @param visited: visited terms
+//	 */
+//	private void visit(TreeNode current, LinkedList<myTerm> visited) {
+//		if (current.isLeaf()) {
+//			for (myTerm t : current.toTerms()) {
+//				t.setPositive();
+//				visited.add(t);
+//			}
+//			rules.add(returnPrologRule(visited));
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//
+//		} else {
+//			// visit True child, push positive current node terms
+//			for (myTerm t : current.toTerms()) {
+//				t.setPositive();
+//				visited.add(t);
+//			}
+//			visit(current.getTrueChild(), visited);
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//
+//			// visit False child, push negative current node terms
+//			for (myTerm t : current.toTerms()) {
+//				t.setNegative();
+//				visited.add(t);
+//			}
+//			visit(current.getFalseChild(), visited);
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//		}
+//	}
+//	
+//	/**
+//	 * return a prolog rule from visited terms stack
+//	 * @param visited: stack for visited terms
+//	 * @return
+//	 */
+//	private String returnPrologRule(LinkedList<myTerm> visited) {
+//		String re_rule = "";
+//		for (myTerm t : visited) {
+//			re_rule = re_rule + t.toPrologString();
+//		}
+//		return re_rule;
+//	}
 	/**
 	 * find all variables in a list of terms
 	 * @param terms
@@ -733,4 +731,29 @@ public class RuleTree {
 				p = 0.000000000000001;
 		return (double) -(p*Math.log(p) + (1-p)*Math.log(1-p));
 	}
+
+	public SentSat evaluate(Data data) {
+		// TODO evaluate given data by current 
+		SentSat re = new SentSat();
+		LogicProgram lp = new LogicProgram();
+		lp.addRules(rules);
+		// predicates
+		ArrayList<Predicate> list_preds = new ArrayList<Predicate>();
+		list_preds.addAll(lp.getBodyPred());
+		list_preds.addAll(lp.getHeadPred());
+		Predicate[] preds = list_preds.toArray(new Predicate[list_preds.size()]);
+		
+		Eval eval = new Eval(prolog, preds);
+		// eval the tree and compute probability
+		ArrayList<SentSat> all_sat = eval.evalOneByOne(lp, data.getLabels(), data.getSents());
+		
+		// TODO compute probability
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return re;
+	}
+
 }

@@ -18,25 +18,11 @@ public class SatisfySamples {
 	 * restore the instances that satisfied by a rule L, departed into Negative and Positive samples
 	 */
 	
-	ArrayList<Formula> formula = new ArrayList<Formula>();
 	ArrayList<myTerm> negative = new ArrayList<myTerm>();
 	ArrayList<myTerm> positive = new ArrayList<myTerm>();
 	private boolean hasSolution = false;
 
-	public SatisfySamples(ArrayList<Formula> f) {
-		// TODO Auto-generated constructor stub
-		formula = f;
-	}
-	
-	public SatisfySamples() {
-		// TODO Auto-generated constructor stub
-	}
-	
-	public SatisfySamples(Formula f) {
-		ArrayList<Formula> ff = new ArrayList<Formula>();
-		ff.add(f);
-		formula = ff;
-	}
+	public SatisfySamples() {}
 
 	public void setSatisifySamples(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
 		if (!evaled.isEmpty())
