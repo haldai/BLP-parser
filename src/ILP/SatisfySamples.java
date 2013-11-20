@@ -29,11 +29,62 @@ public class SatisfySamples {
 			hasSolution = true;
 		for (myTerm t : evaled) {
 //			System.out.println(t.toString());
-			if (label.contains(t)) {
-				positive.add(t);
+			if (t.isPositive()) {
+				if (label.contains(t)) {
+					positive.add(t);
+				}
+				else {
+					negative.add(t);
+				}
+			} else {
+				if (!label.contains(t)) {
+					positive.add(t);
+				}
+				else {
+					negative.add(t);
+				}
 			}
-			else {
-				negative.add(t);
+		}
+	}
+	
+	public void setSatisifySamplesProb(ArrayList<myTerm> label, LinkedList<myTerm> evaled, double prob) {
+		if (!evaled.isEmpty())
+			hasSolution = true;
+		for (myTerm t : evaled) {
+//			System.out.println(t.toString());
+			t.setWeight(prob);
+			if (t.isPositive()) {
+				if (prob >= 0.5) {
+					if (label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				} else {
+					if (!label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				}
+			} else {
+				if (prob >= 0.5) {
+					if (!label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				} else {
+					if (label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				}
 			}
 		}
 	}

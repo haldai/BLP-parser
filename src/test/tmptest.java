@@ -89,7 +89,6 @@ public class tmptest {
 //		f = new Formula("sem(X_2_var,X_1_var):- not(postag(X_2_var,u_POS));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- not(==(X_2_var,的_0_u));att(X_1_var,X_2_var).");
 //		f = new Formula("sem(X_2_var,X_1_var):- att(X_1_var,X_2_var);\\==(X_2_var,的_0_u)."); // do not use \=/2(unification)
-		// TODO in prolog, the value of myWord position is not important, can be removed ?
 		p.addRule(f);
 		Eval eval = new Eval(prolog, p, doc.getPredList());
 		ArrayList<LinkedList<myTerm>> sems = eval.evalAll(doc);
@@ -205,7 +204,7 @@ public class tmptest {
 			for (myTerm label : labels) {
 				ArrayList<LinkedList<myTerm>> paths = findPath(label, sent);
 				for (LinkedList<myTerm> path : paths) {
-					RuleTree tree = new RuleTree(prolog);
+					RuleTree tree = new RuleTree(prolog, doc.getPredList());
 					tree.buildTree(new Data(doc), label, path);
 				}
 			}

@@ -18,11 +18,11 @@ public class Data {
 
 	/**
 	 * 
-	 */
-	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>();
+	 */ 
+	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>(); // for each sentence
 	ArrayList<Sentence> sentences = new ArrayList<Sentence>();
-	ArrayList<ArrayList<myTerm>> positive = new ArrayList<ArrayList<myTerm>>();
-	ArrayList<ArrayList<myTerm>> negative = new ArrayList<ArrayList<myTerm>>();
+	ArrayList<ArrayList<myTerm>> positive = new ArrayList<ArrayList<myTerm>>(); // for each sentence
+	ArrayList<ArrayList<myTerm>> negative = new ArrayList<ArrayList<myTerm>>(); // for each sentence
 	Map<myTerm, Sentence> term_sent = new HashMap<myTerm, Sentence>();
 	
 	public Data() {}

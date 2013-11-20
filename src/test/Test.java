@@ -7,7 +7,6 @@ import jpl.*;
 public class Test {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		//	JPL.init();				// we don't need this with the current JPL (lazy init-on-demand)
 		
 		run_tests();

@@ -35,14 +35,16 @@ public class RuleTree {
 	myTerm head; // logical term - head:-body., must have variable
 	LinkedList<Formula> rules = new LinkedList<Formula>();
 	Prolog prolog;
+	Predicate[] pred_list;
 	
 	
 	private int maxHeight;
 	
-	public RuleTree(Prolog p) {
+	public RuleTree(Prolog p, Predicate[] preds) {
 		root = null;
 		head = null;
 		prolog = p;
+		pred_list = preds;
 	}
 		
 	public myTerm getHead() {
@@ -90,6 +92,8 @@ public class RuleTree {
 		ArrayList<myWord> var_list = subs.getVarList();
 		// set head term
 		this.setHead(all_sub_terms.get(0));
+		// debug
+		this.head.setNegative();
 		all_sub_terms.remove(0);
 		// add path as candidate terms, then build more feature as candidate terms
 		cand.addAll(all_sub_terms);
@@ -425,7 +429,7 @@ public class RuleTree {
 	 * @return: satisfy samples (including negative samples)
 	 */
 	private SentSat getSatSamps(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data) {
-		Eval eval = new Eval(prolog);
+		Eval eval = new Eval(prolog, pred_list);
 		eval.setRule(f);
 		SentSat sat = eval.evalAllSat(label, data);
 		// IMPORTANT! must retract all rules
@@ -443,7 +447,7 @@ public class RuleTree {
 	 * @return: satisfy samples (including negative samples)
 	 */
 	private SentSat getDocSatSamps(Formula f, Document doc) {
-		Eval eval = new Eval(prolog);
+		Eval eval = new Eval(prolog, pred_list);
 		eval.setRule(f);
 		SentSat sat = eval.evalDocSat(doc);
 		// IMPORTANT! must retract all rules
@@ -732,18 +736,16 @@ public class RuleTree {
 		return (double) -(p*Math.log(p) + (1-p)*Math.log(1-p));
 	}
 
-	public SentSat evaluate(Data data) {
-		// TODO evaluate given data by current 
+	public SentSat evaluateThis(Data data) {
+		// TODO evaluate given data by current rules
 		SentSat re = new SentSat();
 		LogicProgram lp = new LogicProgram();
 		lp.addRules(rules);
 		// predicates
-		ArrayList<Predicate> list_preds = new ArrayList<Predicate>();
-		list_preds.addAll(lp.getBodyPred());
-		list_preds.addAll(lp.getHeadPred());
-		Predicate[] preds = list_preds.toArray(new Predicate[list_preds.size()]);
 		
-		Eval eval = new Eval(prolog, preds);
+		Eval eval = new Eval(prolog, pred_list);
+		eval.setRules(lp);
+		
 		// eval the tree and compute probability
 		ArrayList<SentSat> all_sat = eval.evalOneByOne(lp, data.getLabels(), data.getSents());
 		

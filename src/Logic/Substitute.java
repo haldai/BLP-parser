@@ -20,7 +20,6 @@ public class Substitute {
 	ArrayList<myWord> var_list;
 	
 	public Substitute(ArrayList<myTerm> term_list) {
-		// TODO Auto-generated constructor stub
 		to_be_sub = term_list;
 		word_list = new ArrayList<myWord>();
 		var_list = new ArrayList<myWord>();

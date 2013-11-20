@@ -55,7 +55,7 @@ public class AdaBoost {
 		while (turn <= T) {
 			turn++;
 			
-			RuleTree rule = new RuleTree(prolog);
+			RuleTree rule = new RuleTree(prolog, doc.getPredList());
 			
 			// sample the labels to produce a path
 			Data data = new Data();
@@ -139,7 +139,7 @@ public class AdaBoost {
 			rule.buildTree(data, head, path);
 			
 			// TODO use the rule to evaluate the whole document and reset the weight
-			rule.evaluate(new Data(doc));
+			rule.evaluateThis(new Data(doc));
 		}
 		return re;
 	}

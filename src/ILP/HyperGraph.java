@@ -23,7 +23,6 @@ import Logic.*;
  * a hyper-edge could connect many nodes, e.g., have_more_than_n_pubs(sam, john, 2)
  */
 public class HyperGraph {
-	// TODO modify Graph class into HyperGraph
 	
     private Map<String, LinkedHashSet<String>> adjMap = new HashMap<String, LinkedHashSet<String>>(); // map(node, AdjacentSet<node>)
     private Map<String, HyperEdge> edgeMap = new HashMap<String, HyperEdge>(); //map(edgeName, edge)

@@ -41,13 +41,13 @@ public class Eval {
 		ruleLen = rules.size();
 		prolog = plg; 
 		assertDynamic(plg, preds);
-		// Prolog.assertz(ALL_RULES)
-		for (Formula r : rules) {
-			String clause = r.toPrologString();
-			if (clause.endsWith("."))
-				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
-			prolog.assertz(clause);
-		}
+//		// Prolog.assertz(ALL_RULES)
+//		for (Formula r : rules) {
+//			String clause = r.toPrologString();
+//			if (clause.endsWith("."))
+//				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+//			prolog.assertz(clause);
+//		}
 	}
 	
 	public Eval(Prolog plg, Predicate[] preds) {
@@ -92,14 +92,28 @@ public class Eval {
 		for (Predicate p : Q_Preds) {
 			prolog.dynamic(p);
 		}
-		// Prolog.assertz(ALL_RULES)
-		for (Formula r : program.getRules()) {
-			String clause = r.toPrologString();
-			if (clause.endsWith("."))
-				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
-			prolog.assertz(clause);
-		}
 	}
+	
+	private void assertRule(Formula r) {
+		Formula f = r.clone();
+		for (myTerm t : f.getHead())
+			t.setPositive();
+		String clause = f.toPrologString();
+		if (clause.endsWith("."))
+			clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+		prolog.assertz(clause);
+	}
+	
+	private void retractRule(Formula r) {
+		Formula f = r.clone();
+		for (myTerm t : f.getHead())
+			t.setPositive();
+		String clause = f.toPrologString();
+		if (clause.endsWith("."))
+			clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+		prolog.retract(clause);
+	}
+	
 	/**
 	 * 
 	 * @param program
@@ -119,13 +133,13 @@ public class Eval {
 		for (Predicate p : Q_Preds) {
 			prolog.dynamic(p);
 		}
-		// Prolog.assertz(ALL_RULES)
-		for (Formula r : program.getRules()) {
-			String clause = r.toPrologString();
-			if (clause.endsWith("."))
-				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
-			prolog.assertz(clause);
-		}
+//		// Prolog.assertz(ALL_RULES)
+//		for (Formula r : program.getRules()) {
+//			String clause = r.toPrologString();
+//			if (clause.endsWith("."))
+//				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
+//			prolog.assertz(clause);
+//		}
 	}
 	/**
 	 * evaluate all sentenecs in document
@@ -152,7 +166,10 @@ public class Eval {
 		for (int i = 0; i < sents.size(); i++) {
 			ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sents.get(i).getTerms()));
 			terms.addAll(sents.get(i).getFeatures());
-			LinkedList<myTerm> ans_list = eval(terms);
+			LinkedList<myTerm> ans_list = new LinkedList<myTerm>();
+			for (Formula f : rules) {
+				ans_list.addAll(eval(f, terms));
+			}
 			re.add(ans_list);
 		}
 		return re;
@@ -168,7 +185,10 @@ public class Eval {
 		for (int i = 0; i < sents.size(); i++) {
 			ArrayList<myTerm> terms = sents.get(i);
 			terms.addAll(feats.get(i));
-			LinkedList<myTerm> ans_list = eval(terms);
+			LinkedList<myTerm> ans_list = new LinkedList<myTerm>();
+			for (Formula f : rules) {
+				ans_list.addAll(eval(f, terms));
+			}
 			re.add(ans_list);
 		}
 		return re;
@@ -215,7 +235,9 @@ public class Eval {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
 		terms.addAll(sent.getFeatures());
-		re = eval(terms); 
+		for (Formula f : rules) {
+			re.addAll(eval(f, terms));
+		}
 		return re;
 	}
 	/**
@@ -228,8 +250,28 @@ public class Eval {
 		SatisfySamples re = new SatisfySamples();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
 		terms.addAll(sent.getFeatures());
-		LinkedList<myTerm> ans = eval(terms);
+		LinkedList<myTerm> ans = new LinkedList<myTerm>();
+		for (Formula f : rules) {
+			ans.addAll(eval(f, terms));
+		}
 		re.setSatisifySamples(label, ans);
+		return re;
+	}
+	/**
+	 * 
+	 * @param label
+	 * @param sent
+	 * @param prob: Probablity of current rule
+	 * @return
+	 */
+	public SatisfySamples evalSentSatProb(ArrayList<myTerm> label, Sentence sent, double prob) {
+		SatisfySamples re = new SatisfySamples();
+		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
+		terms.addAll(sent.getFeatures());
+		LinkedList<myTerm> ans = new LinkedList<myTerm>();
+		for (Formula f : rules)
+			ans.addAll(eval(f, terms));
+		re.setSatisifySamplesProb(label, ans, prob);
 		return re;
 	}
 	
@@ -237,25 +279,37 @@ public class Eval {
 		SatisfySamples re = new SatisfySamples();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(doc.getSent(sentIdx).getTerms()));
 		terms.addAll(doc.getSent(sentIdx).getFeatures());
-		LinkedList<myTerm> ans = eval(terms);
+		LinkedList<myTerm> ans = new LinkedList<myTerm>();
+		for (Formula f : rules)
+			ans.addAll(eval(f, terms));
 		re.setSatisifySamples(label, ans);
 		return re;
 	}
 	
 	/**
 	 * evaluate current rules in facts
+	 * TODO Because of probability, should be evaled one by one
 	 * @param facts: facts of background knowledge
 	 * @return: linked list of true groundings deduced from facts and current rules
 	 */
-	public LinkedList<myTerm> eval(ArrayList<myTerm> facts) {
+	public LinkedList<myTerm> eval(Formula f, ArrayList<myTerm> facts) {
 		LinkedList<myTerm> re = new LinkedList<myTerm>();
+		// assert rule f
+		assertRule(f);
+		
+		// symbol of head
+		ArrayList<Boolean> symbols = new ArrayList<Boolean>();
+		for (myTerm t : f.getHead())
+			symbols.add(t.isPositive());
+		
 		// evaluate all terms;
 		for (myTerm term : facts) {
 			prolog.assertz(term.toPrologString());
 //			System.out.println(term.toPrologString());
 		}
 		// get answers
-		for (Predicate pred : Q_Preds) {
+		for (myTerm t : f.getHead()) {
+			Predicate pred = t.getPred();
 			String query = String.format("%s(", pred.getName());
 			// Build query string
 			String[] vars = new String[pred.getArity()]; // variable list, for querying
@@ -280,13 +334,17 @@ public class Eval {
 				}
 //				System.out.println(answer);
 				if (!answers.contains(answer)) {
-					re.add(new myTerm(answer));
+					myTerm ans_term = new myTerm(answer);
+					if (!t.isPositive())
+						ans_term.setNegative();
+					re.add(ans_term);
 					answers.add(answer);
 				}
 			}
 //			System.out.println(answer);
 //			re.add(new myTerm(answer));
 		}
+		retractRule(f);
 		for (myTerm term : facts) {
 			prolog.retract(term.toPrologString());
 		}
@@ -300,10 +358,7 @@ public class Eval {
 	
 	private void retractRules() {
 		for (Formula r : rules) {
-			String clause = r.toPrologString();
-			if (clause.endsWith("."))
-				clause = "(" + clause.substring(0, clause.length() - 1) + ")";
-			prolog.retract(clause);
+			retractRule(r);
 		}
 	}
 	
@@ -331,7 +386,10 @@ public class Eval {
 			SentSat ans = new SentSat();
 			for (int i = 0; i < sents.size(); i++) {
 				SatisfySamples tmp_sat = evalSentSat(labels.get(i), sents.get(i));
-				
+				for (myTerm t : tmp_sat.getPositive())
+					t.setWeight(f.getWeight());
+				for (myTerm t : tmp_sat.getNegative())
+					t.setWeight(f.getWeight());
 				/*
 				 * TODO SET PROBABILITY for ans
 				 */
