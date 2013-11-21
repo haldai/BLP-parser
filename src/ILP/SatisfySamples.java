@@ -31,7 +31,11 @@ public class SatisfySamples {
 //			System.out.println(t.toString());
 			if (t.isPositive()) {
 				if (label.contains(t)) {
-					positive.add(t);
+					int idx = label.indexOf(t);
+					if (t.isPositive() ==  label.get(idx).isPositive())
+						positive.add(t);
+					else
+						negative.add(t);
 				}
 				else {
 					negative.add(t);
@@ -41,7 +45,11 @@ public class SatisfySamples {
 					positive.add(t);
 				}
 				else {
-					negative.add(t);
+					int idx = label.indexOf(t);
+					if (t.isPositive() ==  label.get(idx).isPositive())
+						positive.add(t);
+					else
+						negative.add(t);
 				}
 			}
 		}

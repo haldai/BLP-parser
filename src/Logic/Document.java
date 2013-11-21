@@ -59,9 +59,22 @@ public class Document {
 				String[] buff_label = buff_line[0].split("\\;");
 				for (int j = 0; j < buff_label.length; j++) {
 					String tmp_label = buff_label[j];
+					boolean isPositive = true;
+					if (tmp_label.startsWith("\\+(")) {
+						tmp_label = tmp_label.substring(2);
+						isPositive = false;
+					} else if (tmp_label.startsWith("not(")) {
+						tmp_label = tmp_label.substring(4, tmp_label.length() - 1);
+						isPositive = false;
+					}
 					if (tmp_label.indexOf('(') == 0)
 						tmp_label = "sem" + tmp_label;
-					tmp_label_list.add(new myTerm(tmp_label));
+					myTerm tmp_term = new myTerm(tmp_label);
+					if (isPositive)
+						tmp_term.setPositive();
+					else
+						tmp_term.setNegative();
+					tmp_label_list.add(tmp_term);
 				}
 				buff_label_list.add(tmp_label_list);
 				// parse sentences
