@@ -178,7 +178,7 @@ public class RuleTree {
 				SentSat maxNegSat = new SentSat();
 				Formula cur_form = toFormula(father, branch);
 				System.out.println("=================cur_form===================");
-				System.out.println(cur_form.toPrologString());
+				System.out.println(cur_form.toString());
 				System.out.println("=================cur_form===================");
 				for (myTerm t : availTerms) {
 					// add t to body
@@ -191,7 +191,7 @@ public class RuleTree {
 //					double tmp_acc = computeAccuracy(sat);
 					double pos_foilgain = foilGain(PosSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-//					System.out.println(pos_foilgain + ": " + cur_form.toString());	
+					System.out.println(pos_foilgain + ": " + cur_form.toString());	
 					cur_form.popBody();
 					// Try falsed term
 					t.setNegative();
@@ -203,7 +203,7 @@ public class RuleTree {
 //					tmp_acc = computeAccuracy(sat);
 					double neg_foilgain = foilGain(NegSat, node.getFather().getSentSat(branch));
 //					System.out.println(sat.getCov() + " / " + tmp_acc + ": " + cur_form.toString());	
-//					System.out.println(neg_foilgain + ": " + cur_form.toString());	
+					System.out.println(neg_foilgain + ": " + cur_form.toString());	
 
 					/*
 					 * retain the best
@@ -688,7 +688,7 @@ public class RuleTree {
  	   		ArrayList<myWord> var_list = subs.getVarList();
  	   		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
  			// set head term
- 			this.setHead(all_sub_terms.get(0));
+// 			this.setHead(all_sub_terms.get(0));
  			all_sub_terms.remove(0);
  			// add path as candidate terms, then build more feature as candidate terms
  			cand.addAll(feature);
