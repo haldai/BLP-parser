@@ -772,17 +772,66 @@ public class RuleTree {
 		eval.setRules(lp);
 		
 		// evaluate each rule in current tree one by one
-//		ArrayList<SentSat> all_sat = eval.evalOneByOne(lp, data.getLabels(), data.getSents());
+//		ArrayList<SentSat> all_sat = eval.evalOneByOneSat(lp, data.getLabels(), data.getSents());
 		
 		// get the list of answer for each sentence by each rule
-		ArrayList<LinkedList<myTerm>> result_one_by_one = new ArrayList<LinkedList<myTerm>>();
+		ArrayList<ArrayList<LinkedList<myTerm>>> result_one_by_one = eval.evalOneByOne(lp, data.getSents());
 		
-		
-		// TODO compute probability
+		// TODO merge all the results by averaging the probability
+		ArrayList<ArrayList<myTerm>> merged_result = mergeProbResults(result_one_by_one);
+
+		// TODO Calculate accuracy from merged_result
 		try {
 			eval.unEval();
 		} catch (Throwable e) {
 			e.printStackTrace();
+		}
+		return re;
+	}
+	/**
+	 * Merge results of different probabilistic rules
+	 * @param results
+	 * @return: merged results, with probability
+	 */
+	private ArrayList<ArrayList<myTerm>> mergeProbResults(
+			ArrayList<ArrayList<LinkedList<myTerm>>> results) {
+		// TODO 
+		int rule_num = results.size();
+		int sent_num = results.get(0).size();
+		
+		ArrayList<ArrayList<myTerm>> re = new ArrayList<ArrayList<myTerm>>(sent_num);
+		
+		for (int j = 0; j < sent_num; j++) {
+			ArrayList<myTerm> tmp_ans_list = new ArrayList<myTerm>();
+			ArrayList<Integer> tmp_ans_list_cnt = new ArrayList<Integer>();
+			
+			for (int i = 0; i < rule_num; i++) {
+				LinkedList<myTerm> tmp_result_list = results.get(i).get(j);
+				for (myTerm t : tmp_result_list) {
+					if (tmp_ans_list.contains(t)) {
+						int idx = tmp_ans_list.indexOf(t);
+						
+						myTerm the_t = tmp_ans_list.get(idx); // the term already in ans_list
+						
+						if (t.isPositive() == the_t.isPositive())
+							the_t.setWeight((double) (the_t.getWeight() + t.getWeight()));
+						else {
+							the_t.setWeight((double) (the_t.getWeight() + (1 - t.getWeight())));
+						}
+						
+						tmp_ans_list_cnt.set(idx, tmp_ans_list_cnt.get(idx) + 1); // record the counts
+					} else {
+						tmp_ans_list.add(t);
+						tmp_ans_list_cnt.add(1);
+					}
+				}
+			}
+			
+			for (int k = 0; k < tmp_ans_list.size(); k++) {
+				tmp_ans_list.get(k).setWeight((double) tmp_ans_list.get(k).getWeight()/tmp_ans_list_cnt.get(k));
+			}
+			
+			re.add(tmp_ans_list);
 		}
 		return re;
 	}

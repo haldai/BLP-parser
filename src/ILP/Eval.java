@@ -240,6 +240,22 @@ public class Eval {
 		}
 		return re;
 	}
+	
+	/**
+	 * evaluate a sentence with a formula f
+	 * @param sent: the sentence
+	 * @param f: the formula
+	 * @return: deduced answer
+	 */
+	public LinkedList<myTerm> evalSentWithFormula(Formula f, Sentence sent) {
+		// evaluate the i-th sentence
+		LinkedList<myTerm> re = new LinkedList<myTerm>();
+		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
+		terms.addAll(sent.getFeatures());
+		re.addAll(eval(f, terms));
+		return re;
+	}
+	
 	/**
 	 * get satisfied samples of a sentence in labeled data
 	 * @param sent: input sentence
@@ -361,6 +377,24 @@ public class Eval {
 		}
 	}
 	
+	public ArrayList<ArrayList<LinkedList<myTerm>>> evalOneByOne(LogicProgram prog, ArrayList<Sentence> sents) {
+		ArrayList<ArrayList<LinkedList<myTerm>>> re = new ArrayList<ArrayList<LinkedList<myTerm>>>();
+		// retract all rules
+		if (rules.size() > 0) {
+			retractRules();
+		} else {
+			System.out.println("Please set up rules first! (rule predicates is needed)");
+			return null;
+		}
+		for (Formula f : prog.getRules()) {
+			ArrayList<LinkedList<myTerm>> tmp_r = new ArrayList<LinkedList<myTerm>>();
+			for (Sentence sent : sents) {
+				tmp_r.add(evalSentWithFormula(f, sent));
+			}
+			re.add(tmp_r);
+		}
+		return re;
+	}
 /**
  * Evaluate given document by each formula alone, and add weight for each outcome
  * @param prog: logic programs that should be evaled one by one;
@@ -368,13 +402,13 @@ public class Eval {
  * @param sent: sentences
  * @return: array list of sentence stisfication answers for each rule
  */
-	public ArrayList<SentSat> evalOneByOne(LogicProgram prog, ArrayList<ArrayList<myTerm>> labels,
+	public ArrayList<SentSat> evalOneByOneSat(LogicProgram prog, ArrayList<ArrayList<myTerm>> labels,
 				ArrayList<Sentence> sents) {
 		// if all rules are set, clear rule and prolog engine
 		if (rules.size() > 0) {
 			retractRules();
 		} else {
-			System.out.println("Please set up rules first!");
+			System.out.println("Please set up rules first! (rule predicates is needed)");
 			return null;
 		}
 		
