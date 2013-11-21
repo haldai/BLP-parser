@@ -264,14 +264,12 @@ public class Eval {
 	 * @param prob: Probablity of current rule
 	 * @return
 	 */
-	public SatisfySamples evalSentSatProb(ArrayList<myTerm> label, Sentence sent, double prob) {
+	public SatisfySamples evalSentSatProb(ArrayList<myTerm> label, Sentence sent, Formula f) {
 		SatisfySamples re = new SatisfySamples();
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
 		terms.addAll(sent.getFeatures());
-		LinkedList<myTerm> ans = new LinkedList<myTerm>();
-		for (Formula f : rules)
-			ans.addAll(eval(f, terms));
-		re.setSatisifySamplesProb(label, ans, prob);
+		LinkedList<myTerm> ans = eval(f, terms);
+		re.setSatisifySamplesProb(label, ans, f.getWeight());
 		return re;
 	}
 	
@@ -337,6 +335,7 @@ public class Eval {
 					myTerm ans_term = new myTerm(answer);
 					if (!t.isPositive())
 						ans_term.setNegative();
+					ans_term.setWeight(f.getWeight());
 					re.add(ans_term);
 					answers.add(answer);
 				}
@@ -385,19 +384,17 @@ public class Eval {
 			
 			SentSat ans = new SentSat();
 			for (int i = 0; i < sents.size(); i++) {
-				SatisfySamples tmp_sat = evalSentSat(labels.get(i), sents.get(i));
-				for (myTerm t : tmp_sat.getPositive())
-					t.setWeight(f.getWeight());
-				for (myTerm t : tmp_sat.getNegative())
-					t.setWeight(f.getWeight());
 				/*
-				 * TODO SET PROBABILITY for ans
+				 *  SET PROBABILITY for ans
 				 */
+				SatisfySamples tmp_sat = evalSentSatProb(labels.get(i), sents.get(i), f);
+
 				ans.addSentSat(labels.get(i), sents.get(i), tmp_sat);
 			}
-
+			
+			ans.setTotal();
 			ans_by_rules.add(ans);
-			this.retractRules();
+			this.retractRule(f);
 		}
 		
 		/*

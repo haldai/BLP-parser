@@ -54,17 +54,21 @@ public class SatisfySamples {
 			}
 		}
 	}
-	
+	// TODO debug
 	public void setSatisifySamplesProb(ArrayList<myTerm> label, LinkedList<myTerm> evaled, double prob) {
 		if (!evaled.isEmpty())
 			hasSolution = true;
 		for (myTerm t : evaled) {
 //			System.out.println(t.toString());
-			t.setWeight(prob);
+//			t.setWeight(prob);
 			if (t.isPositive()) {
 				if (prob >= 0.5) {
 					if (label.contains(t)) {
-						positive.add(t);
+						int idx = label.indexOf(t);
+						if (label.get(idx).isPositive())
+							positive.add(t);
+						else
+							negative.add(t);
 					}
 					else {
 						negative.add(t);
@@ -74,7 +78,11 @@ public class SatisfySamples {
 						positive.add(t);
 					}
 					else {
-						negative.add(t);
+						int idx = label.indexOf(t);
+						if (label.get(idx).isPositive())
+							positive.add(t);
+						else
+							negative.add(t);
 					}
 				}
 			} else {
@@ -83,11 +91,19 @@ public class SatisfySamples {
 						positive.add(t);
 					}
 					else {
-						negative.add(t);
+						int idx = label.indexOf(t);
+						if (!label.get(idx).isPositive())
+							positive.add(t);
+						else
+							negative.add(t);
 					}
 				} else {
 					if (label.contains(t)) {
-						positive.add(t);
+						int idx = label.indexOf(t);
+						if (!label.get(idx).isPositive())
+							negative.add(t);
+						else
+							positive.add(t);
 					}
 					else {
 						negative.add(t);

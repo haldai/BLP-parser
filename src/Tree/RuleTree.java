@@ -151,7 +151,15 @@ public class RuleTree {
 			if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				form.setWeight(father.getSentSat(branch).getAccuracy());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				
 				rules.add(form);
 				System.out.println(data.size() + "/" + form.toString());
 				return node;
@@ -159,7 +167,14 @@ public class RuleTree {
 				// father's accuracy is enough for a positivesample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				form.setWeight(father.getSentSat(branch).getAccuracy());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
 				rules.add(form);
 				System.out.println(data.size() + "/"  + form.toString());
 				return node;
@@ -167,7 +182,14 @@ public class RuleTree {
 				// father's accuracy is enough for a negative sample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				form.setWeight(father.getSentSat(branch).getAccuracy());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
 				rules.add(form);
 				System.out.println(data.size() + "/" + form.toString());
 				return node;
@@ -749,8 +771,12 @@ public class RuleTree {
 		Eval eval = new Eval(prolog, pred_list);
 		eval.setRules(lp);
 		
-		// eval the tree and compute probability
-		ArrayList<SentSat> all_sat = eval.evalOneByOne(lp, data.getLabels(), data.getSents());
+		// evaluate each rule in current tree one by one
+//		ArrayList<SentSat> all_sat = eval.evalOneByOne(lp, data.getLabels(), data.getSents());
+		
+		// get the list of answer for each sentence by each rule
+		ArrayList<LinkedList<myTerm>> result_one_by_one = new ArrayList<LinkedList<myTerm>>();
+		
 		
 		// TODO compute probability
 		try {
