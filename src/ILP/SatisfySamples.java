@@ -55,12 +55,12 @@ public class SatisfySamples {
 		}
 	}
 	// TODO debug
-	public void setSatisifySamplesProb(ArrayList<myTerm> label, LinkedList<myTerm> evaled, double prob) {
+	public void setSatisifySamplesProb(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
 		if (!evaled.isEmpty())
 			hasSolution = true;
 		for (myTerm t : evaled) {
 //			System.out.println(t.toString());
-//			t.setWeight(prob);
+			double prob = t.getWeight();
 			if (t.isPositive()) {
 				if (prob >= 0.5) {
 					if (label.contains(t)) {

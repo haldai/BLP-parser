@@ -781,6 +781,13 @@ public class RuleTree {
 		ArrayList<ArrayList<myTerm>> merged_result = mergeProbResults(result_one_by_one);
 
 		// TODO Calculate accuracy from merged_result
+		for (int k = 0; k < merged_result.size(); k++) {
+			SatisfySamples tmp_sat = new SatisfySamples();
+			tmp_sat.setSatisifySamplesProb(data.getLabel(k), new LinkedList<myTerm>(merged_result.get(k)));
+			re.addSentSat(data.getLabel(k), data.getSent(k), tmp_sat);
+		}
+		re.setTotal();
+		
 		try {
 			eval.unEval();
 		} catch (Throwable e) {

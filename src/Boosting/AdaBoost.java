@@ -138,8 +138,15 @@ public class AdaBoost {
 			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			rule.buildTree(data, head, path);
 			
-			// TODO use the rule to evaluate the whole document and reset the weight
-			rule.evaluateThis(new Data(doc));
+			// use the rule to evaluate the whole document and reset the weight
+			SentSat cur_tree_sent_sat = rule.evaluateThis(new Data(doc)); // current tree sentence satisfy samples
+			
+			@SuppressWarnings("unused")
+			double err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree, can be set weight
+			
+			// TODO set new (negative) labels and reweight
+			
+			
 		}
 		return re;
 	}

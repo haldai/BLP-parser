@@ -285,7 +285,7 @@ public class Eval {
 		ArrayList<myTerm> terms = new ArrayList<myTerm>(Arrays.asList(sent.getTerms()));
 		terms.addAll(sent.getFeatures());
 		LinkedList<myTerm> ans = eval(f, terms);
-		re.setSatisifySamplesProb(label, ans, f.getWeight());
+		re.setSatisifySamplesProb(label, ans);
 		return re;
 	}
 	
