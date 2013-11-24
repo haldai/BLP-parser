@@ -5,10 +5,12 @@ package Boosting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import utils.Tuple;
 import ILP.*;
 import Logic.*;
 import Tree.*;
@@ -62,13 +64,14 @@ public class AdaBoost {
 			if (turn == 0) {
 				data = new Data(doc);
 			} else {
-				for (int i = 0; i < labels.size(); i++) {
-					for (int j = 0; j < labels.get(i).size(); j++) {
-						double rand = Math.random()/5;
-						if (label_weights.get(i).get(j) > rand)
-							data.addData(labels.get(i).get(j), sentences.get(i));
-					}
-				}
+				data = weightedRandSample(labels, sentences, label_weights, 5);
+//				for (int i = 0; i < labels.size(); i++) {
+//					for (int j = 0; j < labels.get(i).size(); j++) {
+//						double rand = Math.random()/5;
+//						if (label_weights.get(i).get(j) > rand)
+//							data.addData(labels.get(i).get(j), sentences.get(i));
+//					}
+//				}
 			}
 			
 			// paths from current data
@@ -136,17 +139,133 @@ public class AdaBoost {
 			System.out.println(pat_path_map.get(all_sub_paths.get(max_freq_idx)));
 			myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
+			
 			rule.buildTree(data, head, path);
 			
 			// use the rule to evaluate the whole document and reset the weight
 			SentSat cur_tree_sent_sat = rule.evaluateThis(new Data(doc)); // current tree sentence satisfy samples
 			
-			@SuppressWarnings("unused")
 			double err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree, can be set weight
+			double cov = cur_tree_sent_sat.getCov();
 			
 			// TODO set new (negative) labels and reweight
+			for (int k = 0; k < cur_tree_sent_sat.getAllSats().size(); k++) {
+				Sentence tmp_sent = cur_tree_sent_sat.getAllSent(k);
+				SatisfySamples tmp_sat = cur_tree_sent_sat.getAllSats(k);
+				
+				int sent_idx = k;
+				
+				// TODO deal with uncovered samples
+				for (int ii = 0; ii < labels.get(sent_idx).size(); ii++) {
+					if (!tmp_sat.getNegative().contains(labels.get(sent_idx).get(ii)) 
+							&& !tmp_sat.getPositive().contains(labels.get(sent_idx).get(ii))) {
+						// TODO assign weight
+						double new_weight = 0.0;
+						new_weight = label_weights.get(sent_idx).get(ii) + 1 - cov;
+						label_weights.get(sent_idx).set(ii, new_weight);
+					}
+				}
+				
+				// TODO deal with negative samples
+				for (myTerm tmp_term : tmp_sat.getNegative()) {
+					ArrayList<myTerm> tmp_labels = labels.get(sent_idx);
+					int label_idx = 0;
+					if (tmp_labels.contains(tmp_term)) {
+						label_idx = tmp_labels.indexOf(tmp_term);
+					} else {
+						// add new negative sample
+						myTerm new_label = tmp_term.clone();
+						if (!tmp_term.isPositive())
+							new_label.setNegative();
+						else
+							new_label.setPositive();
+						tmp_labels.add(tmp_term.clone());
+						label_idx = tmp_labels.size() - 1;
+						label_weights.get(sent_idx).add(0.0);
+					}
+					
+					// TODO assign weight
+					double new_weight = 0.0;
+					new_weight = label_weights.get(sent_idx).get(label_idx) + 1-tmp_term.getWeight();
+					label_weights.get(sent_idx).set(label_idx, new_weight);
+					
+				}
+				
+				// TODO deal with positive samples
+				for (myTerm tmp_term : tmp_sat.getPositive()) {
+					double new_weight = 0.0;
+					if (!tmp_term.isPositive())
+						continue;
+					else {
+						ArrayList<myTerm> tmp_labels = labels.get(sent_idx);
+						int label_idx = 0;
+						if (tmp_labels.contains(tmp_term)) {
+							label_idx = tmp_labels.indexOf(tmp_term);
+						}
+						// TODO set weight
+//						new_weight = tmp_labels.get(label_idx).getWeight();
+						
+//						label_weights.get(sent_idx).set(label_idx, new_weight);
+					}
+				}
+			}
 			
 			
+			
+			// TODO normalize weights
+			double sum = 0;
+			for (ArrayList<Double> d_list : label_weights) {
+				for (Double d : d_list) {
+					sum = sum + d;
+				}
+			}
+			
+			for (int ii = 0; ii < label_weights.size(); ii++) {
+				for (int jj = 0; jj < label_weights.get(ii).size(); jj++) {
+					label_weights.get(ii).set(jj, label_weights.get(ii).get(jj)/sum);
+				}
+			}
+			
+		}
+		return re;
+	}
+	/**
+	 * A-ES sampling
+	 * @param labels
+	 * @param sentences
+	 * @param weight
+	 * @return
+	 */
+	private Data weightedRandSample(ArrayList<ArrayList<myTerm>> labels, ArrayList<Sentence> sentences,
+			ArrayList<ArrayList<Double>> weight, int num) {
+		Data re = new Data();
+		double[] max_n = new double[num] ;
+		Map<Double, Tuple> map = new HashMap<Double, Tuple>(); 
+		for (int i = 0; i < num; i++) {
+			max_n[i] = 0.0;
+		}
+		ArrayList<myTerm> re_label = new ArrayList<myTerm>();
+		ArrayList<Sentence> re_sent = new ArrayList<Sentence>();
+		ArrayList<Double> k = new ArrayList<Double>();
+		
+		for (int i = 0; i < sentences.size(); i++) {
+			for (int j = 0; j < labels.get(i).size(); j++) {
+				double u = Math.random();
+				double kk = Math.pow(u, (double) 1/weight.get(i).get(j));
+				k.add(kk);
+				map.put(kk, new Tuple<Integer, Integer>(i,j));
+			}
+		}
+		Double[] k_array = k.toArray(new Double[k.size()]);
+		Arrays.sort(k_array, Collections.reverseOrder());
+		for (int i = 0; i < num; i++) {
+			int x = (Integer) map.get(k_array[i]).x;
+			int y = (Integer) map.get(k_array[i]).y;
+			if (re.getSents().contains(sentences.get(x))) {
+				int idx_sent = re.getSents().indexOf(sentences.get(x));
+				re.getLabel(idx_sent).add(labels.get(x).get(y));
+			} else
+				re.addData(labels.get(x).get(y), sentences.get(x));
 		}
 		return re;
 	}

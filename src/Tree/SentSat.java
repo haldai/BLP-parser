@@ -118,6 +118,10 @@ public class SentSat {
 		return sats;
 	}
 	
+	public SatisfySamples getAllSats(int i) {
+		return sats.get(i);
+	}
+	
 	public void setTotal() {
 		setAllNeg();
 		setAllPos();
