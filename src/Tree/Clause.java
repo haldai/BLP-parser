@@ -21,7 +21,6 @@ public class Clause {
 	ArrayList<myTerm> body;
 	
 	public Clause() {
-		// TODO Auto-generated constructor stub
 	}
 
 }

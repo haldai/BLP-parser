@@ -18,36 +18,97 @@ public class SatisfySamples {
 	 * restore the instances that satisfied by a rule L, departed into Negative and Positive samples
 	 */
 	
-	ArrayList<Formula> formula = new ArrayList<Formula>();
 	ArrayList<myTerm> negative = new ArrayList<myTerm>();
 	ArrayList<myTerm> positive = new ArrayList<myTerm>();
 	private boolean hasSolution = false;
 
-	public SatisfySamples(ArrayList<Formula> f) {
-		// TODO Auto-generated constructor stub
-		formula = f;
-	}
-	
-	public SatisfySamples() {
-		// TODO Auto-generated constructor stub
-	}
-	
-	public SatisfySamples(Formula f) {
-		ArrayList<Formula> ff = new ArrayList<Formula>();
-		ff.add(f);
-		formula = ff;
-	}
+	public SatisfySamples() {}
 
 	public void setSatisifySamples(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
 		if (!evaled.isEmpty())
 			hasSolution = true;
 		for (myTerm t : evaled) {
 //			System.out.println(t.toString());
-			if (label.contains(t)) {
-				positive.add(t);
+			if (t.isPositive()) {
+				if (label.contains(t)) {
+					int idx = label.indexOf(t);
+					if (t.isPositive() ==  label.get(idx).isPositive())
+						positive.add(t);
+					else
+						negative.add(t);
+				}
+				else {
+					negative.add(t);
+				}
+			} else {
+				if (!label.contains(t)) {
+					positive.add(t);
+				}
+				else {
+					int idx = label.indexOf(t);
+					if (t.isPositive() ==  label.get(idx).isPositive())
+						positive.add(t);
+					else
+						negative.add(t);
+				}
 			}
-			else {
-				negative.add(t);
+		}
+	}
+	// TODO debug
+	public void setSatisifySamplesProb(ArrayList<myTerm> label, LinkedList<myTerm> evaled) {
+		if (!evaled.isEmpty())
+			hasSolution = true;
+		for (myTerm t : evaled) {
+//			System.out.println(t.toString());
+			double prob = t.getWeight();
+			if (t.isPositive()) {
+				if (prob >= 0) {
+					if (label.contains(t)) {
+						int idx = label.indexOf(t);
+						if (label.get(idx).isPositive())
+							positive.add(t);
+						else
+							negative.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				} else {
+					if (!label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						int idx = label.indexOf(t);
+						if (label.get(idx).isPositive())
+							negative.add(t);
+						else
+							positive.add(t);
+					}
+				}
+			} else {
+				if (prob >= 0) {
+					if (!label.contains(t)) {
+						positive.add(t);
+					}
+					else {
+						int idx = label.indexOf(t);
+						if (!label.get(idx).isPositive())
+							positive.add(t);
+						else
+							negative.add(t);
+					}
+				} else {
+					if (label.contains(t)) {
+						int idx = label.indexOf(t);
+						if (!label.get(idx).isPositive())
+							negative.add(t);
+						else
+							positive.add(t);
+					}
+					else {
+						negative.add(t);
+					}
+				}
 			}
 		}
 	}

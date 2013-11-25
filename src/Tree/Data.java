@@ -18,16 +18,14 @@ public class Data {
 
 	/**
 	 * 
-	 */
-	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>();
+	 */ 
+	ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>(); // for each sentence
 	ArrayList<Sentence> sentences = new ArrayList<Sentence>();
-	ArrayList<ArrayList<myTerm>> positive = new ArrayList<ArrayList<myTerm>>();
-	ArrayList<ArrayList<myTerm>> negative = new ArrayList<ArrayList<myTerm>>();
+	ArrayList<ArrayList<myTerm>> positive = new ArrayList<ArrayList<myTerm>>(); // for each sentence
+	ArrayList<ArrayList<myTerm>> negative = new ArrayList<ArrayList<myTerm>>(); // for each sentence
 	Map<myTerm, Sentence> term_sent = new HashMap<myTerm, Sentence>();
 	
-	public Data() {
-		// TODO Auto-generated constructor stub
-	}
+	public Data() {}
 	
 	public Data(Document doc) {
 		for (int i = 0; i < doc.length(); i++) {
@@ -174,5 +172,22 @@ public class Data {
 			re = re + String.format("%s\n", sent.toString());
 		}
 		return re;
+	}
+
+	public void addData(myTerm t, Sentence sent) {
+		if (sentences.contains(sent)) {
+			int s_idx = sentences.indexOf(sent);
+			if (!labels.get(s_idx).contains(t)) {
+				labels.get(s_idx).add(t);
+				term_sent.put(t, sentences.get(s_idx));
+			}
+		} else {
+			sentences.add(sent);
+			labels.add(new ArrayList<myTerm>());
+			labels.get(labels.size() - 1).add(t);
+			positive.add(new ArrayList<myTerm>());
+			negative.add(new ArrayList<myTerm>());
+			term_sent.put(t, sent);
+		}
 	}
 }

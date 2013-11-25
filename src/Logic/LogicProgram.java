@@ -4,6 +4,7 @@
 package Logic;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * @author Wang-Zhou
@@ -87,5 +88,15 @@ public class LogicProgram {
 				bodyPred.add(ps);
 		}
 		buff_preds = null;
+	}
+
+	public void addRules(LinkedList<Formula> rs) {
+		for (Formula r : rs)
+			this.addRule(r);
+	}
+
+	public void addRules(ArrayList<Formula> rs) {
+		for (Formula r : rs)
+			this.addRule(r);
 	}
 }

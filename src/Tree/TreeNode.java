@@ -74,6 +74,11 @@ public class TreeNode {
 				nt.flip();
 				re.add(nt);
 			}
+		else
+			for (myTerm t : termNodes) {
+				myTerm nt = t.clone();
+				re.add(nt);
+			}
 		return re;
 	}
 	

@@ -33,16 +33,18 @@ public class RuleTree {
 	
 	TreeNode root; // tree root - the first splitting node;
 	myTerm head; // logical term - head:-body., must have variable
-	LinkedList<String> rules = new LinkedList<String>();
+	LinkedList<Formula> rules = new LinkedList<Formula>();
 	Prolog prolog;
+	Predicate[] pred_list;
 	
 	
 	private int maxHeight;
 	
-	public RuleTree(Prolog p) {
+	public RuleTree(Prolog p, Predicate[] preds) {
 		root = null;
 		head = null;
 		prolog = p;
+		pred_list = preds;
 	}
 		
 	public myTerm getHead() {
@@ -70,7 +72,7 @@ public class RuleTree {
 		maxHeight = h;
 	}
 	
-	public LinkedList<String> getPrologRules() {
+	public LinkedList<Formula> getPrologRules() {
 		return rules;
 	}
 	/**
@@ -78,7 +80,7 @@ public class RuleTree {
 	 * @param doc: training instances in document
 	 * @param path: path of available terms for split
 	 */
-	public void buildTree(Document doc, myTerm head, LinkedList<myTerm> path) {
+	public void buildTree(Data data, myTerm head, LinkedList<myTerm> path) {
 		ArrayList<myTerm> cand = new ArrayList<myTerm>(); // candidate terms
 		// substitution and get more features (temporarily only use words themselves)
 		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
@@ -90,16 +92,20 @@ public class RuleTree {
 		ArrayList<myWord> var_list = subs.getVarList();
 		// set head term
 		this.setHead(all_sub_terms.get(0));
+		if (head.isPositive())
+			this.head.setPositive();
+		else
+			this.head.setNegative();
+		// debug
 		all_sub_terms.remove(0);
 		// add path as candidate terms, then build more feature as candidate terms
 		cand.addAll(all_sub_terms);
 		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
 		cand.addAll(feature);
-		System.out.println("candidate terms:");
-		for (myTerm t : cand) {
-			System.out.println(t.toPrologString());
-		}
-		Data data = new Data(doc);
+//		System.out.println("candidate terms:");
+//		for (myTerm t : cand) {
+//			System.out.println(t.toPrologString());
+//		}
 		root = create(data, cand, null, true);
 	}
 
@@ -112,7 +118,6 @@ public class RuleTree {
 	
 	
 	
-	@SuppressWarnings("unchecked")
 	public TreeNode create(Data d, ArrayList<myTerm> candidateTerms, TreeNode father, boolean branch) {
 		/*
 		 * START
@@ -137,33 +142,74 @@ public class RuleTree {
 		
 		if (father == null) {
 			// ROOT NODE
-			return createRoot(d, candidateTerms);
+			return createRoot(label, data, candidateTerms, availTerms);
 		} else {
 			/*
 			 * NOT ROOT NODE
 			 */
-			// TODO should be put into a procedure
 			// if father has enough layer or accuracy, return
 			if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				
+				rules.add(form);
+//				System.out.println(data.size() + "/" + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() > utils.MAX_ACC_CRI) {
-				// TODO father's accuracy is enough for a positivesample
+				// father's accuracy is enough for a positivesample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+//				System.out.println(data.size() + "/"  + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() < utils.MAX_INACC_CRI) {
-				// TODO father's accuracy is enough for a negative sample
+				// father's accuracy is enough for a negative sample
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
-				System.out.println(father.getSentSat(branch).getAccuracy() + "::" + form.toString());
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+//				System.out.println(data.size() + "/" + form.toString());
 				return node;
-			} else {
-				// TODO else split current node
-				// TODO use ILP coverage
+			} else if (candidateTerms.isEmpty()) {
+				// no candidates
+				node.setIsLeaf(true);
+				Formula form = toFormula(father, branch);
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+//				System.out.println(data.size() + "/" + form.toString());
+				return node;
+			} else	{
+				// else split current node
 				double maxGain = -100.0; // covered positive & covered negative
 				myTerm max_gain_term = new myTerm();
 				ArrayList<myTerm> max_form_body = new ArrayList<myTerm>();
@@ -171,9 +217,9 @@ public class RuleTree {
 				SentSat maxPosSat = new SentSat();
 				SentSat maxNegSat = new SentSat();
 				Formula cur_form = toFormula(father, branch);
-				System.out.println("=================cur_form===================");
-				System.out.println(cur_form.toPrologString());
-				System.out.println("=================cur_form===================");
+//				System.out.println("=================cur_form===================");
+//				System.out.println(cur_form.toString());
+//				System.out.println("=================cur_form===================");
 				for (myTerm t : availTerms) {
 					// add t to body
 					t.setPositive();
@@ -191,7 +237,7 @@ public class RuleTree {
 					t.setNegative();
 					cur_form.pushBody(t);
 //					System.out.println(cur_form.toString());	
-					// TODO compute criterion and pop
+					// compute criterion and pop
 					SentSat NegSat = getSatSamps(cur_form, label, data);
 					NegSat.setTotal();
 //					tmp_acc = computeAccuracy(sat);
@@ -250,29 +296,26 @@ public class RuleTree {
 				}
 				pos_candidateTerms = addTermFromNegSamps(maxPosSat, pos_candidateTerms);
 				neg_candidateTerms = addTermFromNegSamps(maxNegSat, neg_candidateTerms);
-				for (myTerm t : node.getTermNodes()) {
-					pos_candidateTerms.remove(t);
-					neg_candidateTerms.remove(t);
-				}
-				pos_candidateTerms.removeAll(no_improve_terms);
-				neg_candidateTerms.removeAll(no_improve_terms);
+				// remove added nodes and useless nodes
+				pos_candidateTerms.removeAll(node.getTermNodes());
+				neg_candidateTerms.removeAll(node.getTermNodes());
+//				pos_candidateTerms.removeAll(no_improve_terms);
+//				neg_candidateTerms.removeAll(no_improve_terms);
 				// create children
+				
 				node.setFalseChild(create(maxNegSat.covered, pos_candidateTerms, node, false));
 				node.setTrueChild(create(maxPosSat.covered, neg_candidateTerms, node, true));
 				return node;
 			}
 		}
 	}
-	
-	private TreeNode createRoot(Data d, ArrayList<myTerm> candidateTerms) {
+		
+	private TreeNode createRoot(ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data, ArrayList<myTerm> candidateTerms, ArrayList<myTerm> availTerms) {
 		/*
 		 * BUILD ROOT NODE
 		 * if no father, this node is root, add terms that includes head variables
 		 */
-		ArrayList<ArrayList<myTerm>> label = d.getLabels();
-		ArrayList<Sentence> data = d.getSents();
 		TreeNode node = new TreeNode();
-		ArrayList<myTerm> availTerms = getAvailTerms(node, candidateTerms); 
 		// get candidate for root node
 		myWord[] headArgs = head.getArgs();
 		ArrayList<ArrayList<myTerm>> rootCand = new ArrayList<ArrayList<myTerm>>(headArgs.length);
@@ -347,9 +390,9 @@ public class RuleTree {
 							max_root_acc = tmp_root_acc;
 							max_root_terms = tmp_root;
 							max_root_cov = sat;
-							System.out.println("=======");
-							System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
-							System.out.println("=======");
+//							System.out.println("=======");
+//							System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
+//							System.out.println("=======");
 						}
 						visited.remove(u); // pop visited
 						if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
@@ -426,7 +469,7 @@ public class RuleTree {
 	 * @return: satisfy samples (including negative samples)
 	 */
 	private SentSat getSatSamps(Formula f, ArrayList<ArrayList<myTerm>> label, ArrayList<Sentence> data) {
-		Eval eval = new Eval(prolog);
+		Eval eval = new Eval(prolog, pred_list);
 		eval.setRule(f);
 		SentSat sat = eval.evalAllSat(label, data);
 		// IMPORTANT! must retract all rules
@@ -444,7 +487,7 @@ public class RuleTree {
 	 * @return: satisfy samples (including negative samples)
 	 */
 	private SentSat getDocSatSamps(Formula f, Document doc) {
-		Eval eval = new Eval(prolog);
+		Eval eval = new Eval(prolog, pred_list);
 		eval.setRule(f);
 		SentSat sat = eval.evalDocSat(doc);
 		// IMPORTANT! must retract all rules
@@ -512,7 +555,6 @@ public class RuleTree {
 	 * @param node
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	private Formula toFormula(TreeNode node, boolean son_branch) {
 		Formula re = new Formula();
 		re.pushHead(head);
@@ -541,66 +583,64 @@ public class RuleTree {
 		return re;
 	}
 	
-	/**
-	 * get Prolog rule string from current tree
-	 * @return string as prolog rule
-	 */
-	public void toPrologRules() {
-		rules = null;
-		LinkedList<myTerm> re = new LinkedList<myTerm>();
-		visit(root, re);
-	}
-	/**
-	 * visit current node and trace the prolog rule until meet leaf node
-	 * @param current: current node to be visited
-	 * @param visited: visited terms
-	 */
-	private void visit(TreeNode current, LinkedList<myTerm> visited) {
-		if (current.isLeaf()) {
-			for (myTerm t : current.toTerms()) {
-				t.setPositive();
-				visited.add(t);
-			}
-			rules.add(returnPrologRule(visited));
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-
-		} else {
-			// visit True child, push positive current node terms
-			for (myTerm t : current.toTerms()) {
-				t.setPositive();
-				visited.add(t);
-			}
-			visit(current.getTrueChild(), visited);
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-
-			// visit False child, push negative current node terms
-			for (myTerm t : current.toTerms()) {
-				t.setNegative();
-				visited.add(t);
-			}
-			visit(current.getFalseChild(), visited);
-			for (myTerm t : current.toTerms()) {
-				visited.removeLast();
-			}
-		}
-	}
-	
-	/**
-	 * return a prolog rule from visited terms stack
-	 * @param visited: stack for visited terms
-	 * @return
-	 */
-	private String returnPrologRule(LinkedList<myTerm> visited) {
-		String re_rule = "";
-		for (myTerm t : visited) {
-			re_rule = re_rule + t.toPrologString();
-		}
-		return re_rule;
-	}
+//	/**
+//	 * get Prolog rule string from current tree
+//	 * @return string as prolog rule
+//	 */
+//	public ArrayList<String> getPrologRules() {
+//		return rules;
+//	}
+//	/**
+//	 * visit current node and trace the prolog rule until meet leaf node
+//	 * @param current: current node to be visited
+//	 * @param visited: visited terms
+//	 */
+//	private void visit(TreeNode current, LinkedList<myTerm> visited) {
+//		if (current.isLeaf()) {
+//			for (myTerm t : current.toTerms()) {
+//				t.setPositive();
+//				visited.add(t);
+//			}
+//			rules.add(returnPrologRule(visited));
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//
+//		} else {
+//			// visit True child, push positive current node terms
+//			for (myTerm t : current.toTerms()) {
+//				t.setPositive();
+//				visited.add(t);
+//			}
+//			visit(current.getTrueChild(), visited);
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//
+//			// visit False child, push negative current node terms
+//			for (myTerm t : current.toTerms()) {
+//				t.setNegative();
+//				visited.add(t);
+//			}
+//			visit(current.getFalseChild(), visited);
+//			for (myTerm t : current.toTerms()) {
+//				visited.removeLast();
+//			}
+//		}
+//	}
+//	
+//	/**
+//	 * return a prolog rule from visited terms stack
+//	 * @param visited: stack for visited terms
+//	 * @return
+//	 */
+//	private String returnPrologRule(LinkedList<myTerm> visited) {
+//		String re_rule = "";
+//		for (myTerm t : visited) {
+//			re_rule = re_rule + t.toPrologString();
+//		}
+//		return re_rule;
+//	}
 	/**
 	 * find all variables in a list of terms
 	 * @param terms
@@ -688,7 +728,7 @@ public class RuleTree {
  	   		ArrayList<myWord> var_list = subs.getVarList();
  	   		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
  			// set head term
- 			this.setHead(all_sub_terms.get(0));
+// 			this.setHead(all_sub_terms.get(0));
  			all_sub_terms.remove(0);
  			// add path as candidate terms, then build more feature as candidate terms
  			cand.addAll(feature);
@@ -719,10 +759,10 @@ public class RuleTree {
 			r0_all_pos.add(tmp_term.clone());
 		r0_all_pos.retainAll(r1_all_pos);
 		int t = r0_all_pos.size();
-		double acc1 = computeAccuracy(r1);
+		double acc1 = r1.getAccuracy();computeAccuracy(r1);
 		if (acc1 == 0.0)
 			acc1 = 0.000000000000001;
-		double acc0 = computeAccuracy(r0);
+		double acc0 = r0.getAccuracy();computeAccuracy(r0);
 		if (acc0 == 0.0)
 			acc0 = 0.000000000000001;
 		double re = (double) t*(Math.log(acc1) - Math.log(acc0));
@@ -735,4 +775,87 @@ public class RuleTree {
 				p = 0.000000000000001;
 		return (double) -(p*Math.log(p) + (1-p)*Math.log(1-p));
 	}
+
+	public SentSat evaluateThis(Data data) {
+		// TODO evaluate given data by current rules
+		SentSat re = new SentSat();
+		LogicProgram lp = new LogicProgram();
+		lp.addRules(rules);
+		// predicates
+		
+		Eval eval = new Eval(prolog, pred_list);
+		eval.setRules(lp);
+		
+		// evaluate each rule in current tree one by one
+//		ArrayList<SentSat> all_sat = eval.evalOneByOneSat(lp, data.getLabels(), data.getSents());
+		
+		// get the list of answer for each sentence by each rule
+		ArrayList<ArrayList<LinkedList<myTerm>>> result_one_by_one = eval.evalOneByOne(lp, data.getSents());
+		
+		// TODO merge all the results by averaging the probability
+		ArrayList<ArrayList<myTerm>> merged_result = mergeProbResults(result_one_by_one);
+
+		// TODO Calculate accuracy from merged_result
+		for (int k = 0; k < merged_result.size(); k++) {
+			SatisfySamples tmp_sat = new SatisfySamples();
+			tmp_sat.setSatisifySamplesProb(data.getLabel(k), new LinkedList<myTerm>(merged_result.get(k)));
+			re.addSentSat(data.getLabel(k), data.getSent(k), tmp_sat);
+		}
+		re.setTotal();
+		
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return re;
+	}
+	/**
+	 * Merge results of different probabilistic rules
+	 * @param results
+	 * @return: merged results, with probability
+	 */
+	private ArrayList<ArrayList<myTerm>> mergeProbResults(
+			ArrayList<ArrayList<LinkedList<myTerm>>> results) {
+		// TODO 
+		int rule_num = results.size();
+		int sent_num = results.get(0).size();
+		
+		ArrayList<ArrayList<myTerm>> re = new ArrayList<ArrayList<myTerm>>(sent_num);
+		
+		for (int j = 0; j < sent_num; j++) {
+			ArrayList<myTerm> tmp_ans_list = new ArrayList<myTerm>();
+			ArrayList<Integer> tmp_ans_list_cnt = new ArrayList<Integer>();
+			
+			for (int i = 0; i < rule_num; i++) {
+				LinkedList<myTerm> tmp_result_list = results.get(i).get(j);
+				for (myTerm t : tmp_result_list) {
+					if (tmp_ans_list.contains(t)) {
+						int idx = tmp_ans_list.indexOf(t);
+						
+						myTerm the_t = tmp_ans_list.get(idx); // the term already in ans_list
+						
+						if (t.isPositive() == the_t.isPositive())
+							the_t.setWeight((double) (the_t.getWeight() + t.getWeight()));
+						else {
+							the_t.setWeight((double) (the_t.getWeight() + (1 - t.getWeight())));
+						}
+						
+						tmp_ans_list_cnt.set(idx, tmp_ans_list_cnt.get(idx) + 1); // record the counts
+					} else {
+						tmp_ans_list.add(t);
+						tmp_ans_list_cnt.add(1);
+					}
+				}
+			}
+			
+			for (int k = 0; k < tmp_ans_list.size(); k++) {
+				tmp_ans_list.get(k).setWeight((double) tmp_ans_list.get(k).getWeight()/tmp_ans_list_cnt.get(k));
+			}
+			
+			re.add(tmp_ans_list);
+		}
+		return re;
+	}
+
 }
