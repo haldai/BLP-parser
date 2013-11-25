@@ -9,6 +9,8 @@ import java.util.LinkedList;
 
 import jpl.*;
 import Logic.*;
+import Tree.Data;
+import Tree.RuleTree;
 import Tree.SentSat;
 /**
  * @author daiwz
@@ -349,9 +351,16 @@ public class Eval {
 //				System.out.println(answer);
 				if (!answers.contains(answer)) {
 					myTerm ans_term = new myTerm(answer);
-					if (!t.isPositive())
-						ans_term.setNegative();
-					ans_term.setWeight(f.getWeight());
+//					if (!t.isPositive())
+//						ans_term.setNegative();
+//					ans_term.setWeight(f.getWeight());
+					if (t.isPositive()) {
+						ans_term.setPositive();
+						ans_term.setWeight((f.getWeight() - 0.5)*2);
+					} else {
+						ans_term.setPositive();
+						ans_term.setWeight(((1 - f.getWeight()) - 0.5)*2);
+					}
 					re.add(ans_term);
 					answers.add(answer);
 				}
@@ -392,6 +401,22 @@ public class Eval {
 				tmp_r.add(evalSentWithFormula(f, sent));
 			}
 			re.add(tmp_r);
+		}
+		return re;
+	}
+	
+	public ArrayList<LinkedList<myTerm>> evalOneByOneSent(LogicProgram prog, Sentence sent) {
+		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>();
+		// retract all rules
+		if (rules.size() > 0) {
+			retractRules();
+		} else {
+			System.out.println("Please set up rules first! (rule predicates is needed)");
+			return null;
+		}
+		for (Formula f : prog.getRules()) {
+			ArrayList<LinkedList<myTerm>> tmp_r = new ArrayList<LinkedList<myTerm>>();
+			re.add(evalSentWithFormula(f, sent));
 		}
 		return re;
 	}
@@ -436,4 +461,6 @@ public class Eval {
 		 */
 		return ans_by_rules;
 	}
+	
+
 }

@@ -62,7 +62,7 @@ public class SatisfySamples {
 //			System.out.println(t.toString());
 			double prob = t.getWeight();
 			if (t.isPositive()) {
-				if (prob >= 0.5) {
+				if (prob >= 0) {
 					if (label.contains(t)) {
 						int idx = label.indexOf(t);
 						if (label.get(idx).isPositive())
@@ -80,13 +80,13 @@ public class SatisfySamples {
 					else {
 						int idx = label.indexOf(t);
 						if (label.get(idx).isPositive())
-							positive.add(t);
-						else
 							negative.add(t);
+						else
+							positive.add(t);
 					}
 				}
 			} else {
-				if (prob >= 0.5) {
+				if (prob >= 0) {
 					if (!label.contains(t)) {
 						positive.add(t);
 					}

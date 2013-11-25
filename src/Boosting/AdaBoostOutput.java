@@ -5,6 +5,7 @@ package Boosting;
 
 import java.util.ArrayList;
 
+import Logic.*;
 import Tree.*;
 /**
  * @author daiwz
@@ -15,15 +16,15 @@ public class AdaBoostOutput {
 	/**
 	 * 
 	 */
-	ArrayList<RuleTree> weakRules = new ArrayList<RuleTree>();
+	ArrayList<ArrayList<Formula>> weakRules = new ArrayList<ArrayList<Formula>>();
 	ArrayList<Double> ruleWeights = new ArrayList<Double>();
 	
 	public AdaBoostOutput() {}
-	public ArrayList<RuleTree> getWeakRules() {
+	public ArrayList<ArrayList<Formula>> getWeakRules() {
 		return weakRules;
 	}
 	
-	public void addRule(RuleTree t, double w) {
+	public void addWeakRules(ArrayList<Formula> t, double w) {
 		weakRules.add(t);
 		ruleWeights.add(w);
 	}
@@ -32,8 +33,8 @@ public class AdaBoostOutput {
 		return ruleWeights;
 	}
 	
-	public void setWeakRules(ArrayList<RuleTree> trees) {
-		this.weakRules = trees;
+	public void setWeakRules(ArrayList<ArrayList<Formula>> rules) {
+		this.weakRules = rules;
 	}
 	
 	public void setWeights(ArrayList<Double> weights) {

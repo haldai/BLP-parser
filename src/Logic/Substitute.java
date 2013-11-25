@@ -48,7 +48,10 @@ public class Substitute {
 					tmp_args.add(var_list.get(p));
 				}
 			}
-			re.add(new myTerm(t.getPred(), tmp_args.toArray(new myWord[tmp_args.size()])));
+			myTerm subed_term = new myTerm(t.getPred(), tmp_args.toArray(new myWord[tmp_args.size()]));
+			if (!t.isPositive())
+				subed_term.setNegative();
+			re.add(subed_term);
 		}
 		return re;
 	}

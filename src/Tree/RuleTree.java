@@ -102,10 +102,10 @@ public class RuleTree {
 		cand.addAll(all_sub_terms);
 		ArrayList<myTerm> feature = buildFeature(var_list, word_list);
 		cand.addAll(feature);
-		System.out.println("candidate terms:");
-		for (myTerm t : cand) {
-			System.out.println(t.toPrologString());
-		}
+//		System.out.println("candidate terms:");
+//		for (myTerm t : cand) {
+//			System.out.println(t.toPrologString());
+//		}
 		root = create(data, cand, null, true);
 	}
 
@@ -161,7 +161,7 @@ public class RuleTree {
 					form.setWeight(father.getSentSat(branch).getAccuracy());
 				
 				rules.add(form);
-				System.out.println(data.size() + "/" + form.toString());
+//				System.out.println(data.size() + "/" + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() > utils.MAX_ACC_CRI) {
 				// father's accuracy is enough for a positivesample
@@ -176,7 +176,7 @@ public class RuleTree {
 //				} else
 					form.setWeight(father.getSentSat(branch).getAccuracy());
 				rules.add(form);
-				System.out.println(data.size() + "/"  + form.toString());
+//				System.out.println(data.size() + "/"  + form.toString());
 				return node;
 			} else if(father.getSentSat(branch).getAccuracy() < utils.MAX_INACC_CRI) {
 				// father's accuracy is enough for a negative sample
@@ -191,9 +191,24 @@ public class RuleTree {
 //				} else
 					form.setWeight(father.getSentSat(branch).getAccuracy());
 				rules.add(form);
-				System.out.println(data.size() + "/" + form.toString());
+//				System.out.println(data.size() + "/" + form.toString());
 				return node;
-			} else {
+			} else if (candidateTerms.isEmpty()) {
+				// no candidates
+				node.setIsLeaf(true);
+				Formula form = toFormula(father, branch);
+//				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
+//					myTerm h = form.getHead().get(0).clone();
+//					h.setPositive();
+//					form.getHead().clear();
+//					form.pushHead(h);
+//					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
+//				} else
+					form.setWeight(father.getSentSat(branch).getAccuracy());
+				rules.add(form);
+//				System.out.println(data.size() + "/" + form.toString());
+				return node;
+			} else	{
 				// else split current node
 				double maxGain = -100.0; // covered positive & covered negative
 				myTerm max_gain_term = new myTerm();
@@ -281,13 +296,13 @@ public class RuleTree {
 				}
 				pos_candidateTerms = addTermFromNegSamps(maxPosSat, pos_candidateTerms);
 				neg_candidateTerms = addTermFromNegSamps(maxNegSat, neg_candidateTerms);
-				for (myTerm t : node.getTermNodes()) {
-					pos_candidateTerms.remove(t);
-					neg_candidateTerms.remove(t);
-				}
-				pos_candidateTerms.removeAll(no_improve_terms);
-				neg_candidateTerms.removeAll(no_improve_terms);
+				// remove added nodes and useless nodes
+				pos_candidateTerms.removeAll(node.getTermNodes());
+				neg_candidateTerms.removeAll(node.getTermNodes());
+//				pos_candidateTerms.removeAll(no_improve_terms);
+//				neg_candidateTerms.removeAll(no_improve_terms);
 				// create children
+				
 				node.setFalseChild(create(maxNegSat.covered, pos_candidateTerms, node, false));
 				node.setTrueChild(create(maxPosSat.covered, neg_candidateTerms, node, true));
 				return node;
@@ -375,9 +390,9 @@ public class RuleTree {
 							max_root_acc = tmp_root_acc;
 							max_root_terms = tmp_root;
 							max_root_cov = sat;
-							System.out.println("=======");
-							System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
-							System.out.println("=======");
+//							System.out.println("=======");
+//							System.out.println(sat.getCov() + " / " + tmp_root_acc + ": " + root_f.toString());	
+//							System.out.println("=======");
 						}
 						visited.remove(u); // pop visited
 						if (!S.isEmpty() && (S.lastElement().x < route.get(route.size() - 1).x))
@@ -744,10 +759,10 @@ public class RuleTree {
 			r0_all_pos.add(tmp_term.clone());
 		r0_all_pos.retainAll(r1_all_pos);
 		int t = r0_all_pos.size();
-		double acc1 = computeAccuracy(r1);
+		double acc1 = r1.getAccuracy();computeAccuracy(r1);
 		if (acc1 == 0.0)
 			acc1 = 0.000000000000001;
-		double acc0 = computeAccuracy(r0);
+		double acc0 = r0.getAccuracy();computeAccuracy(r0);
 		if (acc0 == 0.0)
 			acc0 = 0.000000000000001;
 		double re = (double) t*(Math.log(acc1) - Math.log(acc0));

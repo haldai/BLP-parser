@@ -25,7 +25,9 @@ public class AdaBoost {
 	 * Adaboost main class
 	 */
 	private static final int T = utils.utils.BOOSTING_TURNS;
+	private static final double P = utils.utils.BOOSTING_SAMPLING_POR;
 	private Prolog prolog; // prolog engine
+	Predicate[] pred_list = null;
 	
 	public AdaBoost(Prolog p) {
 		prolog = p;
@@ -34,6 +36,7 @@ public class AdaBoost {
 	public AdaBoostOutput train(Document doc) {
 
 		AdaBoostOutput re = new AdaBoostOutput();
+		pred_list = doc.getPredList();
 		
 		ArrayList<ArrayList<myTerm>> labels = doc.getLabels();
 		ArrayList<Sentence> sentences = new ArrayList<Sentence>(Arrays.asList(doc.getSentences()));
@@ -44,6 +47,8 @@ public class AdaBoost {
 			for (myTerm t : t_list) {
 				total_label++;
 			}
+		System.out.println(total_label);
+		
 		ArrayList<ArrayList<Double>> label_weights = new ArrayList<ArrayList<Double>>(labels.size());
 		for (int i = 0; i < labels.size(); i++) {
 			label_weights.add(new ArrayList<Double>(labels.get(i).size()));
@@ -57,14 +62,15 @@ public class AdaBoost {
 		while (turn <= T) {
 			turn++;
 			
-			RuleTree rule = new RuleTree(prolog, doc.getPredList());
+			ArrayList<Formula> rules = new ArrayList<Formula>();
+			
 			
 			// sample the labels to produce a path
 			Data data = new Data();
 			if (turn == 0) {
-				data = new Data(doc);
+				data = weightedRandSample(labels, sentences, label_weights, (int) (P*total_label));
 			} else {
-				data = weightedRandSample(labels, sentences, label_weights, 5);
+				data = weightedRandSample(labels, sentences, label_weights, (int) (P*total_label));
 //				for (int i = 0; i < labels.size(); i++) {
 //					for (int j = 0; j < labels.get(i).size(); j++) {
 //						double rand = Math.random()/5;
@@ -101,15 +107,31 @@ public class AdaBoost {
 				ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
 				
 				
-				for (int k = 0; k < all_sub_terms.size(); k++) {
-					System.out.print(all_sub_terms.get(k).toPrologString() + ", ");
-				}
-				System.out.println();
+//				for (int k = 0; k < all_sub_terms.size(); k++) {
+//					System.out.print(all_sub_terms.get(k).toPrologString() + ", ");
+//				}
+//				System.out.println();
 				
 				if (all_sub_paths.contains(all_sub_terms)) {
 					int path_idx = all_sub_paths.indexOf(all_sub_terms);
-					all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
-					pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
+					int path_idx_last = all_sub_paths.lastIndexOf(all_sub_terms);
+					if (all_sub_paths.get(path_idx).get(0).isPositive() == all_sub_terms.get(0).isPositive()) {
+						all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
+						pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
+					}
+					if (path_idx != path_idx_last 
+							&& (all_sub_paths.get(path_idx_last).get(0).isPositive() == all_sub_terms.get(0).isPositive())) {
+						all_sub_paths_count.set(path_idx_last, all_sub_paths_count.get(path_idx_last) + 1);
+						pat_path_map.get(all_sub_paths.get(path_idx_last)).add(i);
+					}
+					if (path_idx == path_idx_last 
+							&& (all_sub_paths.get(path_idx_last).get(0).isPositive() != all_sub_terms.get(0).isPositive())) {
+						if (pat_path_map.get(all_sub_terms) == null)
+							pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
+						pat_path_map.get(all_sub_terms).add(i);
+						all_sub_paths.add(all_sub_terms);
+						all_sub_paths_count.add(1);
+					}
 				} else {
 					if (pat_path_map.get(all_sub_terms) == null)
 						pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
@@ -119,34 +141,54 @@ public class AdaBoost {
 				}
 			}
 			
-			System.out.println("=============patterns================");
-			for (int i = 0; i < all_sub_paths.size(); i++) {
-				for (int j = 0; j < all_sub_paths.get(i).size(); j++) {
-					System.out.print(all_sub_paths.get(i).get(j).toPrologString() + ", ");
-				}
-				System.out.println();
-			}
+//			System.out.println("=============patterns================");
+//			for (int i = 0; i < all_sub_paths.size(); i++) {
+//				for (int j = 0; j < all_sub_paths.get(i).size(); j++) {
+//					System.out.print(all_sub_paths.get(i).get(j).toPrologString() + ", ");
+//				}
+//				System.out.println();
+//			}
 			
 			// find the most frequent pattern
-			int max_freq = -100, max_freq_idx = 0;			
-			for (int i = 0; i < all_sub_paths.size(); i++)
-				if (all_sub_paths_count.get(i) > max_freq) {
-					max_freq = all_sub_paths_count.get(i);
-					max_freq_idx = i;
-				}
+//			int max_freq = -100, max_freq_idx = 0;			
+//			for (int i = 0; i < all_sub_paths.size(); i++)
+//				if (all_sub_paths_count.get(i) > max_freq) {
+//					max_freq = all_sub_paths_count.get(i);
+//					max_freq_idx = i;
+//				}
 			
 			// use the head and path that represents the most frequent pattern to build tree
-			System.out.println(pat_path_map.get(all_sub_paths.get(max_freq_idx)));
-			myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
-			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
+//			max_freq = ((int) Math.random() * 10) % all_sub_paths.size(); // randomly choose one
+//			System.out.println(pat_path_map.get(all_sub_paths.get(max_freq_idx)));
+//			myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
+//			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
+			// learn all patterns then add to rule list
 			
-			rule.buildTree(data, head, path);
+			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
+				LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
+				myTerm head = all_heads.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
+				RuleTree rule = new RuleTree(prolog, doc.getPredList());
+				rule.buildTree(data, head, path);
+				for (Formula f : rule.getPrologRules())
+					if (Math.abs(f.getWeight() - 0.5) > 0.05)
+						rules.add(f);
+			}
+			
+			System.out.println("=============Rules================");
+			for (int i = 0; i < rules.size(); i++) {
+				System.out.println(rules.get(i).toString());
+			}
 			
 			// use the rule to evaluate the whole document and reset the weight
-			SentSat cur_tree_sent_sat = rule.evaluateThis(new Data(doc)); // current tree sentence satisfy samples
+			SentSat cur_tree_sent_sat = evaluateRules(new Data(doc), rules); // current tree sentence satisfy samples
 			
 			double err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree, can be set weight
+			if (err > 0.5) {
+				turn--;
+				continue;
+			}
 			double cov = cur_tree_sent_sat.getCov();
+			System.out.println(err + "/" + cov);
 			
 			// TODO set new (negative) labels and reweight
 			for (int k = 0; k < cur_tree_sent_sat.getAllSats().size(); k++) {
@@ -161,7 +203,7 @@ public class AdaBoost {
 							&& !tmp_sat.getPositive().contains(labels.get(sent_idx).get(ii))) {
 						// TODO assign weight
 						double new_weight = 0.0;
-						new_weight = label_weights.get(sent_idx).get(ii) + 1 - cov;
+						new_weight = label_weights.get(sent_idx).get(ii) * Math.exp(1);
 						label_weights.get(sent_idx).set(ii, new_weight);
 					}
 				}
@@ -172,40 +214,54 @@ public class AdaBoost {
 					int label_idx = 0;
 					if (tmp_labels.contains(tmp_term)) {
 						label_idx = tmp_labels.indexOf(tmp_term);
+						// TODO assign weight
+						double new_weight = 0.0;
+						if (tmp_labels.get(label_idx).isPositive()) {
+							new_weight = label_weights.get(sent_idx).get(label_idx) 
+									* Math.exp(-(tmp_term.getWeight()*1));
+						} else {
+							new_weight = label_weights.get(sent_idx).get(label_idx) 
+									* Math.exp(-(tmp_term.getWeight()*(-1)));
+						}
+//						new_weight = label_weights.get(sent_idx).get(label_idx) 
+//								* Math.exp(-(tmp_term.getWeight() - 0.5)*2);
+						label_weights.get(sent_idx).set(label_idx, new_weight);
 					} else {
-						// add new negative sample
-						myTerm new_label = tmp_term.clone();
-						if (!tmp_term.isPositive())
-							new_label.setNegative();
-						else
-							new_label.setPositive();
-						tmp_labels.add(tmp_term.clone());
-						label_idx = tmp_labels.size() - 1;
-						label_weights.get(sent_idx).add(0.0);
+//						// add new negative sample
+//						myTerm new_label = tmp_term.clone();
+//						if (tmp_term.isPositive())
+//							new_label.setNegative();
+//						else
+//							new_label.setPositive();
+//						tmp_labels.add(new_label.clone());
+//						label_idx = tmp_labels.size() - 1;
+//						label_weights.get(sent_idx).add(0.0);
 					}
 					
-					// TODO assign weight
-					double new_weight = 0.0;
-					new_weight = label_weights.get(sent_idx).get(label_idx) + 1-tmp_term.getWeight();
-					label_weights.get(sent_idx).set(label_idx, new_weight);
+					
 					
 				}
 				
 				// TODO deal with positive samples
 				for (myTerm tmp_term : tmp_sat.getPositive()) {
 					double new_weight = 0.0;
-					if (!tmp_term.isPositive())
+					if (!tmp_term.isPositive() || (tmp_term.getWeight() < 0.5))
 						continue;
 					else {
 						ArrayList<myTerm> tmp_labels = labels.get(sent_idx);
 						int label_idx = 0;
 						if (tmp_labels.contains(tmp_term)) {
 							label_idx = tmp_labels.indexOf(tmp_term);
+							// TODO set weight
+							if (tmp_labels.get(label_idx).isPositive()) {
+								new_weight = label_weights.get(sent_idx).get(label_idx) 
+										* Math.exp(-(tmp_term.getWeight()*1));
+							} else {
+								new_weight = label_weights.get(sent_idx).get(label_idx) 
+										* Math.exp(-(tmp_term.getWeight()*(-1)));
+							}
+							label_weights.get(sent_idx).set(label_idx, new_weight);
 						}
-						// TODO set weight
-//						new_weight = tmp_labels.get(label_idx).getWeight();
-						
-//						label_weights.get(sent_idx).set(label_idx, new_weight);
 					}
 				}
 			}
@@ -225,7 +281,7 @@ public class AdaBoost {
 					label_weights.get(ii).set(jj, label_weights.get(ii).get(jj)/sum);
 				}
 			}
-			
+			re.addWeakRules(rules, 0.5*Math.log((1-err)/(err)));
 		}
 		return re;
 	}
@@ -240,7 +296,7 @@ public class AdaBoost {
 			ArrayList<ArrayList<Double>> weight, int num) {
 		Data re = new Data();
 		double[] max_n = new double[num] ;
-		Map<Double, Tuple> map = new HashMap<Double, Tuple>(); 
+		Map<Double, Tuple<Integer, Integer>> map = new HashMap<Double, Tuple<Integer, Integer>>(); 
 		for (int i = 0; i < num; i++) {
 			max_n[i] = 0.0;
 		}
@@ -264,6 +320,7 @@ public class AdaBoost {
 			if (re.getSents().contains(sentences.get(x))) {
 				int idx_sent = re.getSents().indexOf(sentences.get(x));
 				re.getLabel(idx_sent).add(labels.get(x).get(y));
+//				continue;
 			} else
 				re.addData(labels.get(x).get(y), sentences.get(x));
 		}
@@ -289,5 +346,82 @@ public class AdaBoost {
 		pf.Search(visitedEdges);
 		
 		return pf.getPaths();
+	}
+	
+	public SentSat evaluateRules(Data data, ArrayList<Formula> rules) {
+		// TODO evaluate given data by current rules
+		SentSat re = new SentSat();
+		LogicProgram lp = new LogicProgram();
+		lp.addRules(rules);
+		// predicates
+		
+		Eval eval = new Eval(prolog, pred_list);
+		eval.setRules(lp);
+		
+		// evaluate each rule in current tree one by one
+//		ArrayList<SentSat> all_sat = eval.evalOneByOneSat(lp, data.getLabels(), data.getSents());
+		
+		// get the list of answer for each sentence by each rule
+		ArrayList<ArrayList<LinkedList<myTerm>>> result_one_by_one = eval.evalOneByOne(lp, data.getSents());
+		
+		// TODO merge all the results by averaging the probability
+		ArrayList<ArrayList<myTerm>> merged_result = mergeProbResults(result_one_by_one);
+
+		// TODO Calculate accuracy from merged_result
+		for (int k = 0; k < merged_result.size(); k++) {
+			SatisfySamples tmp_sat = new SatisfySamples();
+			tmp_sat.setSatisifySamplesProb(data.getLabel(k), new LinkedList<myTerm>(merged_result.get(k)));
+			re.addSentSat(data.getLabel(k), data.getSent(k), tmp_sat);
+		}
+		re.setTotal();
+		
+		try {
+			eval.unEval();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		return re;
+	}
+	
+	private ArrayList<ArrayList<myTerm>> mergeProbResults(
+			ArrayList<ArrayList<LinkedList<myTerm>>> results) {
+		int rule_num = results.size();
+		int sent_num = results.get(0).size();
+		
+		ArrayList<ArrayList<myTerm>> re = new ArrayList<ArrayList<myTerm>>(sent_num);
+		
+		for (int j = 0; j < sent_num; j++) {
+			ArrayList<myTerm> tmp_ans_list = new ArrayList<myTerm>();
+			ArrayList<Integer> tmp_ans_list_cnt = new ArrayList<Integer>();
+			
+			for (int i = 0; i < rule_num; i++) {
+				LinkedList<myTerm> tmp_result_list = results.get(i).get(j);
+				for (myTerm t : tmp_result_list) {
+					if (tmp_ans_list.contains(t)) {
+						int idx = tmp_ans_list.indexOf(t);
+						
+						myTerm the_t = tmp_ans_list.get(idx); // the term already in ans_list
+						
+						if (t.isPositive() == the_t.isPositive())
+							the_t.setWeight(the_t.getWeight() + t.getWeight());
+						else {
+							the_t.setWeight(the_t.getWeight() + (-t.getWeight()));
+						}
+						
+						tmp_ans_list_cnt.set(idx, tmp_ans_list_cnt.get(idx) + 1); // record the counts
+					} else {
+						tmp_ans_list.add(t);
+						tmp_ans_list_cnt.add(1);
+					}
+				}
+			}
+			
+			for (int k = 0; k < tmp_ans_list.size(); k++) {
+				tmp_ans_list.get(k).setWeight((double) tmp_ans_list.get(k).getWeight()/tmp_ans_list_cnt.get(k));
+			}
+			
+			re.add(tmp_ans_list);
+		}
+		return re;
 	}
 }

@@ -90,8 +90,13 @@ public class LogicProgram {
 		buff_preds = null;
 	}
 
-	public void addRules(LinkedList<Formula> rules) {
-		for (Formula r : rules)
+	public void addRules(LinkedList<Formula> rs) {
+		for (Formula r : rs)
+			this.addRule(r);
+	}
+
+	public void addRules(ArrayList<Formula> rs) {
+		for (Formula r : rs)
 			this.addRule(r);
 	}
 }

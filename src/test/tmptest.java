@@ -37,6 +37,10 @@ public class tmptest {
 	public static void testAdaBoost(Prolog prolog, Document doc) {
 		AdaBoost boost = new AdaBoost(prolog);
 		AdaBoostOutput boost_out = boost.train(doc);
+		System.out.println("Finished training, testing output:");
+		BoostingEval boost_eval = new BoostingEval(prolog);
+		boost_eval.addPredicates(doc.getPredList());
+		boost_eval.evalAndPrintAll(boost_out.getWeakRules(), boost_out.getWeights(), doc.getSentences());
 	}
 	
 	public static void testClone() {
@@ -195,6 +199,7 @@ public class tmptest {
         	graph = null;
         }
 	}
+	
 	public static void testRuleTree(Document doc, Prolog prolog) {
 		System.out.println("Test RuleTree!");
 		// find all paths;
