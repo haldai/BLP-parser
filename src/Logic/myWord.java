@@ -57,6 +57,8 @@ public class myWord implements Cloneable{
 //		name = name.replaceAll("\\\\", "backslash");
 		name = name.replaceAll("/", "slash");
 		name = name.replaceAll("[-]", "minus");
+		name = name.replaceAll("·", "");
+		
 		if (args.length == 3) {
 			num = Integer.parseInt(args[1]);
 			pos = args[2];
@@ -186,5 +188,10 @@ public class myWord implements Cloneable{
 	
 	public void setPos(String string) {
 		this.pos = string;		
+	}
+	
+	public void setName(String code) {
+		// TODO Auto-generated method stub
+		this.name = code;
 	}
 }

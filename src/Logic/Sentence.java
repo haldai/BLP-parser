@@ -6,7 +6,10 @@ package Logic;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author daiwz
@@ -18,11 +21,18 @@ public class Sentence {
 	 * Sentence is a bunch of dependencies, i.e., myTerms, and 
 	 * its word list
 	 */
-	int termLen;
-	int wordLen;
+	int termLen = 0;
+	int wordLen = 0;
 	myTerm[] termList;
 	myWord[] wordList;
 	ArrayList<myTerm> featList = new ArrayList<myTerm>();
+	
+	public Sentence(int t_len, int w_len) {
+		termLen = t_len;
+		wordLen = w_len;
+		termList = new myTerm[t_len];
+		wordList = new myWord[w_len];
+	}
 	
 	public Sentence(String deps) {
 		// read sentence from string
@@ -36,6 +46,7 @@ public class Sentence {
 		List<myTerm> tm = new ArrayList<myTerm>();
 		// processing each term
 		List<Integer> l = new ArrayList<Integer>();
+		Map<Integer, myWord> map = new HashMap<Integer, myWord>();
 		l.add(-1);
 		for (int i = 0; i < dep.length; i++) {
 //			System.out.print(i);
@@ -54,6 +65,7 @@ public class Sentence {
 					if (!l.contains(tmp.num)) {
 						wd.add(tmp);
 						l.add(tmp.num);
+						map.put(tmp.num, tmp);
 					}
 				}
 				tm.add(new myTerm(dep[i]));
@@ -64,16 +76,18 @@ public class Sentence {
 			}
 		}
 //		System.out.println(l.toString());
+		Collections.sort(l);
 		myTerm[] buff_terms = new myTerm[tm.size()];
 		myWord[] buff_words = new myWord[wd.size()];
 		for (int i = 0; i < tm.size(); i++ ) {
 			buff_terms[i] = tm.get(i);
 		}
 		
-		for (int i = 0; i < wd.size(); i++ ) {
+		for (int i = 0 ; i < wd.size(); i++) {
 //			System.out.println(wd.get(i));
 //			System.out.println(l.get(i+1) - 1);
-			buff_words[l.get(i + 1) - 1] = wd.get(i);
+//			buff_words[l.get(i + 1) - 1] = wd.get(i);
+			buff_words[i] = map.get(l.get(i + 1));
 		}
 		
 		
@@ -177,6 +191,16 @@ public class Sentence {
 				return true;
 			}
 		}
+	}
+
+	public String toTermString() {
+		// TODO Auto-generated method stub
+		String s = "";
+		for (myTerm t : this.termList) {
+			s = s + t.toString() + ";";
+		}
+		s = s.substring(0, s.length() - 1);
+		return s;
 	}
 	
 }

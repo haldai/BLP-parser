@@ -1,0 +1,7 @@
+adv(u近义词_2_n,u究竟_1_d).
+postag(u究竟_1_d,d_0_POS).
+class(u究竟_1_d,c词汇_0_CLS).
+spoc(u究竟_1_d,s5_0_SPOC).
+postag(u近义词_2_n,n_0_POS).
+class(u近义词_2_n,c近义词_0_CLS).
+spoc(u近义词_2_n,s7_0_SPOC).

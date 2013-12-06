@@ -36,7 +36,7 @@ public class Eval {
 	 * @param program: logic rules
 	 * @param doc: document to be evaluated
 	 */
-	public Eval(Prolog plg, LogicProgram program, Predicate[] preds) {
+	public Eval(Prolog plg, LogicProgram program, ArrayList<Predicate> preds) {
 		// Start prolog engine initialization
 		rules = program.getRules();
 		Q_Preds = program.getHeadPred();
@@ -52,7 +52,7 @@ public class Eval {
 //		}
 	}
 	
-	public Eval(Prolog plg, Predicate[] preds) {
+	public Eval(Prolog plg, ArrayList<Predicate> preds) {
 		// Start prolog engine initialization
 		ruleLen = rules.size();
 		prolog = plg; 
@@ -71,7 +71,7 @@ public class Eval {
 	 * @param plg: prolog engine
 	 * @param preds: predicate array
 	 */
-	private void assertDynamic(Prolog plg, Predicate[] preds) {
+	private void assertDynamic(Prolog plg, ArrayList<Predicate> preds) {
 		// Prolog.dynamic(ALL_PREDICATES)
 		for (Predicate p : preds) {
 			plg.dynamic(p);
@@ -148,9 +148,9 @@ public class Eval {
 	 * @return: all answers
 	 */
 	public ArrayList<LinkedList<myTerm>> evalAll(Document doc) {
-		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(doc.getSentences().length);
+		ArrayList<LinkedList<myTerm>> re = new ArrayList<LinkedList<myTerm>>(doc.getSentences().size());
 		// Start evaluation sentences
-		for (int i = 0; i < doc.getSentences().length; i++) {
+		for (int i = 0; i < doc.getSentences().size(); i++) {
 			LinkedList<myTerm> ans_list = evalSent(doc.getSent(i));
 //			re.set(i, ans_list);
 			re.add(ans_list);

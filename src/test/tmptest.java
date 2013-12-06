@@ -1,5 +1,10 @@
 package test;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -11,17 +16,33 @@ import Boosting.*;
 
 public class tmptest {
 	static Prolog prolog;
-	public static void main(String[] args) {
-		Document doc = new Document("data/questions/questions.pred", 
-				"data/test_new/test.dep", true);
-		
+	public static void main(String[] args) throws IOException {
+//		Document doc = new Document("data/data_revised.pred", 
+//				"data/data_revised.train", true);
+		Document doc = new Document();
+		doc.readConll("data/data_revised.pred", 
+				"data/segmentQueryTrain_lemma1", true);
+		doc.printDocPl();
 		for (int i = 0; i < doc.length(); i++) {
 			System.out.println(doc.getSent(i).toString());
 			System.out.println(doc.getLabel(i).toString());
 			System.out.println(doc.getSent(i).getFeatures().toString());
 		}
 		
+//		Document doc2 = new Document("data/data_revised.pred", 
+//				"data/data_revised.test", true);
+		
+//		doc.printDict();
+//		Document doc2 = new Document();
+//		doc2.setDocAs(doc);
+//		doc2.setTrain(false);
+////		doc2.addSent("ATT(明星_2_n,哪些_1_r);DE(的_3_u,明星_2_n);ATT(身高_4_n,的_3_u);SBV(有_5_v,身高_4_n);VOB(有_5_v,180_6_m).");
+//		doc2.addSent("ATT(老婆_2_n,刘德华_1_nr);DE(的_3_u,老婆_2_n);ATT(年龄_4_n,的_3_u).");
+//		doc2.addSent("ATT(明星_2_n,女_1_b);ATT(身高_3_n,明星_2_n);ATT(16500_4_m,身高_3_n);SBV(有_5_v,16500_4_m).");
+//		doc2.printDict();
+		
 		prolog = new Prolog();
+		
 		
 //		testEvaluation(doc, prolog);
 //		testPathFind(doc);
@@ -29,18 +50,71 @@ public class tmptest {
 //		testTuple();
 //		System.out.println(Math.log(0.0000000000000000000001));
 //		testClone();
-		testAdaBoost(prolog, doc);
+//		doc = label_selection(doc);
+		testAdaBoost(prolog, doc, null);
+//		testAdaBoostEval("../JAVA/out", prolog, doc2, doc.getPredList());
 		
 
 	}
 	
-	public static void testAdaBoost(Prolog prolog, Document doc) {
+	private static void testAdaBoostEval(String path, Prolog prolog, Document doc,
+			 ArrayList<Predicate> pred_list) {
+		AdaBoostOutput boost = new AdaBoostOutput();
+		boost.loadFromFiles(path);
+		BoostingEval boost_eval = new BoostingEval(prolog);
+		boost_eval.addPredicates(pred_list);
+		boost_eval.evalAndPrintAll(boost.getWeakRules(), boost.getWeights(), doc.getSentences());
+	}
+
+	private static Document label_selection(Document doc) throws IOException {
+		Document re = new Document();
+		re.setPredList(doc.getPredList());
+		for (int i = 0; i < doc.length(); i++) {
+			ArrayList<myTerm> tmp_label = new ArrayList<myTerm>();
+			for (int j = 0; j < doc.getLabel(i).size(); j++) {
+				// test Path
+				ArrayList<LinkedList<myTerm>> p = findPath(doc.getLabel(i).get(j), doc.getSent(i));
+				if (p.size() == 0) {
+					System.out.println(String.format("%d-th sentence label %s cannot find path", i, doc.getLabel(i).get(j)));
+				} else {
+					tmp_label.add(doc.getLabel(i).get(j));
+				}
+			}
+			if (!tmp_label.isEmpty()) {
+				re.addSent(tmp_label, doc.getSent(i));
+			}
+		}
+		FileOutputStream fos = new FileOutputStream("out/data_revised.dep");
+		OutputStreamWriter osw=new OutputStreamWriter(fos);
+		BufferedWriter fout=new BufferedWriter(osw);
+		for (int i = 0; i < re.length(); i++) {
+			String s = "";
+			for (myTerm t : re.getLabel(i))
+				s = s + t.toString() + ";";
+			s = s.substring(0, s.length() - 1) + ":-";
+			for (myTerm t : re.getSent(i).getTerms())
+				s = s + t.toString() + ";";
+			s = s.substring(0, s.length() - 1);
+			System.out.println(s);
+			fout.write(String.format("%s\n", s));
+		}
+		fout.close();
+		return re;
+	}
+
+	public static void testAdaBoost(Prolog prolog, Document doc, Document doc2) {
 		AdaBoost boost = new AdaBoost(prolog);
 		AdaBoostOutput boost_out = boost.train(doc);
+		try {
+			boost_out.writeToFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("Finished training, testing output:");
-		BoostingEval boost_eval = new BoostingEval(prolog);
-		boost_eval.addPredicates(doc.getPredList());
-		boost_eval.evalAndPrintAll(boost_out.getWeakRules(), boost_out.getWeights(), doc.getSentences());
+//		BoostingEval boost_eval = new BoostingEval(prolog);
+//		boost_eval.addPredicates(doc2.getPredList());
+//		boost_eval.evalAndPrintAll(boost_out.getWeakRules(), boost_out.getWeights(), doc2.getSentences());
 	}
 	
 	public static void testClone() {
@@ -140,7 +214,7 @@ public class tmptest {
 	
 	public static void testPathFind(Document doc) {
 		System.out.println("Test PathFind!");
-		Sentence[] sentences = doc.getSentences();
+		ArrayList<Sentence> sentences = doc.getSentences();
 		int cnt = 0;
        for (Sentence sent : sentences) {
     	   HyperGraph graph = new HyperGraph();
@@ -211,7 +285,7 @@ public class tmptest {
 				ArrayList<LinkedList<myTerm>> paths = findPath(label, sent);
 				for (LinkedList<myTerm> path : paths) {
 					RuleTree tree = new RuleTree(prolog, doc.getPredList());
-					tree.buildTree(new Data(doc), label, path);
+					tree.buildTree(new Data(doc), label, path, sent);
 				}
 			}
 //			System.exit(0);
