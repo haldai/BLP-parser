@@ -155,7 +155,7 @@ public class AdaBoost {
 			
 			System.out.println("=============patterns================");
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 5)
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)
 					continue;
 				for (int j = 0; j < all_sub_paths.get(pt).size(); j++) {
 					System.out.print(all_sub_paths.get(pt).get(j).toPrologString() + ", ");
@@ -180,7 +180,7 @@ public class AdaBoost {
 			// learn all patterns then add to rule list
 			int cnt = 0;
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 5)
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)
 					continue;
 				cnt++;
 				LinkedList<myTerm> path = new LinkedList<myTerm>();
@@ -193,7 +193,7 @@ public class AdaBoost {
 				} catch (IndexOutOfBoundsException e) {
 					continue;
 				}
-				RuleTree rule = new RuleTree(prolog, doc.getPredList());
+				PathRuleTree rule = new PathRuleTree(prolog, doc.getPredList());
 				System.out.println("tree :" + cnt);
 				rule.buildTree(data, head, path, path_sent);
 				for (Formula f : rule.getPrologRules())
@@ -231,24 +231,24 @@ public class AdaBoost {
 				
 				int sent_idx = k;
 				
-				// TODO deal with uncovered samples
+				// deal with uncovered samples
 				for (int ii = 0; ii < labels.get(sent_idx).size(); ii++) {
 					if (!tmp_sat.getNegative().contains(labels.get(sent_idx).get(ii)) 
 							&& !tmp_sat.getPositive().contains(labels.get(sent_idx).get(ii))) {
-						// TODO assign weight
+						// assign weight
 						double new_weight = 0.0;
 						new_weight = label_weights.get(sent_idx).get(ii) * Math.exp(1) * 2; // cost sensitive
 						label_weights.get(sent_idx).set(ii, new_weight);
 					}
 				}
 				
-				// TODO deal with negative samples
+				// deal with negative samples
 				for (myTerm tmp_term : tmp_sat.getNegative()) {
 					ArrayList<myTerm> tmp_labels = labels.get(sent_idx);
 					int label_idx = 0;
 					if (tmp_labels.contains(tmp_term)) {
 						label_idx = tmp_labels.indexOf(tmp_term);
-						// TODO assign weight
+						// assign weight
 						double new_weight = 0.0;
 						if (tmp_labels.get(label_idx).isPositive()) {
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
@@ -276,7 +276,7 @@ public class AdaBoost {
 					
 				}
 				
-				// TODO deal with positive samples
+				// deal with positive samples
 				for (myTerm tmp_term : tmp_sat.getPositive()) {
 					double new_weight = 0.0;
 					if (!tmp_term.isPositive() || (tmp_term.getWeight() < 0))
@@ -286,7 +286,7 @@ public class AdaBoost {
 						int label_idx = 0;
 						if (tmp_labels.contains(tmp_term)) {
 							label_idx = tmp_labels.indexOf(tmp_term);
-							// TODO set weight
+							// set weight
 							if (tmp_labels.get(label_idx).isPositive()) {
 								new_weight = label_weights.get(sent_idx).get(label_idx) 
 										* Math.exp(-(tmp_term.getWeight()*1));

@@ -283,8 +283,8 @@ public class Document {
 		this.tr = t;
 	}
 	
-	public void printDocPl() throws IOException {
-		FileOutputStream fos = new FileOutputStream("out/doc.pl");
+	public void printDocPl(String out_path) throws IOException {
+		FileOutputStream fos = new FileOutputStream(out_path);
 		OutputStreamWriter osw=new OutputStreamWriter(fos);
 		BufferedWriter fout=new BufferedWriter(osw);
 		for (int i = 0; i < this.sentList.size(); i++) {
@@ -299,7 +299,41 @@ public class Document {
 	}
 	
 	public void readConll(String path_pred, String path_sent, boolean train) {
-		// read file		
+		// read file
+		int[][] xor_table = {{0},
+								{1},
+								{2},
+								{1,2},
+								{4},
+								{1,4},
+								{2,4},
+								{1,2,4},
+								{8},
+								{1,8},
+								{2,4},
+								{1,2,8},
+								{4,8},
+								{1,4,8},
+								{2,4,8},
+								{1,2,4,8},
+								{16},
+								{1,16},
+								{2,16},
+								{1,2,16},
+								{4,16},
+								{1,4,16},
+								{2,4,16},
+								{1,2,4,16},
+								{8,16},
+								{1,8,16},
+								{2,8,16},
+								{1,2,8,16},
+								{4,8,16},
+								{1,4,8,16},
+								{2,4,8,16},
+								{1,2,4,8,16},
+								{32}};
+		
 		String[] fpred = readFileByLines(path_pred);
 		System.out.println("Predicate number: " + fpred.length);
 		String[] fsent = readFileByLines(path_sent);
@@ -341,17 +375,28 @@ public class Document {
 				tmp_wordList.add(cur_word);
 				
 				// add feature
-				tmp_featList.add(new myTerm(String.format("postag(%s,%s_POS)", cur_word.toString(), args[3])));
-				tmp_featList.add(new myTerm(String.format("class(%s,%s_CLS)", cur_word.toString(), "c"+args[2])));
-				tmp_featList.add(new myTerm(String.format("spoc(%s,%s_SPOC)", cur_word.toString(), "s"+args[8])));
+				myWord tmp_feat = new myWord(String.format("%s_0_POS", args[3]));
+				tmp_featList.add(new myTerm(String.format("postag(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+				tmp_feat = new myWord(String.format("%s_0_CLS", "c"+args[2]));
+				tmp_featList.add(new myTerm(String.format("class(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+				if (args.length >= 12) {
+					tmp_feat = new myWord(String.format("%s_0_WFT", "w"+args[11]));
+					tmp_featList.add(new myTerm(String.format("wordfeat(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+				}
+				int xor_spoc = Integer.parseInt(args[8]);
+				int[] xor_comp = xor_table[xor_spoc];
+				for (int xor_num : xor_comp) {
+					tmp_feat = new myWord(String.format("s%d_0_SPOC", xor_num));
+					tmp_featList.add(new myTerm(String.format("spoc(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+				}
 				
 				// add term
 				String pred_name = args[7].toLowerCase();
 				if (!pred_name.equals("hed")) {
 					int term_father = Integer.parseInt(args[6]);
 					String[] args_f = fsent[i + term_father - Integer.parseInt(args[0])].split("\t");
-					String father_str = String.format("%s_%s_%s", "u"+args_f[1], args_f[0], args_f[3]);
-					myTerm tmp_term = new myTerm(String.format("%s(%s,%s)", pred_name, father_str, cur_word.toString()));
+					myWord father_wrd = new myWord(String.format("%s_%s_%s", "u"+args_f[1], args_f[0], args_f[3]));
+					myTerm tmp_term = new myTerm(String.format("%s(%s,%s)", pred_name, father_wrd.toString(), cur_word.toString()));
 					tmp_termList.add(tmp_term);
 				}
 				
@@ -361,13 +406,41 @@ public class Document {
 					if (!label_name.equals("null") && (!label_name.equals("hed"))) {
 						int label_father = Integer.parseInt(args[9]);
 						String[] args_l_f = fsent[i + label_father - Integer.parseInt(args[0])].split("\t");
-						String l_son_str = String.format("%s_%s_%s", "u"+args_l_f[1], args_l_f[0], args_l_f[3]);
-						myTerm tmp_label = new myTerm(String.format("%s(%s,%s)", label_name, cur_word.toString(), l_son_str));
+						myWord l_son = new myWord(String.format("%s_%s_%s", "u"+args_l_f[1], args_l_f[0], args_l_f[3]));
+						myTerm tmp_label = new myTerm(String.format("%s(%s,%s)", label_name, cur_word.toString(), l_son.toString()));
 						tmp_labelList.add(tmp_label);
 					}
 				}
 			}
 		}
 		this.length = this.sentList.size();
+	}
+
+	public void printLabelPl(String out_path) throws IOException {
+		FileOutputStream fos = new FileOutputStream(out_path);
+		OutputStreamWriter osw=new OutputStreamWriter(fos);
+		BufferedWriter fout=new BufferedWriter(osw);
+		for (int i = 0 ; i < this.length; i++) {
+			if (this.labelList.get(i).size() == 0) {
+				fout.write("\n");
+				continue;
+			}
+			for (myTerm l : this.labelList.get(i)) {
+				fout.write(String.format("%s\t", l.toString()));
+			}
+			fout.write("\n");
+		}
+		fout.close();
+	}
+
+	public void printSent(String out_path) throws IOException {
+		// TODO Auto-generated method stub
+		FileOutputStream fos = new FileOutputStream(out_path);
+		OutputStreamWriter osw=new OutputStreamWriter(fos);
+		BufferedWriter fout=new BufferedWriter(osw);
+		for (int i = 0 ; i < this.length; i++) {
+			fout.write(String.format("%s\n", this.getSent(i).toString()));
+		}
+		fout.close();
 	}
 }

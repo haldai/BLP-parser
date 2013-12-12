@@ -122,7 +122,10 @@ public class Sentence {
 	public String toString() {
 		String s = "";
 		for (int i = 0; i < wordLen; i++) {
-			s = s + wordList[i].name;
+			String n = wordList[i].name;
+			if (n.startsWith("u"))
+				n = n.substring(1);
+			s = s + n;
 		}
 		return s;
 	}

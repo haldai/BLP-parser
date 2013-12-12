@@ -21,13 +21,12 @@ public class tmptest {
 //				"data/data_revised.train", true);
 		Document doc = new Document();
 		doc.readConll("data/data_revised.pred", 
-				"data/segmentQueryTrain_lemma1", true);
-		doc.printDocPl();
-		for (int i = 0; i < doc.length(); i++) {
-			System.out.println(doc.getSent(i).toString());
-			System.out.println(doc.getLabel(i).toString());
-			System.out.println(doc.getSent(i).getFeatures().toString());
-		}
+				"../data/traindata1_num1_1p20.train", true);
+//		for (int i = 0; i < doc.length(); i++) {
+//			System.out.println(doc.getSent(i).toString());
+//			System.out.println(doc.getLabel(i).toString());
+//			System.out.println(doc.getSent(i).getFeatures().toString());
+//		}
 		
 //		Document doc2 = new Document("data/data_revised.pred", 
 //				"data/data_revised.test", true);
@@ -284,7 +283,7 @@ public class tmptest {
 			for (myTerm label : labels) {
 				ArrayList<LinkedList<myTerm>> paths = findPath(label, sent);
 				for (LinkedList<myTerm> path : paths) {
-					RuleTree tree = new RuleTree(prolog, doc.getPredList());
+					PathRuleTree tree = new PathRuleTree(prolog, doc.getPredList());
 					tree.buildTree(new Data(doc), label, path, sent);
 				}
 			}
