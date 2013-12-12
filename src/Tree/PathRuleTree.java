@@ -159,7 +159,7 @@ public class PathRuleTree {
 		ArrayList<myTerm> tt = new ArrayList<myTerm>();
 		for (myTerm tmp_term : feature) {
 			if (node.getTermNodes().contains(tmp_term)) {
-				used.add(tmp_term);
+				used.add(tmp_term.clone());
 			} else {
 				tt.add(tmp_term.clone());
 			}
@@ -247,8 +247,7 @@ public class PathRuleTree {
 //					form.pushHead(h);
 //					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //				} else
-				form.setWeight(father_sat.getAccuracy());
-			
+			form.setWeight(father_sat.getAccuracy());			
 			rules.add(form);
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
@@ -263,7 +262,7 @@ public class PathRuleTree {
 //					form.pushHead(h);
 //					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //				} else
-				form.setWeight(father_sat.getAccuracy());
+			form.setWeight(father_sat.getAccuracy());
 			rules.add(form);
 //				System.out.println(data.size() + "/"  + form.toString());
 			return node;
@@ -278,7 +277,7 @@ public class PathRuleTree {
 //					form.pushHead(h);
 //					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //				} else
-				form.setWeight(father_sat.getAccuracy());
+			form.setWeight(father_sat.getAccuracy());
 			rules.add(form);
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
@@ -293,7 +292,7 @@ public class PathRuleTree {
 //					form.pushHead(h);
 //					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //				} else
-				form.setWeight(father_sat.getAccuracy());
+			form.setWeight(father_sat.getAccuracy());
 			rules.add(form);
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
@@ -312,9 +311,6 @@ public class PathRuleTree {
 			ArrayList<myTerm> appeared = cur_form.getBody();
 			
 			features = removeDup(features, appeared);
-//				System.out.println("=================cur_form===================");
-//				System.out.println(cur_form.toString());
-//				System.out.println("=================cur_form===================");
 			for (myTerm f : features) {
 				PathSat covSat = new PathSat();
 				PathSat uncovSat = new PathSat();
@@ -374,7 +370,7 @@ public class PathRuleTree {
 //						form.pushHead(h);
 //						form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //					} else
-					form.setWeight(father.getSentSat(branch).getAccuracy());
+				form.setWeight(father_sat.getAccuracy());
 				rules.add(form);
 //					System.out.println(data.size() + "/"  + form.toString());
 				return node;
@@ -430,8 +426,8 @@ public class PathRuleTree {
 			tt = null;
 			
 			// create children
-			node.setFalseChild(create(maxUncovSat, cov_Features, usedTerms, node, false));
-			node.setTrueChild(create(maxCovSat, uncov_Features, usedTerms, node, true));
+			node.setFalseChild(create(maxUncovSat, uncov_Features, usedTerms, node, false));
+			node.setTrueChild(create(maxCovSat, cov_Features, usedTerms, node, true));
 			return node;
 		}
 	}

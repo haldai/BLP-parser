@@ -333,6 +333,10 @@ public class Document {
 								{2,4,8,16},
 								{1,2,4,8,16},
 								{32}};
+		ArrayList<String> regular = new ArrayList<String>(Arrays.asList("sp", "oc", "cp", "op",
+				"sc", "so"));
+		ArrayList<String> irregular = new ArrayList<String>(Arrays.asList("ps", "co", "pc", "po",
+				"cs", "os"));
 		
 		String[] fpred = readFileByLines(path_pred);
 		System.out.println("Predicate number: " + fpred.length);
@@ -380,8 +384,10 @@ public class Document {
 				tmp_feat = new myWord(String.format("%s_0_CLS", "c"+args[2]));
 				tmp_featList.add(new myTerm(String.format("class(%s,%s)", cur_word.toString(), tmp_feat.toString())));
 				if (args.length >= 12) {
-					tmp_feat = new myWord(String.format("%s_0_WFT", "w"+args[11]));
-					tmp_featList.add(new myTerm(String.format("wordfeat(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+					if (!args[11].equals("_")) {
+						tmp_feat = new myWord(String.format("%s_0_WSD", "w"+args[11]));
+						tmp_featList.add(new myTerm(String.format("wsd(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+					}
 				}
 				int xor_spoc = Integer.parseInt(args[8]);
 				int[] xor_comp = xor_table[xor_spoc];
@@ -405,10 +411,19 @@ public class Document {
 					String label_name = args[10].toLowerCase();
 					if (!label_name.equals("null") && (!label_name.equals("hed"))) {
 						int label_father = Integer.parseInt(args[9]);
+						
 						String[] args_l_f = fsent[i + label_father - Integer.parseInt(args[0])].split("\t");
 						myWord l_son = new myWord(String.format("%s_%s_%s", "u"+args_l_f[1], args_l_f[0], args_l_f[3]));
-						myTerm tmp_label = new myTerm(String.format("%s(%s,%s)", label_name, cur_word.toString(), l_son.toString()));
-						tmp_labelList.add(tmp_label);
+						if (regular.contains(label_name)) {
+							myTerm tmp_label = new myTerm(String.format("%s(%s,%s)", label_name, cur_word.toString(), l_son.toString()));
+							tmp_labelList.add(tmp_label);
+						}
+						if (irregular.contains(label_name)) {
+							int ridx = irregular.indexOf(label_name);
+							myTerm tmp_label = new myTerm(String.format("%s(%s,%s)", regular.get(ridx), l_son.toString(), cur_word.toString()));
+							tmp_labelList.add(tmp_label);
+						}
+						
 					}
 				}
 			}

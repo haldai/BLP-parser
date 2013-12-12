@@ -21,7 +21,7 @@ public class tmptest {
 //				"data/data_revised.train", true);
 		Document doc = new Document();
 		doc.readConll("data/data_revised.pred", 
-				"../data/traindata1_num1_1p20.train", true);
+				"../data/zhiliang/test.train", true);
 //		for (int i = 0; i < doc.length(); i++) {
 //			System.out.println(doc.getSent(i).toString());
 //			System.out.println(doc.getLabel(i).toString());

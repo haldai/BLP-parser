@@ -94,11 +94,13 @@ public class AdaBoost {
 			
 			// paths from current data
 			ArrayList<LinkedList<myTerm>> all_paths = new ArrayList<LinkedList<myTerm>>();
+			ArrayList<Integer> all_paths_sent = new ArrayList<Integer>(); // sentence num of path
 			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();
 			for (int i = 0; i < data.getSents().size(); i++)
 				for (int j = 0; j < data.getLabel(i).size(); j++) {
 					all_heads.add(data.getLabel(i).get(j));
 					all_paths.addAll(findPath(data.getLabel(i).get(j), data.getSent(i)));
+					all_paths_sent.add(i);
 				}
 
 //			for (int i = 0; i < all_paths.size(); i++) {
@@ -188,7 +190,8 @@ public class AdaBoost {
 				myTerm head = new myTerm();
 				try {
 					path = all_paths.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
-					path_sent = data.getSent(pat_path_map.get(all_sub_paths.get(pt)).get(0));
+					int aa = all_paths_sent.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
+					path_sent = data.getSent(aa);
 					head = all_heads.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
 				} catch (IndexOutOfBoundsException e) {
 					continue;
@@ -353,11 +356,11 @@ public class AdaBoost {
 			int x = (Integer) map.get(k_array[i]).x;
 			int y = (Integer) map.get(k_array[i]).y;
 			if (re.getSents().contains(sentences.get(x))) {
-				int idx_sent = re.getSents().indexOf(sentences.get(x));
-				re.getLabel(idx_sent).add(labels.get(x).get(y));
-//				continue;
+//				int idx_sent = re.getSents().indexOf(sentences.get(x));
+//				re.getLabel(idx_sent).add(labels.get(x).get(y));
+				continue;
 			} else
-				re.addData(labels.get(x).get(y), sentences.get(x));
+				re.addData(labels.get(x), sentences.get(x));
 		}
 		return re;
 	}

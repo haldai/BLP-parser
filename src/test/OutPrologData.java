@@ -9,10 +9,10 @@ public class OutPrologData {
 	static public void main(String[] args) throws Exception {
 		Document doc = new Document();
 		doc.readConll("data/data_revised.pred", 
-				"../data/traindata1_num1_1p20.train", true);
-		doc.printDocPl("../data/traindata1_num1_1p20.train.spoc.pl");
-		doc.printLabelPl("../data/traindata1_num1_1p20.train.label");
-		doc.printSent("../data/traindata1_num1_1p20.train.sent");
+				"../data/zhiliang/train1_1w.train", true);
+		doc.printDocPl("../data/zhiliang/train1_1w.train.pl");
+		doc.printLabelPl("../data/zhiliang/train1_1w.train.label");
+		doc.printSent("../data/zhiliang/train1_1w.train.sent");
 		System.out.println("finished");
 	}
 }
