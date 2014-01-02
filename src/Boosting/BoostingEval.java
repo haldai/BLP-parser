@@ -21,17 +21,14 @@ public class BoostingEval {
 	 * 
 	 */
 	Prolog prolog;
-	Eval eval;
-	Predicate[] pred_list;
+	ArrayList<Predicate> pred_list = new ArrayList<Predicate>();
 	
 	public BoostingEval(Prolog p) {
 		prolog = p;
-		eval = new Eval(prolog);
 	}
 
-	public void addPredicates(Predicate[] p) {
+	public void addPredicates(ArrayList<Predicate> p) {
 		pred_list = p;
-		eval = new Eval(prolog, pred_list);
 	}
 
 	
@@ -72,7 +69,7 @@ public class BoostingEval {
 		ArrayList<ArrayList<myTerm>> tmp_results = new ArrayList<ArrayList<myTerm>>();
 		for (int i = 0; i < rules.size(); i++) {
 			LogicProgram lp = new LogicProgram(rules.get(i));
-			eval.setRules(lp);
+			Eval eval = new Eval(prolog, pred_list);
 			ArrayList<LinkedList<myTerm>> result_one_by_one = eval.evalOneByOneSent(lp, sent);
 			ArrayList<myTerm> merged_result = mergeProbResultsSent(result_one_by_one);
 			tmp_results.add(merged_result);

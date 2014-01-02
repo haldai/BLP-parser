@@ -32,31 +32,50 @@ public class myWord implements Cloneable{
 		// Generative function of myWord(word_#_pos)
 		String[] args = s.split("_");
 		name = args[0];
-		name = name.replaceAll("？", "question");
-		name = name.replaceAll("。", "period");
-		name = name.replaceAll("，", "comma");
-		name = name.replaceAll("《", "bookLeft");
-		name = name.replaceAll("》", "bookRight");
-		name = name.replaceAll("（", "parLeft");
-		name = name.replaceAll("）", "parRight");
-		name = name.replaceAll("”", "quoteRight");
-		name = name.replaceAll("“", "quoteLeft");
-		name = name.replaceAll("’", "quoteRight");
-		name = name.replaceAll("‘", "quoteLeft");
-		name = name.replaceAll("、", "backslash");
-		name = name.replaceAll("—", "minus");
-		name = name.replaceAll("[?]", "question");
-		name = name.replaceAll("[.]", "period");
-		name = name.replaceAll(",", "comma");
-		name = name.replaceAll("<", "lessThan");
-		name = name.replaceAll(">", "largerThan");
-		name = name.replaceAll("[(]", "parLeft");
-		name = name.replaceAll("[)]", "parRight");
-		name = name.replaceAll("\"", "quote");
-//		name = name.replaceAll("\'", "quote");
-//		name = name.replaceAll("\\\\", "backslash");
-		name = name.replaceAll("/", "slash");
-		name = name.replaceAll("[-]", "minus");
+		name = name.replaceAll("？", "char");
+		name = name.replaceAll("[*]", "char");
+		name = name.replaceAll("[+]", "char");
+		name = name.replaceAll("_", "char");
+		name = name.replaceAll(":", "char");
+		name = name.replaceAll("：", "char");
+		name = name.replaceAll("!", "char");
+		name = name.replaceAll("！", "char");
+		name = name.replaceAll("[?]", "char");
+		name = name.replaceAll("、", "char");
+		name = name.replaceAll("…", "char");
+		name = name.replaceAll("\\[", "char");
+		name = name.replaceAll("\\]", "char");
+		name = name.replaceAll("@", "char");
+		name = name.replaceAll("[$]", "char");
+		name = name.replaceAll("~", "char");
+		name = name.replaceAll(";", "char");
+		name = name.replaceAll("；", "char");
+		name = name.replaceAll("。", "char");
+		name = name.replaceAll("，", "char");
+		name = name.replaceAll("《", "char");
+		name = name.replaceAll("》", "char");
+		name = name.replaceAll("（", "char");
+		name = name.replaceAll("）", "char");
+		name = name.replaceAll("”", "char");
+		name = name.replaceAll("“", "char");
+		name = name.replaceAll("’", "char");
+		name = name.replaceAll("‘", "char");
+		name = name.replaceAll("、", "char");
+		name = name.replaceAll("—", "char");
+		name = name.replaceAll("[?]", "char");
+		name = name.replaceAll("[.]", "char");
+		name = name.replaceAll(",", "char");
+		name = name.replaceAll("<", "char");
+		name = name.replaceAll(">", "char");
+		name = name.replaceAll("[(]", "char");
+		name = name.replaceAll("[)]", "char");
+		name = name.replaceAll("\"", "char");
+		name = name.replaceAll("\'", "char");
+		name = name.replaceAll("\\\\", "char");
+		name = name.replaceAll("/", "char");
+		name = name.replaceAll("[-]", "char");
+		name = name.replaceAll("·", "char");
+		
 		if (args.length == 3) {
 			num = Integer.parseInt(args[1]);
 			pos = args[2];
@@ -186,5 +205,10 @@ public class myWord implements Cloneable{
 	
 	public void setPos(String string) {
 		this.pos = string;		
+	}
+	
+	public void setName(String code) {
+		// TODO Auto-generated method stub
+		this.name = code;
 	}
 }

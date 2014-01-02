@@ -1,0 +1,4 @@
+%%% Queries
+query(sem(_,_)).
+query(do(_,_)).
+query(iiss(_,_)).

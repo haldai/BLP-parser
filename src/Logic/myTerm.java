@@ -90,7 +90,10 @@ public class myTerm implements Cloneable{
 			pos = "not: "; 
 		String s = String.format("%s%s(", pos, pred.getName());
 		for (myWord w : args) {
-			s = s + w.toString() + ",";
+			if (w.getNum() == 0)
+				s = s + w.toPrologString() + ",";
+			else
+				s = s + w.toString() + ",";
 		}
 		if (s.endsWith(","))
 			s = s.substring(0, s.length() - 1) + ")";

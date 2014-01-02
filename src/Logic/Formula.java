@@ -38,6 +38,11 @@ public class Formula implements Cloneable {
 	}
 	// build formula by String	
 	public Formula(String f) {
+		if (f.contains("::")) {
+			this.weight = Double.valueOf(f.split("::")[0]);
+			f = f.split("::")[1];
+		}
+			
 		if (f.endsWith("."))
 			f = f.substring(0, f.length() - 1);
 		String[] comp = f.split("\\:-");
@@ -52,6 +57,9 @@ public class Formula implements Cloneable {
 			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
 				s = s.substring(4, s.length() - 1);
 				sym = false;
+			} else {
+				if (s.startsWith("("))
+					s = s.substring(1, s.length() - 1);
 			}
 			myTerm tmp_t = new myTerm(s);
 			if (!sym)
@@ -70,6 +78,9 @@ public class Formula implements Cloneable {
 			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
 				s = s.substring(3, s.length() - 1);
 				sym = false;
+			} else {
+				if (s.startsWith("("))
+					s = s.substring(1, s.length() - 1);
 			}
 			myTerm tmp_t = new myTerm(s);
 			if (!sym)
@@ -216,9 +227,9 @@ public class Formula implements Cloneable {
 			s = s + "):- ";
 		}
 		for (int i = 0; i < body.size(); i++) {
-			s = s + body.get(i).toPrologString() + ';';
+			s = s + body.get(i).toPrologString() + ',';
 		}
-		if (s.endsWith(";")) {
+		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 1);
 			s = s + '.';
 		}
