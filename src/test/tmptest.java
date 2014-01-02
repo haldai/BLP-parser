@@ -16,18 +16,18 @@ import Boosting.*;
 
 public class tmptest {
 	static Prolog prolog;
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 //		Document doc = new Document("data/data_revised.pred", 
 //				"data/data_revised.train", true);
 		Document doc = new Document();
 		doc.readConll("data/data_revised.pred", 
-				"../data/zhiliang/test.train", true);
+				"../data/lemma.train", true);
 //		for (int i = 0; i < doc.length(); i++) {
 //			System.out.println(doc.getSent(i).toString());
 //			System.out.println(doc.getLabel(i).toString());
 //			System.out.println(doc.getSent(i).getFeatures().toString());
 //		}
-		
+		//traindata1_num3.new zhiliang/traindata1_num3_new_wsd.train
 //		Document doc2 = new Document("data/data_revised.pred", 
 //				"data/data_revised.test", true);
 		
@@ -101,11 +101,11 @@ public class tmptest {
 		return re;
 	}
 
-	public static void testAdaBoost(Prolog prolog, Document doc, Document doc2) {
+	public static void testAdaBoost(Prolog prolog, Document doc, Document doc2) throws Exception {
 		AdaBoost boost = new AdaBoost(prolog);
 		AdaBoostOutput boost_out = boost.train(doc);
 		try {
-			boost_out.writeToFile();
+			boost_out.writeToFile("out");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -644,6 +644,7 @@ public class PathRuleTree {
 	 * Add feature of each word in path
 	 * @param words: words in path
 	 * @param vars: variables that represent words
+	 * @param feat_list: feature list of plenty 
 	 * @return: a list of terms as feature
 	 */
 	private ArrayList<myTerm> buildFeature(ArrayList<myWord> vars, ArrayList<myWord> words, ArrayList<myTerm> feat_list) {

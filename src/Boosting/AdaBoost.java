@@ -42,7 +42,7 @@ public class AdaBoost {
 		prolog = p;
 	}
 	
-	public AdaBoostOutput train(Document doc) {
+	public AdaBoostOutput train(Document doc) throws Exception {
 
 		AdaBoostOutput re = new AdaBoostOutput();
 		pred_list = doc.getPredList();
@@ -157,7 +157,7 @@ public class AdaBoost {
 			
 			System.out.println("=============patterns================");
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)
 					continue;
 				for (int j = 0; j < all_sub_paths.get(pt).size(); j++) {
 					System.out.print(all_sub_paths.get(pt).get(j).toPrologString() + ", ");
@@ -182,7 +182,7 @@ public class AdaBoost {
 			// learn all patterns then add to rule list
 			int cnt = 0;
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)
 					continue;
 				cnt++;
 				LinkedList<myTerm> path = new LinkedList<myTerm>();
@@ -212,12 +212,22 @@ public class AdaBoost {
 			// use the rule to evaluate the whole document and reset the weight
 			SentSat cur_tree_sent_sat = new SentSat();
 			try {
-				cur_tree_sent_sat = yapEvaluateRules(new Data(doc), rules);
+//				Data eval_data = RandSample(doc, 2000);
+				long begintime = System.currentTimeMillis();
+				cur_tree_sent_sat = yapThreadsEvaluateRules(new Data(doc), rules, 10);
+				long endtime=System.currentTimeMillis();
+				System.out.println("thread:" + (endtime - begintime));
+				
+//				begintime = System.currentTimeMillis();
+//				cur_tree_sent_sat = yapEvaluateRules(new Data(doc), rules);
+//				endtime=System.currentTimeMillis();
+//				System.out.println("no thread:" + (endtime - begintime));
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			} // current tree sentence satisfy samples
 			
-			err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree, can be set weight
+			err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree
 			if (err > 0.5) {
 				double cov = cur_tree_sent_sat.getCov();
 				System.out.println(err + "/" + cov);
@@ -240,7 +250,7 @@ public class AdaBoost {
 							&& !tmp_sat.getPositive().contains(labels.get(sent_idx).get(ii))) {
 						// assign weight
 						double new_weight = 0.0;
-						new_weight = label_weights.get(sent_idx).get(ii) * Math.exp(1) * 2; // cost sensitive
+						new_weight = label_weights.get(sent_idx).get(ii) * Math.exp(1*2) * 2; // cost sensitive
 						label_weights.get(sent_idx).set(ii, new_weight);
 					}
 				}
@@ -255,10 +265,10 @@ public class AdaBoost {
 						double new_weight = 0.0;
 						if (tmp_labels.get(label_idx).isPositive()) {
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
-									* Math.exp(-(tmp_term.getWeight()*1)) * 2; // cost sensitive
+									* Math.exp(-(tmp_term.getWeight()*1*2)) * 2; // cost sensitive
 						} else {
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
-									* Math.exp(-(tmp_term.getWeight()*(-1)));
+									* Math.exp(-(tmp_term.getWeight()*(-1*2)) * 2);
 						}
 //						new_weight = label_weights.get(sent_idx).get(label_idx) 
 //								* Math.exp(-(tmp_term.getWeight() - 0.5)*2);
@@ -305,7 +315,7 @@ public class AdaBoost {
 			
 			
 			
-			// TODO normalize weights
+			// normalize weights
 			double sum = 0;
 			for (ArrayList<Double> d_list : label_weights) {
 				for (Double d : d_list) {
@@ -323,6 +333,63 @@ public class AdaBoost {
 		}
 		return re;
 	}
+	
+	/**
+	 * randomly sample some labeled data from database
+	 * @param doc: document for evaluation
+	 * @param num: number of sampling data
+	 * @return: sampled data
+	 */
+	private Data RandSample(Document doc, int num) {
+		Data re = new Data();
+		int total = doc.getSentences().size();
+		
+		ArrayList<Double> weight= new ArrayList<Double>(total);
+		for (int i = 0; i < total; i++) {
+			weight.add(1/((double) total));
+		}
+		
+		Map<Double, ArrayList<Integer>> map = new HashMap<Double, ArrayList<Integer>>();
+		ArrayList<myTerm> re_label = new ArrayList<myTerm>();
+		ArrayList<Sentence> re_sent = new ArrayList<Sentence>();
+		ArrayList<Double> k = new ArrayList<Double>();
+		
+		for (int i = 0; i < total; i++) {
+			double u = Math.random();
+			double kk = Math.pow(u, (double) 1/weight.get(i));
+			k.add(kk);
+			if (map.get(kk) == null) {
+				map.put(kk, new ArrayList<Integer>());
+				map.get(kk).add(i);
+			}
+			else {
+				map.get(kk).add(i);
+			}
+		}
+		
+		Double[] k_array = k.toArray(new Double[k.size()]);
+		Arrays.sort(k_array, Collections.reverseOrder());
+		
+		int i = 0, t = 0;
+		OK:
+		while(i < k_array.length) {
+			ArrayList<Integer> idxs = map.get(k_array[i]);
+			i++;
+			for (int idx : idxs) {
+				if (t > num)
+					break OK;
+				if (re.getSents().contains(doc.getSent(idx))) {
+					continue;
+				} else {
+					re.addData(doc.getLabel(idx), doc.getSent(idx));
+					t++;
+				}
+			}
+		}
+		
+		return re;
+	}
+
 	/**
 	 * A-ES sampling
 	 * @param labels
@@ -333,13 +400,9 @@ public class AdaBoost {
 	private Data weightedRandSample(ArrayList<ArrayList<myTerm>> labels, ArrayList<Sentence> sentences,
 			ArrayList<ArrayList<Double>> weight, int num) {
 		Data re = new Data();
-		double[] max_n = new double[num] ;
-		Map<Double, Tuple<Integer, Integer>> map = new HashMap<Double, Tuple<Integer, Integer>>(); 
-		for (int i = 0; i < num; i++) {
-			max_n[i] = 0.0;
-		}
-		ArrayList<myTerm> re_label = new ArrayList<myTerm>();
-		ArrayList<Sentence> re_sent = new ArrayList<Sentence>();
+		
+		Map<Double, ArrayList<Tuple<Integer, Integer>>> map = new HashMap<Double, ArrayList<Tuple<Integer, Integer>>>();
+		
 		ArrayList<Double> k = new ArrayList<Double>();
 		
 		for (int i = 0; i < sentences.size(); i++) {
@@ -347,21 +410,37 @@ public class AdaBoost {
 				double u = Math.random();
 				double kk = Math.pow(u, (double) 1/weight.get(i).get(j));
 				k.add(kk);
-				map.put(kk, new Tuple<Integer, Integer>(i,j));
+				if (map.get(kk) == null) {
+					map.put(kk, new ArrayList<Tuple<Integer, Integer>>());
+					map.get(kk).add(new Tuple<Integer, Integer>(i,j));
+				} else {
+					map.get(kk).add(new Tuple<Integer, Integer>(i,j));
+				}
 			}
 		}
 		Double[] k_array = k.toArray(new Double[k.size()]);
 		Arrays.sort(k_array, Collections.reverseOrder());
-		for (int i = 0; i < num; i++) {
-			int x = (Integer) map.get(k_array[i]).x;
-			int y = (Integer) map.get(k_array[i]).y;
-			if (re.getSents().contains(sentences.get(x))) {
-//				int idx_sent = re.getSents().indexOf(sentences.get(x));
-//				re.getLabel(idx_sent).add(labels.get(x).get(y));
-				continue;
-			} else
-				re.addData(labels.get(x), sentences.get(x));
+		int i = 0, t = 0;
+		OK:
+		while(i < k_array.length) {
+			ArrayList<Tuple<Integer,Integer>> tuples= map.get(k_array[i]);
+			i++;
+
+			for (Tuple <Integer, Integer> tup : tuples) {
+				t++;
+				if (t > num)
+					break OK;
+				int x = (Integer) tup.x;
+				if (re.getSents().contains(sentences.get(x))) {
+//					int idx_sent = re.getSents().indexOf(sentences.get(x));
+//					re.getLabel(idx_sent).add(labels.get(x).get(y));
+					continue;
+				} else {
+					re.addData(labels.get(x), sentences.get(x));
+				}
+			}
 		}
+		
 		return re;
 	}
 	
@@ -386,7 +465,35 @@ public class AdaBoost {
 		return pf.getPaths();
 	}
 	
-	public SentSat yapEvaluateRules(Data data, ArrayList<Formula> rules) throws IOException {
+	public SentSat yapThreadsEvaluateRules(Data data, ArrayList<Formula> rules, int thread_num) throws Exception {
+		SentSat re = new SentSat();
+		YapEvalThread yap_threads = new YapEvalThread(data, rules, thread_num);
+		int sent_num = data.getSents().size();
+		int cur_num = 0;
+		while(cur_num < sent_num) {
+			for (int i = 0; i < thread_num; i++) {
+				cur_num = cur_num + 1;
+				if (cur_num > sent_num - 1)
+					break;
+				String num_str = String.valueOf(i);
+				new Thread(yap_threads, num_str).start();
+			}
+			
+			yap_threads.setNumber(yap_threads.getNumber() + thread_num);
+		}
+		
+		ArrayList<ArrayList<myTerm>> merged_result = yap_threads.getMergedResult();
+		for (int k = 0; k < data.getSents().size(); k++) {
+			SatisfySamples tmp_sat = new SatisfySamples();
+			tmp_sat.setSatisifySamplesProb(data.getLabel(k), new LinkedList<myTerm>(merged_result.get(k)));
+			re.addSentSat(data.getLabel(k), data.getSent(k), tmp_sat);
+		}
+		re.setTotal();
+		
+		return re;
+	}
+	
+	public SentSat yapEvaluateRules(Data data, ArrayList<Formula> rules) throws Exception {
 		// evaluate given data by current rules
 		SentSat re = new SentSat();
 		String tmp_dir = System.getProperty("user.dir") + "/tmp/";
@@ -426,6 +533,7 @@ public class AdaBoost {
 						
 			try {
 				Process ps = Runtime.getRuntime().exec(yap_cmd);
+				ps.waitFor();
 				System.out.print(loadStream(ps.getInputStream()));
 				System.err.print(loadStream(ps.getErrorStream()));
 			} catch(IOException ioe) {

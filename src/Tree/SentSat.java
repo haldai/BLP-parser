@@ -36,6 +36,17 @@ public class SentSat {
 	 */
 	public SentSat() {}
 	
+	public SentSat(int len) {
+		ArrayList<Sentence> sents = new ArrayList<Sentence>(len);
+		ArrayList<SatisfySamples> sats = new ArrayList<SatisfySamples>(len);
+		ArrayList<ArrayList<myTerm>> labels = new ArrayList<ArrayList<myTerm>>(len);
+		for (int i = 0; i < len; i++) {
+			labels.add(new ArrayList<myTerm>());
+		}
+		ArrayList<myTerm> allPos = new ArrayList<myTerm>();
+		ArrayList<myTerm> allNeg = new ArrayList<myTerm>();
+	}
+	
 	public void addSentSat(ArrayList<myTerm> label, Sentence sent, SatisfySamples sat) {
 		labels.add(label);
 		sents.add(sent);

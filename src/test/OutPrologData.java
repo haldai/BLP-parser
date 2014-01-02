@@ -6,13 +6,13 @@ import Logic.Document;
 
 public class OutPrologData {
 
-	static public void main(String[] args) throws Exception {
+	static public void main(String[] args) throws IOException {
 		Document doc = new Document();
 		doc.readConll("data/data_revised.pred", 
-				"../data/zhiliang/train1_1w.train", true);
-		doc.printDocPl("../data/zhiliang/train1_1w.train.pl");
-		doc.printLabelPl("../data/zhiliang/train1_1w.train.label");
-		doc.printSent("../data/zhiliang/train1_1w.train.sent");
+				"../data/case/segmentQueryTest1", true);
+		doc.printDocPl("../data/case/segmentQueryTest1.pl");
+		doc.printLabelPl("../data/case/segmentQueryTest1.label");
+		doc.printSent("../data/case/segmentQueryTest1.sent");
 		System.out.println("finished");
 	}
 }

@@ -50,9 +50,9 @@ public class AdaBoostOutput {
 		this.ruleWeights = weights;
 	}
 	
-	public void writeToFile() throws IOException {
+	public void writeToFile(String out_path) throws IOException {
 		for (int i = 0; i < weakRules.size(); i++) {
-			String s = "out/" + "rules" + i + ".pl";
+			String s = out_path + "/" + "rules" + i + ".pl";
 			FileOutputStream fos = new FileOutputStream(s);
 			OutputStreamWriter osw=new OutputStreamWriter(fos);
 			BufferedWriter fout=new BufferedWriter(osw);

@@ -383,6 +383,8 @@ public class Document {
 				tmp_featList.add(new myTerm(String.format("postag(%s,%s)", cur_word.toString(), tmp_feat.toString())));
 				tmp_feat = new myWord(String.format("%s_0_CLS", "c"+args[2]));
 				tmp_featList.add(new myTerm(String.format("class(%s,%s)", cur_word.toString(), tmp_feat.toString())));
+				tmp_feat = new myWord(String.format("%s_0_WRD", "u"+args[1]));
+				tmp_featList.add(new myTerm(String.format("wrd(%s,%s)", cur_word.toString(), tmp_feat.toString())));
 				if (args.length >= 12) {
 					if (!args[11].equals("_")) {
 						tmp_feat = new myWord(String.format("%s_0_WSD", "w"+args[11]));
