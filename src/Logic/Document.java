@@ -31,8 +31,8 @@ public class Document {
 	ArrayList<Sentence> sentList = new ArrayList<Sentence>();
 	ArrayList<ArrayList<myTerm>> labelList = new ArrayList<ArrayList<myTerm>>();
 	ArrayList<Predicate> predList = new ArrayList<Predicate>();
-	Map<String, String> word2codeMap = new HashMap<String,String>();
-	Map<String, String> code2wordMap = new HashMap<String,String>();
+//	Map<String, String> word2codeMap = new HashMap<String,String>();
+//	Map<String, String> code2wordMap = new HashMap<String,String>();
 	ArrayList<String> wordList = new ArrayList<String>();
 	int dictLen = 0;
 	
@@ -182,38 +182,38 @@ public class Document {
 		}
 	}
 	
-	/**
-	 * build dictionary for chinese words
-	 * @param org_words
-	 * @return
-	 */
-	private void buildDict(ArrayList<myWord> org_words) {
-		for (myWord w : org_words) {
-			String word;
-			if (w.getName().startsWith("d"))
-				word = w.getName().substring(1);
-			else
-				word = w.getName();
-			if (!wordList.contains(word)) {
-				wordList.add(word);
-				String code = String.format("w%d", dictLen);
-				word2codeMap.put(word, code);
-				code2wordMap.put(code, word);
-				w.setName(code);
-				dictLen++;
-			}
-		}
-	}
+//	/**
+//	 * build dictionary for chinese words
+//	 * @param org_words
+//	 * @return
+//	 */
+//	private void buildDict(ArrayList<myWord> org_words) {
+//		for (myWord w : org_words) {
+//			String word;
+//			if (w.getName().startsWith("d"))
+//				word = w.getName().substring(1);
+//			else
+//				word = w.getName();
+//			if (!wordList.contains(word)) {
+//				wordList.add(word);
+//				String code = String.format("w%d", dictLen);
+//				word2codeMap.put(word, code);
+//				code2wordMap.put(code, word);
+//				w.setName(code);
+//				dictLen++;
+//			}
+//		}
+//	}
 	
-	public void printDict() throws IOException {
-		FileOutputStream fos = new FileOutputStream("out/words.dict");
-		OutputStreamWriter osw=new OutputStreamWriter(fos);
-		BufferedWriter fout=new BufferedWriter(osw);
-		for (String word : wordList) {
-			fout.write(String.format("%s\t%s\n", word2codeMap.get(word), word));
-		}
-		fout.close();
-	}
+//	public void printDict() throws IOException {
+//		FileOutputStream fos = new FileOutputStream("out/words.dict");
+//		OutputStreamWriter osw=new OutputStreamWriter(fos);
+//		BufferedWriter fout=new BufferedWriter(osw);
+//		for (String word : wordList) {
+//			fout.write(String.format("%s\t%s\n", word2codeMap.get(word), word));
+//		}
+//		fout.close();
+//	}
 	
 	/**
 	 * substitute all words in sentence into dict codes
@@ -236,7 +236,7 @@ public class Document {
 			dep_str = string;
 		}
 		Sentence tmp_sent = new Sentence(dep_str);
-		buildDict(new ArrayList<myWord>(Arrays.asList(tmp_sent.getWords())));
+//		buildDict(new ArrayList<myWord>(Arrays.asList(tmp_sent.getWords())));
 		for (myTerm t : tmp_sent.getTerms()) {
 			for (myWord w : t.getArgs()) {
 //				w.setName(word2codeMap.get(w.getName()));
@@ -271,13 +271,13 @@ public class Document {
 		this.sentList.add(new Sentence(sent));
 	}
 	
-	public void setDocAs(Document doc) {
-		this.predList = doc.getPredList();
-		this.word2codeMap = doc.word2codeMap;
-		this.code2wordMap = doc.code2wordMap;
-		this.wordList = doc.wordList;
-		this.dictLen = doc.dictLen;
-	}
+//	public void setDocAs(Document doc) {
+//		this.predList = doc.getPredList();
+//		this.word2codeMap = doc.word2codeMap;
+//		this.code2wordMap = doc.code2wordMap;
+//		this.wordList = doc.wordList;
+//		this.dictLen = doc.dictLen;
+//	}
 	
 	public void setTrain(boolean t) {
 		this.tr = t;
