@@ -26,6 +26,7 @@ import Tree.*;
 
 /**
  * @author Wang-Zhou
+ * @modifiyer 田植良
  *
  */
 public class AdaBoost {
