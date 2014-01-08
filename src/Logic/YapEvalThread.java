@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
 
 import ILP.SatisfySamples;
 import Tree.Data;
@@ -42,6 +43,8 @@ public class YapEvalThread implements Runnable{
 	ArrayList<ArrayList<myTerm>> merged_result = new ArrayList<ArrayList<myTerm>>();
 	Data data = new Data();
 	
+	private CountDownLatch countDownLatch; // countdown latch for waiting all thread finish
+	
 	int number = 0;
 	int currentThreads = 0;
 	int totalThreads = 0;
@@ -65,7 +68,15 @@ public class YapEvalThread implements Runnable{
 		frule.close();
 		
 	}
-
+	
+	public void setCountDownLatch(CountDownLatch cdl) {
+		this.countDownLatch = cdl;
+	}
+	
+	public void removeCoundDownLatch() {
+		this.countDownLatch = null;
+	}
+	
 	@Override
 	public void run() {
 		
@@ -132,19 +143,21 @@ public class YapEvalThread implements Runnable{
 						sent_result.add(term);
 					}
 				}
-				
-				merged_result.set(sent_num, sent_result);
+				countDownLatch.countDown();
+				sync_merge(sent_num, sent_result); // synchronize merging procedure
 				
 				reader.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		
 		}
-		waitForAll();
-		
 	}
-
+	
+	private void sync_merge(int sent_num, ArrayList<myTerm> sent_result) {
+		synchronized(this) {
+			merged_result.set(sent_num, sent_result);
+		}
+	}
 	
 	static String loadStream(InputStream in) throws IOException {
 		int ptr = 0;

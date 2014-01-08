@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import utils.Tuple;
 import ILP.*;
@@ -468,9 +469,16 @@ public class AdaBoost {
 	public SentSat yapThreadsEvaluateRules(Data data, ArrayList<Formula> rules, int thread_num) throws Exception {
 		SentSat re = new SentSat();
 		YapEvalThread yap_threads = new YapEvalThread(data, rules, thread_num);
+		
 		int sent_num = data.getSents().size();
 		int cur_num = 0;
+		int res = sent_num % thread_num;
+		
 		while(cur_num < sent_num) {
+			// use countdownlatch to control concurrent threads
+			CountDownLatch countDownLatch = new CountDownLatch((sent_num - cur_num >= thread_num) ? thread_num : res);
+			yap_threads.setCountDownLatch(countDownLatch);
+			
 			for (int i = 0; i < thread_num; i++) {
 				cur_num = cur_num + 1;
 				if (cur_num > sent_num - 1)
@@ -479,7 +487,14 @@ public class AdaBoost {
 				new Thread(yap_threads, num_str).start();
 			}
 			
+			try {
+				countDownLatch.await();
+			} catch (InterruptedException e) {  
+				e.printStackTrace();  
+	        } 
+			
 			yap_threads.setNumber(yap_threads.getNumber() + thread_num);
+			yap_threads.removeCoundDownLatch();
 		}
 		
 		ArrayList<ArrayList<myTerm>> merged_result = yap_threads.getMergedResult();
