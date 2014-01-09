@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class PathSat {
 	/*
+	 * PathData存储一条路径的信息，该类的total positive nagetive存储PathData的list，对应当前的“所有的”正的“”负的“的路径的集合
 	 * Like sent sat, but stores path satisfication data
 	 */
 	ArrayList<PathData> negative = new ArrayList<PathData>();
@@ -16,7 +17,10 @@ public class PathSat {
 	public PathSat() {
 		// TODO Auto-generated constructor stub
 	}
-	
+	/**
+	 * 输入一个PathData pd 存入当前的total positive nagetive中
+	 * @param pd
+	 */
 	public void addPath(PathData pd) {
 		total.add(pd);
 		if (pd.cls()) {

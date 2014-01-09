@@ -20,12 +20,12 @@ public class Predicate implements Cloneable{
 		arity = 0;
 	}
 	
-	public Predicate(String s, int n) {
+	public Predicate(String s, int n) {//用输入简单构建 同时转为小写
 		name = s.toLowerCase();
 		arity = n;
 	}
 	
-	public Predicate(String s) {
+	public Predicate(String s) {//只输入一个string 这就是类似att/2形式
 		String[] t = s.split("\\/");
 		name = t[0].toLowerCase();
 		arity = Integer.parseInt(t[1]);

@@ -20,7 +20,7 @@ import java.util.Set;
 import Logic.*;
 /**
  * HyperGraph for relation mining, a relation is treated as a hyper-edge,
- * a hyper-edge could connect many nodes, e.g., have_more_than_n_pubs(sam, john, 2)
+ * a hyper-edge could connect many nodes, e.g., have_more_than_n_pubs(sam, john, 2)这个解释对吗？
  */
 public class HyperGraph {
 	
@@ -29,7 +29,7 @@ public class HyperGraph {
     private Map<HyperEdge, LinkedHashSet<HyperEdge>> adjEdgeMap = new HashMap<HyperEdge, LinkedHashSet<HyperEdge>>();
     private Map<String, HyperVertex> vertexMap = new HashMap<String, HyperVertex>(); // map(nodeName, node)
     private Map<String, LinkedHashSet<HyperEdge>> nodeEdgeMap = new HashMap<String, LinkedHashSet<HyperEdge>>();
-    private List<HyperVertex> vertices = new ArrayList<HyperVertex>();
+    private List<HyperVertex> vertices = new ArrayList<HyperVertex>();//到底是干屁的
     private List<HyperEdge> edges = new ArrayList<HyperEdge>();
     int edgeLen = 0;
     int vertexLen = 0;
@@ -42,7 +42,7 @@ public class HyperGraph {
     	return vertexLen;
     }
     
-    public void addHyperVertex(HyperVertex v) {
+    public void addHyperVertex(HyperVertex v) {//如果有输入的边的话 做标记 没有的话加入
     	boolean contained = false;
     	for (HyperVertex vertex : vertices) {
     		if (vertex.equals(v))
@@ -55,7 +55,7 @@ public class HyperGraph {
     	}
     }
     
-    public void addHyperVertex(myWord wrd) {
+    public void addHyperVertex(myWord wrd) {//同上
     	boolean contained = false;
     	for (HyperVertex vertex : vertices) {
     		if (vertex.equals(wrd))
@@ -69,7 +69,7 @@ public class HyperGraph {
     	}
     }
     
-    public void addHyperVertex(String s) {
+    public void addHyperVertex(String s) {//同上
     	boolean contained = false;
     	for (HyperVertex vertex : vertices) {
     		if (vertex.equals(s))
@@ -83,27 +83,27 @@ public class HyperGraph {
     	}
     }
     
-    private void updateAdjEdgeMap(HyperEdge e) {
-    	LinkedHashSet<HyperEdge> new_adj = adjEdgeMap.get(e); // New a adjEdgeMap of e
-    	if (new_adj == null) {
+    private void updateAdjEdgeMap(HyperEdge e) {//名称“更改邻接边的map” 注意这个结构是很大的  要弄清HyperEdge这个数据结构
+    	LinkedHashSet<HyperEdge> new_adj = adjEdgeMap.get(e); // New a adjEdgeMap of e为啥是新建的？？
+    	if (new_adj == null) {//没有的话 新建LinkedHashSet 并放入
     		new_adj = new LinkedHashSet<HyperEdge>();
             adjEdgeMap.put(e, new_adj);
     	}
-    	for (HyperEdge edge : this.edges) { // for all old edges
+    	for (HyperEdge edge : this.edges) { // for all old edges每个已有的边
     		// if same, continue
     		if (edge.equals(e))
     			continue;
     		// if shareVertex(e, edge), update
-    		LinkedHashSet<HyperEdge> adjacent = adjEdgeMap.get(edge);
-			if (adjacent == null) {
+    		LinkedHashSet<HyperEdge> adjacent = adjEdgeMap.get(edge);//得到adjEdgeMap这个map的value 是一个很大结构的HyperEdge
+			if (adjacent == null) {//为空则新建
 				adjacent = new LinkedHashSet<HyperEdge>();
                 adjEdgeMap.put(edge, adjacent);
 			}
-    		if (shareVertex(e, edge).size() > 0) {
+    		if (shareVertex(e, edge).size() > 0) {//对于已有的边（old edges）和输入的边 是否有边Vertex
     			// if shared, add a two-way "edge" of these two edges
 //    			System.out.println("connected: " + e.toMyTerm().toString() + ", " + edge.toMyTerm().toString());
-    			adjacent.add(e);
-    			new_adj.add(edge);
+    			adjacent.add(e);//存新边的有临街的边
+    			new_adj.add(edge);//存老边的邻接边
     		}
     	}
     }
@@ -111,37 +111,37 @@ public class HyperGraph {
     private Set<HyperVertex> shareVertex(HyperEdge e_1, HyperEdge e_2) {
     	// return shared vertex between two hyper edges
     	Set<HyperVertex> shared = new HashSet<HyperVertex>();
-    	for (HyperVertex v : e_1.getVerices()) {
-    		if (e_2.containsVertex(v)) {
-    			shared.add(v);
+    	for (HyperVertex v : e_1.getVerices()) {//得到他的vertices数组 v数数组中每个元素
+    		if (e_2.containsVertex(v)) {//e2中是否包含当前节点（在e1中有的节点）
+    			shared.add(v);//加入共有节点
     		}
     	}
     	return shared;
     }
     
-    public void addHyperEdge(myTerm t, double w) {
+    public void addHyperEdge(myTerm t, double w) {//加入边 输入是一个term和权重
     	// add node
-    	String[] nodes = new String[t.getArgs().length];
+    	String[] nodes = new String[t.getArgs().length];//node相当于当前term的word的数组
     	for (int i = 0; i < t.getArgs().length; i++) {
-    		nodes[i] = vertexMap.get(t.getArg(i).toString()).toString();
-    		if (!isVertex(t.getArg(i)))
+    		nodes[i] = vertexMap.get(t.getArg(i).toString()).toString();//输入myTerm t中的word的string形式存入nodes数组
+    		if (!isVertex(t.getArg(i)))//输入myTerm t中的word 是否在当前vertices中  没有则加入vertices  vertices是所有边的集合
     			addHyperVertex(t.getArg(i));
     	}
     	
     	// add edge
-    	HyperEdge e = new HyperEdge(t,w);
+    	HyperEdge e = new HyperEdge(t,w);//新建个e t貌似是单独的一个边vertices 放在了vertices数组中
     	edges.add(e);
     	edgeLen = edges.size();
-    	edgeMap.put(t.toString(), e);
+    	edgeMap.put(t.toString(), e);//存map 例假
     	
-    	// update node adjlist
-    	for (int i = 0; i < nodes.length; i++) {
-    		LinkedHashSet<String> adjacent = adjMap.get(nodes[i]);
-    		LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(nodes[i]);
+    	// update node adjlist 
+    	for (int i = 0; i < nodes.length; i++) {//完全没懂  再看！！！！
+    		LinkedHashSet<String> adjacent = adjMap.get(nodes[i]);//当前word在adjMap里查
+    		LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(nodes[i]);//当前word在nodeEdgeMap里查
             if(adjacent == null) {
             	// new an adjacent list term
                 adjacent = new LinkedHashSet<String>();
-                adjMap.put(nodes[i], adjacent);
+                adjMap.put(nodes[i], adjacent);//再加入回去 为啥啊？？？？
             }
             if (belongs == null) {
             	belongs = new LinkedHashSet<HyperEdge>();
@@ -149,9 +149,9 @@ public class HyperGraph {
             }
             for (int j = 0; j < nodes.length; j ++) {
             	if (i != j)
-            		adjacent.add(nodes[j]);	
+            		adjacent.add(nodes[j]);	//不等于当前节点（按标号来）的word （node[j]）放入LinkedHashSet<String> adjacent
             }
-            belongs.add(e);
+            belongs.add(e);//在后面才把HyperEdge e加入LinkedHashSet<HyperEdge> belongs 
             
     	}
     	
@@ -161,7 +161,7 @@ public class HyperGraph {
 //    	edgeMap.put(t.toString(), e);
     	
     	// update map adjEdge
-    	updateAdjEdgeMap(e);
+    	updateAdjEdgeMap(e);//更新一轮map
     }
 
 //    public void addHyperEdge(String name, HyperVertex[] nodes, double w) {
@@ -214,7 +214,7 @@ public class HyperGraph {
 //    	edgeLen = edges.size();
 //    }
     
-    public boolean isConnected(String node1, String node2) {
+    public boolean isConnected(String node1, String node2) {//输入A（node1）作为索引在adjMap中的值包含 输入B（node2）
         @SuppressWarnings("rawtypes")
 		Set adjacent = adjMap.get(node1);
         if(adjacent == null) {
@@ -281,7 +281,7 @@ public class HyperGraph {
 //    }
     
    
-    public LinkedList<HyperEdge> adjacentEdges(HyperEdge last) {
+    public LinkedList<HyperEdge> adjacentEdges(HyperEdge last) {//返回输入last所在的LinkedHashSet<HyperEdge> 通过adjEdgeMap
         LinkedHashSet<HyperEdge> adjacent = adjEdgeMap.get(last);
         if(adjacent == null) {
             return new LinkedList<HyperEdge>();
@@ -289,7 +289,7 @@ public class HyperGraph {
         return new LinkedList<HyperEdge>(adjacent);
     }
     
-    public LinkedList<HyperEdge> adjacentEdges(myTerm t) {
+    public LinkedList<HyperEdge> adjacentEdges(myTerm t) {//当前edges中的HyperEdge 如果和输入myTerm t相等 返回这个边的LinkedHashSet<HyperEdge>
     	for (Iterator<HyperEdge> it = edges.iterator(); it.hasNext(); ) {
     		HyperEdge e = it.next();
     		if (e.equals(t))
@@ -298,7 +298,7 @@ public class HyperGraph {
     	return null;
     }
     
-    public LinkedList<String> adjacentNodes(String last) {
+    public LinkedList<String> adjacentNodes(String last) {//返回输入last所在的LinkedHashSet<HyperEdge> 通过adjMap
         LinkedHashSet<String> adjacent = adjMap.get(vertexMap.get(last));
         if(adjacent == null) {
             return new LinkedList<String>();
@@ -315,7 +315,7 @@ public class HyperGraph {
     	return adjacentNodes(v);
     }
     
-    public boolean isVertex(myWord node) {
+    public boolean isVertex(myWord node) {//当前vertices中是否有和输入相同的节点
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
 			if (vertices.get(k).name.equals(node.toString())) {
@@ -326,7 +326,7 @@ public class HyperGraph {
     	return found;
     }
     
-    public boolean isVertex(HyperVertex node) {
+    public boolean isVertex(HyperVertex node) {//同上
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
 			if (vertices.get(k).name.equals(node.toString())) {
@@ -337,7 +337,7 @@ public class HyperGraph {
     	return found;
     }
     
-    public boolean isVertex(String node) {
+    public boolean isVertex(String node) {//同上
     	boolean found = false;
     	for (int k = 0; k < vertices.size(); k++) {
 			if (vertices.get(k).name.equals(node)) {
@@ -364,7 +364,7 @@ public class HyperGraph {
     	return vertices.get(i);
     }
     
-    public LinkedList<HyperEdge> edgesContainsVertex(String last) {
+    public LinkedList<HyperEdge> edgesContainsVertex(String last) {//返回输入last所在的LinkedHashSet<HyperEdge> 通过nodeEdgeMap
     	LinkedHashSet<HyperEdge> belongs = nodeEdgeMap.get(last);
         if(belongs == null) {
             return new LinkedList<HyperEdge>();

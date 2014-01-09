@@ -23,9 +23,9 @@ import java.util.Map;
 public class Document {
 
 	/**
-	 * Read file and comile it as a document.
+	 * Read file and compile it as a document.
 	 */
-	boolean tr = false; // true for trainning data, false for testing data. 
+	boolean tr = false; // true for trainning data, false for testing data. 我擦 这个怎么改
 	             // training data has labels, while testing data does not.
 	int length;
 	ArrayList<Sentence> sentList = new ArrayList<Sentence>();
@@ -36,13 +36,13 @@ public class Document {
 	ArrayList<String> wordList = new ArrayList<String>();
 	int dictLen = 0;
 	
-	// reading path of predicate file and sentence file.
+	// reading path of predicate file and sentence file.分别读预测和句子文件
 	public Document(String path_pred, String path_sent, boolean train) {
 		// read file		
 		String[] fpred = readFileByLines(path_pred);
 		System.out.println("Predicate number: " + fpred.length);
 		String[] fsent = readFileByLines(path_sent);
-		tr = train;
+		tr = train;    //改为train了
 //		for (int i = 0; i < fsent.length; i++)
 //			System.out.println(fsent[i]);
 		System.out.println("Sentence number:" + fsent.length);
@@ -50,8 +50,8 @@ public class Document {
 		// parse into sentences(train or test).
 		// predicates
 		for (int i = 0; i < fpred.length; i++) {
-			String[] s = fpred[i].split("\\/");
-			predList.add(new Predicate(s[0], Integer.parseInt(s[1])));
+			String[] s = fpred[i].split("\\/");//标签用这分开
+			predList.add(new Predicate(s[0], Integer.parseInt(s[1])));//预测值和词位置
 		}
 		// sentences
 		
@@ -71,19 +71,19 @@ public class Document {
 //			System.out.println(buff_line[0]);
 			ArrayList<myTerm> tmp_label_list = new ArrayList<myTerm>(); // current sentence
 			if (tr) {
-				// training data, split the labels
+				// training data, split the labels对训练集 切分label数组
 				String[] buff_label = buff_line[0].split("\\;");
 				for (int j = 0; j < buff_label.length; j++) {
 					String tmp_label = buff_label[j];
 					boolean isPositive = true;
-					if (tmp_label.startsWith("\\+(")) {
+					if (tmp_label.startsWith("\\+(")) {//还是老一套 这俩哥们是负分
 						tmp_label = tmp_label.substring(2);
 						isPositive = false;
 					} else if (tmp_label.startsWith("not(")) {
 						tmp_label = tmp_label.substring(4, tmp_label.length() - 1);
 						isPositive = false;
 					}
-					if (tmp_label.indexOf('(') == 0)
+					if (tmp_label.indexOf('(') == 0)//以括号开头 要加sem  啥意思
 						tmp_label = "sem" + tmp_label;
 					myTerm tmp_term = new myTerm(tmp_label);
 					if (isPositive)
@@ -114,12 +114,12 @@ public class Document {
 			reader = new BufferedReader(new FileReader(file));
 			String tempString = null;
 			String line = null;
-			// line by line untill null
+			// line by line untill null按行读
 			while ((tempString = reader.readLine()) != null) {
 				// print line number
 				line = tempString.trim();			
 				if (line.length() >= 0) {
-					string_buffer.add(line);
+					string_buffer.add(line);//存
 //					System.out.println(line);
 				}
 			}
@@ -135,7 +135,7 @@ public class Document {
 		}
 		String[] buff = new String[string_buffer.size()];
 		for (int i = 0; i < string_buffer.size(); i++) {
-			buff[i] = string_buffer.get(i);
+			buff[i] = string_buffer.get(i);//存在这
 		}
 		return buff;
 	}
@@ -170,13 +170,13 @@ public class Document {
 
 
 
-	public void addSent(ArrayList<myTerm> label, Sentence sent) {
+	public void addSent(ArrayList<myTerm> label, Sentence sent) {//往当前document中加一个句子和标签
 		
 		this.labelList.add(label);
 		this.sentList.add(sent);
 	}
 	
-	public void setPredList(ArrayList<Predicate> p) {
+	public void setPredList(ArrayList<Predicate> p) {//用谓词list加
 		for (Predicate pp : p) {
 			predList.add(pp.clone());
 		}
@@ -226,7 +226,7 @@ public class Document {
 		ArrayList<myTerm> deps = new ArrayList<myTerm>();
 		String label_str = "";
 		String dep_str = "";
-		if (tr) {
+		if (tr) {//训练集的话 才有标签  要切开
 			label_str = string.split(":-")[0];
 			dep_str = string.split(":-")[1];
 			for (String s : label_str.split(";")) {
@@ -235,17 +235,17 @@ public class Document {
 		} else {
 			dep_str = string;
 		}
-		Sentence tmp_sent = new Sentence(dep_str);
+		Sentence tmp_sent = new Sentence(dep_str);//这是body 是主体
 //		buildDict(new ArrayList<myWord>(Arrays.asList(tmp_sent.getWords())));
 		for (myTerm t : tmp_sent.getTerms()) {
 			for (myWord w : t.getArgs()) {
 //				w.setName(word2codeMap.get(w.getName()));
-				w.setName("u" + w.getName());
+				w.setName("u" + w.getName());//所有的词前面加上u  为啥是所有 不是仅汉语了
 			}
 		}
 		
 		if (tr) {
-			for (myTerm t : labels) {
+			for (myTerm t : labels) {//对训练集的标签做以上操作
 				for (myWord w : t.getArgs()) {
 //					w.setName(word2codeMap.get(w.getName()));
 					w.setName("u" + w.getName());
@@ -253,7 +253,7 @@ public class Document {
 			}
 		}
 		String re = "";
-		for (myTerm t : labels) {
+		for (myTerm t : labels) {//只有label加; 
 			re = re + t.toString() + ";";
 		}
 		if (!tr)
@@ -262,7 +262,7 @@ public class Document {
 		return re;
 	}
 
-	public void addSent(String s) {
+	public void addSent(String s) {//加一个新的句子到句子list
 		s = sub_dict(s);
 		String label = "";
 		String sent = "";
@@ -283,11 +283,11 @@ public class Document {
 		this.tr = t;
 	}
 	
-	public void printDocPl(String out_path) throws IOException {
+	public void printDocPl(String out_path) throws IOException {//打印Term和Feature  解码时候 输出prolog格式 重要！！
 		FileOutputStream fos = new FileOutputStream(out_path);
 		OutputStreamWriter osw=new OutputStreamWriter(fos);
 		BufferedWriter fout=new BufferedWriter(osw);
-		for (int i = 0; i < this.sentList.size(); i++) {
+		for (int i = 0; i < this.sentList.size(); i++) {	
 			fout.write(String.format("%% sentence %d\n", i));
 			for (myTerm t : this.sentList.get(i).getTerms())
 				fout.write(String.format("%s.\n", t.toString()));
@@ -298,7 +298,7 @@ public class Document {
 		fout.close();
 	}
 	
-	public void readConll(String path_pred, String path_sent, boolean train) {
+	public void readConll(String path_pred, String path_sent, boolean train) {//读入conll格式 并存在当前 ，没细看！！！
 		// read file
 		int[][] xor_table = {{0},
 								{1},
@@ -433,7 +433,7 @@ public class Document {
 		this.length = this.sentList.size();
 	}
 
-	public void printLabelPl(String out_path) throws IOException {
+	public void printLabelPl(String out_path) throws IOException {//打印没细看
 		FileOutputStream fos = new FileOutputStream(out_path);
 		OutputStreamWriter osw=new OutputStreamWriter(fos);
 		BufferedWriter fout=new BufferedWriter(osw);
@@ -450,7 +450,7 @@ public class Document {
 		fout.close();
 	}
 
-	public void printSent(String out_path) throws IOException {
+	public void printSent(String out_path) throws IOException {//打印句子
 		// TODO Auto-generated method stub
 		FileOutputStream fos = new FileOutputStream(out_path);
 		OutputStreamWriter osw=new OutputStreamWriter(fos);

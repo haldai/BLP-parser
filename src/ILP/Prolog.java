@@ -21,14 +21,14 @@ public class Prolog {
 		JPL.init();
 	}
 	
-	public void assertz(String t) {
+	public void assertz(String t) {//定义说 这个是对的 并加入数据库
 		String clause;
 		clause = String.format("assertz(%s).", t);
 //		System.out.println(clause);
 		Query q = new Query(clause);
 
 		try {
-			q.hasSolution();
+			q.hasSolution();//这是核心 
 		} catch (PrologException e) {
 			System.out.println("Prolog Assertion Failed!!!");
 			System.out.println("ERROR LOG: " + clause);
@@ -36,7 +36,7 @@ public class Prolog {
 		}
 	}
 	
-	public void retract(String t) {
+	public void retract(String t) {//定义说 这个是错的 并从数据库删除
 		String clause;
 		clause = String.format("retract(%s).", t);
 		Query q = new Query(clause);
@@ -49,7 +49,7 @@ public class Prolog {
 		}
 	}
 	
-	public void retractAll(String t) {
+	public void retractAll(String t) {//应该是删除所有
 		String clause;
 		clause = String.format("retractall(%s).", t);
 		Query q = new Query(clause);
@@ -75,7 +75,7 @@ public class Prolog {
 		} 
 	}
 	
-	public void equalTerm(String s1, String s2) {
+	public void equalTerm(String s1, String s2) {//就是相等 一样
 		String clause;
 		clause = String.format("==(%s,%s)", s1, s2);
 		Query q = new Query(clause);

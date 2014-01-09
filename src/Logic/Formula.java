@@ -22,7 +22,7 @@ public class Formula implements Cloneable {
 	double weight = 1.0;
 	int headLen;
 	int bodyLen;
-	private ArrayList<myTerm> head = new ArrayList<myTerm>();
+	private ArrayList<myTerm> head = new ArrayList<myTerm>();//就是标签
 	private ArrayList<myTerm> body = new ArrayList<myTerm>();
 	
 	public Formula() {
@@ -39,7 +39,7 @@ public class Formula implements Cloneable {
 	// build formula by String	
 	public Formula(String f) {
 		if (f.contains("::")) {
-			this.weight = Double.valueOf(f.split("::")[0]);
+			this.weight = Double.valueOf(f.split("::")[0]);//对于有概率的f 字符串 是“概率::公式”的形式
 			f = f.split("::")[1];
 		}
 			
@@ -56,21 +56,21 @@ public class Formula implements Cloneable {
 				s = s.substring(1);
 			if ((s.startsWith("not(")) || (s.startsWith("\\+("))) {
 				s = s.substring(4, s.length() - 1);
-				sym = false;
+				sym = false;//not 和+( 对应的是 sym 错误啊
 			} else {
 				if (s.startsWith("("))
 					s = s.substring(1, s.length() - 1);
 			}
-			myTerm tmp_t = new myTerm(s);
+			myTerm tmp_t = new myTerm(s);//做成Term 其实整体字符串没怎么变只是把前缀去掉了
 			if (!sym)
-				tmp_t.setNegative();
-			head.add(tmp_t);
+				tmp_t.setNegative();//对于Term的正负
+			head.add(tmp_t);//放入
 		}
 		headLen = head.size();
 		// add body
 		String[] body_string = comp[1].split("\\;");
 		body = new ArrayList<myTerm>();
-		for (String s : body_string) {
+		for (String s : body_string) {//同上
 			// detect wether the term is negative
 			boolean sym = true;
 			while (s.startsWith(" "))
@@ -91,7 +91,7 @@ public class Formula implements Cloneable {
 	}
 	
 
-	public void pushBody(ArrayList<myTerm> t) {
+	public void pushBody(ArrayList<myTerm> t) {//对body push_back新的Term
 		for (myTerm term : t) {
 			body.add(term);
 		}
@@ -121,7 +121,7 @@ public class Formula implements Cloneable {
 	public void pushBodyToFirst(LinkedList<myTerm> terms) {
 		for (int i = terms.size() - 1; i >= 0; i--) {
 			myTerm nt = terms.get(i).clone();
-			body.add(0, nt);
+			body.add(0, nt);//从头push 倒序push
 		}
 		bodyLen = body.size();
 	}

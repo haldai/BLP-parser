@@ -39,15 +39,19 @@ public class PathRuleTree {
 	 * [optimization] must contain variable in head, so first add these two terms
 	 */
 	
-	TreeNode root; // tree root - the first splitting node;
-	myTerm head; // logical term - head:-body., must have variable
-	LinkedList<Formula> rules = new LinkedList<Formula>();
-	Prolog prolog;
-	ArrayList<Predicate> pred_list = new ArrayList<Predicate>();
+	TreeNode root; // tree root - the first splitting node;第一个分类节点 也就是root 由于prolog限制 这个只能是正 所以不会分裂
+	myTerm head; // logical term - head:-body., must have variable就是当前树的head 头
+	LinkedList<Formula> rules = new LinkedList<Formula>();//规则集合？？在代码中看看
+	Prolog prolog;//注意
+	ArrayList<Predicate> pred_list = new ArrayList<Predicate>();//谓词的集合？
 	
 	
 	private int maxHeight;
-	
+	/**
+	 * 用输入初始化
+	 * @param p
+	 * @param preds
+	 */
 	public PathRuleTree(Prolog p, ArrayList<Predicate> preds) {
 		root = null;
 		head = null;
@@ -79,12 +83,15 @@ public class PathRuleTree {
 	public void setMaxHeight(int h) {
 		maxHeight = h;
 	}
-	
+	/**
+	 * 返回当前的rules
+	 * @return
+	 */
 	public LinkedList<Formula> getPrologRules() {
 		return rules;
 	}
 	/**
-	 * build a tree from one path
+	 * build a tree from one path 为啥说from one path？？ 感觉就是做了个Substitute操作和 正负性的赋值
 	 * @param doc: training instances in document
 	 * @param path: path of available terms for split
 	 */
@@ -93,12 +100,12 @@ public class PathRuleTree {
 		// substitution and get more features (temporarily only use words themselves)
 		ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
 		all_terms.add(head);
-		all_terms.addAll(path);
-		Substitute subs = new Substitute(all_terms);
-		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
+		all_terms.addAll(path);//声明并把head path加入
+		Substitute subs = new Substitute(all_terms);//以前就不明白 艹   下面貌似都是对于这个做
+		ArrayList<myTerm> all_sub_terms = subs.getSubTerms();//这是Substitute处理后的Term list
 		ArrayList<myWord> word_list = subs.getWordList();
 		ArrayList<myWord> var_list = subs.getVarList();
-		// set head term
+		// set head term 拷贝 并赋正负 并删之前all_sub_terms存的head
 		this.setHead(all_sub_terms.get(0).clone());
 		if (head.isPositive())
 			this.head.setPositive();
@@ -108,11 +115,11 @@ public class PathRuleTree {
 		all_sub_terms.remove(0);
 		ArrayList<myTerm> subed_path = new ArrayList<myTerm>();
 		// get subed path
-		for (myTerm t : all_sub_terms) {
+		for (myTerm t : all_sub_terms) {//subed_path就相当于输入的path 用Substitute变换之后得到的
 			subed_path.add(t.clone());
 		}
 		// add path as candidate terms, then build more feature as candidate terms
-		ArrayList<myTerm> feature = buildFeature(var_list, word_list, sent.getFeatures());
+		ArrayList<myTerm> feature = buildFeature(var_list, word_list, sent.getFeatures());//提取特征
 		root = createRoot(data, subed_path, feature);
 	}
 
@@ -128,34 +135,37 @@ public class PathRuleTree {
 		// build path_data
 		Prolog path_prolog = new Prolog();
 		
-		PathSat path_sat = new PathSat();
+		PathSat path_sat = new PathSat();//注意！！
 		
 		for (int i = 0; i < data.getSents().size(); i++) {
 			Sentence sent = data.getSent(i);
 			if (sent.getTerms().length < 1)
 				continue;
 			ArrayList<PathData> path_datas = computePaths(sent, node.getTermNodes(), this.getHead(), path_prolog);
-			for (PathData pd : path_datas) {
-				pd.setSentNum(i);
-				if (data.getLabel(i).contains(pd.getLabel())) {
+			//一个句子转为路径集合 可能是所有的决策路径 是所有经过node（根节点的路径吗）
+			//node.getTermNodes()中getTermNodes() 是对于Treenode中的termNodes中的节点   isPositiveBranch为负的话 反转正负 为正不用 存下来并返回Term的list
+			//node.getTermNodes()到底是啥 不懂啊！！！！？？？
+			for (PathData pd : path_datas) {//遍历path   
+				pd.setSentNum(i);//path中句子的编号
+				if (data.getLabel(i).contains(pd.getLabel())) {//貌似是当前path的预测值?标签 是否是句子的标签
 					pd.setClass(true);
 				}
 				else {
 					pd.setClass(false);
 				}
-				path_sat.addPath(pd);
+				path_sat.addPath(pd);//最终存放path的结构   ：挑出了每个特征对应的路径
 			}
 		}
 
-		// add negative sample paths into candidate
+		// add negative sample paths into candidate这就是望洲说的 负样本也要加进来   注意 （但是为何要加那一段还要好好理解）
 		feature = addTermFromNegSamps(path_sat.getNegative(), feature);
 		/*
 		 *  FINISHING ROOT NODE BUILDING
 		 */
-		node.setHierarchy(1); // root is first layer
-		node.setBranchPositive();
+		node.setHierarchy(1); // root is first layer所谓的根节点 其实是第一层
+		node.setBranchPositive();//根节点的标签为正
 		ArrayList<myTerm> used = new ArrayList<myTerm>();
-		// remove all used candidate terms
+		// remove all used candidate terms把用过的负样本存到used 没用过的存在原来的feature中
 		ArrayList<myTerm> tt = new ArrayList<myTerm>();
 		for (myTerm tmp_term : feature) {
 			if (node.getTermNodes().contains(tmp_term)) {
@@ -169,8 +179,8 @@ public class PathRuleTree {
 		// create childrens
 		// FIRST TERM IN PROLOG RULE MUST BE TRUE!!!
 
-		node.setTrueChild(create(path_sat, feature, used, node, true));
-		node.setFalseChild(null);
+		node.setTrueChild(create(path_sat, feature, used, node, true));//存在TreeNode的trueChild中  create过程在下面
+		node.setFalseChild(null);//存在TreeNode的falseChild中 为何没有create操作 
 		return node;
 	}
 
@@ -178,14 +188,14 @@ public class PathRuleTree {
 			ArrayList<myTerm> subed_path, myTerm head, Prolog path_prolog) {
 		// TODO Auto-generated method stub
 		ArrayList<PathData> re = new ArrayList<PathData>();
-		for (myTerm t : sent.getTerms()) {
-			path_prolog.assertz(t.toString());
+		for (myTerm t : sent.getTerms()) {//句子中的所有Term
+			path_prolog.assertz(t.toString());//认为这个term是对的？
 		}
 		String query_str = "";
 		ArrayList<myWord> vars = new ArrayList<myWord>();
 		for (myTerm t : subed_path) {
-			query_str = query_str + t.toPrologString() + ",";
-			for (myWord w : t.getArgs()) {
+			query_str = query_str + t.toPrologString() + ",";//对于当前的Term 生成prolog语言的形式 add到输出序列
+			for (myWord w : t.getArgs()) {//每个Term中的每个word 都存入vars 注意是uniq的存
 				if (!vars.contains(w))
 					vars.add(w);
 			}
@@ -196,12 +206,12 @@ public class PathRuleTree {
 			@SuppressWarnings("rawtypes")
 			java.util.Hashtable ans = q.nextSolution();
 			ArrayList<myWord> ans_words = new ArrayList<myWord>(vars.size());
-			for (myWord v : vars) {
+			for (myWord v : vars) {//把包含var中在该方法中有出现的prolog语句放入ans_words
 				ans_words.add(new myWord(ans.get(v.toPrologString()).toString()));
 			}
-			re.add(new PathData(vars, ans_words, sent, this.head));
+			re.add(new PathData(vars, ans_words, sent, this.head));//对应的变量add 返回时候返回这个 重要！
 		}
-		// retract all terms
+		// retract all terms prolog的一个语句 消除刚才声明的变量
 		for (myTerm t : sent.getTerms()) {
 			path_prolog.retract(t.toString());
 		}
@@ -209,37 +219,39 @@ public class PathRuleTree {
 	}
 
 	/**
-	 * main procedure for creating a tree node
+	 * main procedure for creating a tree node建节点（非root节点）的主要过程
+	 * PathSat father_sat可能是当前所有的path的数据，
 	 * @data is the data for training a tree
-	 * @candidateTerms are the candidate terms for a tree 
+	 * @candidateTerms are the candidate terms for a tree 候选term
 	 */
 	
 	
 	
 	public TreeNode create(PathSat father_sat, ArrayList<myTerm> features, ArrayList<myTerm> usedTerms, TreeNode father, boolean branch) {
 		/*
-		 * START
+		 * START 
+		 * 
 		 */
 		TreeNode node = new TreeNode();
-		node.setFather(father);
+		node.setFather(father);//根据输入设father
 		
 		if (father != null) {
 			node.setHierarchy(father.getHierarchy() + 1); // set hierarchy of 1
 			father.setIsLeaf(false);
 		}
 		
-		if (branch)
+		if (branch)//根据输入设branch
 			node.setBranchPositive();
 		else
 			node.setBranchNegative();
 
 		/*
-		 * NOT ROOT NODE
+		 * NOT ROOT NODE根节点不在这里面做了
 		 */
 		// if father has enough layer or accuracy, return
-		if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {
+		if ((node.getHierarchy() > utils.MAX_HIERARCHY_NUM)) {//到最大层数了
 			node.setIsLeaf(true);
-			Formula form = toFormula(father, branch);
+			Formula form = toFormula(father, branch);//形成公式
 //				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
 //					myTerm h = form.getHead().get(0).clone();
 //					h.setPositive();
@@ -247,14 +259,14 @@ public class PathRuleTree {
 //					form.pushHead(h);
 //					form.setWeight(1 - father.getSentSat(branch).getAccuracy());
 //				} else
-			form.setWeight(father_sat.getAccuracy());			
-			rules.add(form);
+			form.setWeight(father_sat.getAccuracy());	
+			rules.add(form);//把公式加入rules
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
-		} else if(father_sat.getAccuracy() >= utils.MAX_ACC_CRI) {
+		} else if(father_sat.getAccuracy() >= utils.MAX_ACC_CRI) {//准确率>=1才行(见参数设置)
 			// father's accuracy is enough for a positivesample
-			node.setIsLeaf(true);
-			Formula form = toFormula(father, branch);
+			node.setIsLeaf(true);//是也在
+			Formula form = toFormula(father, branch);//形成公式
 //				if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
 //					myTerm h = form.getHead().get(0).clone();
 //					h.setPositive();
@@ -266,7 +278,7 @@ public class PathRuleTree {
 			rules.add(form);
 //				System.out.println(data.size() + "/"  + form.toString());
 			return node;
-		} else if(father_sat.getAccuracy() <= utils.MAX_INACC_CRI) {
+		} else if(father_sat.getAccuracy() <= utils.MAX_INACC_CRI) {//准确率<=0 也返回 不干了！
 			// father's accuracy is enough for a negative sample
 			node.setIsLeaf(true);
 			Formula form = toFormula(father, branch);
@@ -281,7 +293,7 @@ public class PathRuleTree {
 			rules.add(form);
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
-		} else if (features.isEmpty()) {
+		} else if (features.isEmpty()) {//没特征了
 			// no candidates
 			node.setIsLeaf(true);
 			Formula form = toFormula(father, branch);
@@ -296,9 +308,9 @@ public class PathRuleTree {
 			rules.add(form);
 //				System.out.println(data.size() + "/" + form.toString());
 			return node;
-		} else	{
+		} else	{//从当前father看
 			// else split current node
-			double maxGain = -100.0; // covered positive & covered negative
+			double maxGain = -100.0; //一个极小值而已 设啥都行 维护着该层的熵差最大值 covered positive & covered negative
 			myTerm max_gain_term = new myTerm();
 			ArrayList<myTerm> max_form_body = new ArrayList<myTerm>();
 			ArrayList<myTerm> no_improve_terms = new ArrayList<myTerm>();
@@ -307,28 +319,28 @@ public class PathRuleTree {
 			
 
 			
-			Formula cur_form = toFormula(father, branch);
+			Formula cur_form = toFormula(father, branch);//获取公式 现在这个公式 注意！！
 			ArrayList<myTerm> appeared = cur_form.getBody();
 			
-			features = removeDup(features, appeared);
+			features = removeDup(features, appeared);//删没用特征
 			for (myTerm f : features) {
 				PathSat covSat = new PathSat();
 				PathSat uncovSat = new PathSat();
 				
-				// for each available feature
+				//当前feature放入公式body的开头 feature for each available feature
 				cur_form.pushBody(f);
 				
-				myWord var = f.getArg(0); // variable involved
+				myWord var = f.getArg(0); //f的第0个word 这个word到底是啥 貌似就是Term中的第一个词 类似刘德华 variable involved
 				
-				for (PathData tmp_pd : father_sat.getAll()) {
-					int idx = tmp_pd.getVarList().indexOf(var);
+				for (PathData tmp_pd : father_sat.getAll()) {//遍历所有的路径path
+					int idx = tmp_pd.getVarList().indexOf(var);//对于这个路径找到var的位置
 					boolean covered = false;
-					for (myTerm t : tmp_pd.getWordFeature(idx)) {
+					for (myTerm t : tmp_pd.getWordFeature(idx)){//找到该位置的Feature
 						myTerm feat = t.clone(); // feature involved
-						feat.setArg(0, var); // substitute variable to word for comparing
-						if (feat.equals(f)) {
+						feat.setArg(0, var); //应该是在feature中用变量var替换掉word  substitute variable to word for comparing
+						if (feat.equals(f)) {//相当于对所有路径中，当前循环到的feature等于 路径中（变量替换掉word）之后的那个term 就视为覆盖到了 好好想想！
 							// covered
-							covered = true;
+							covered = true;//标记为覆盖到
 							break;
 						}
 					}
@@ -340,27 +352,28 @@ public class PathRuleTree {
 						uncovSat.addPath(tmp_pd);
 					}
 				}
-				// compute foilgain
+				// compute foilgain分别计算covered  uncovered中的熵差
 				double cov_foilgain = foilGain(covSat, father_sat);
 				double uncov_foilgain = foilGain(uncovSat, father_sat);
 				double total_gain = Math.abs(cov_foilgain - uncov_foilgain);
 				
-				if (maxGain <= total_gain) {
+				//维护着最大的熵差
+				if (maxGain <= total_gain){
 					maxGain = total_gain;
 					maxCovSat = covSat;
 					maxUncovSat = uncovSat;
 					max_gain_term = f.clone();
-					max_gain_term.setPositive();
+					max_gain_term.setPositive();//这是嘎哈？？？
 					max_form_body = new ArrayList<myTerm>();
-					for (myTerm tmp_term : cur_form.getBody()) {
+					for (myTerm tmp_term : cur_form.getBody()){
 						max_form_body.add(tmp_term.clone());
 					}
 				}
-				if (total_gain <= 0.0)
+				if (total_gain <= 0.0)//熵反而增加了 说明加入这个分裂 是错的 pop   加入”没有提升term“中 还要细想想
 					no_improve_terms.add(f);
 				cur_form.popBody();
 			}
-			if (maxGain <= 0.0) {
+			if (maxGain <= 0.0) {//0 了结束
 				node.setIsLeaf(true);
 				Formula form = toFormula(father, branch);
 //					if ((form.getHead().size() == 1) && (!form.getHead().get(0).isPositive())) {
@@ -377,13 +390,14 @@ public class PathRuleTree {
 			}
 //				System.out.println(maxGain + ": " + max_gain_term.toPrologString());
 			/*
-			 * ADD NEW TERM AS NODE
+			 * 貌似是以上判断出是否要加 现在开始加了 加的步骤如下
+			 * 看看！ADD NEW TERM AS NODE
 			 * 1. create node;
 			 * 2. remove candidate node;
 			 * 3. create node's children.
 			 */
 			
-			node.addTermNodes(max_gain_term);
+			node.addTermNodes(max_gain_term);//加入分裂节点序列termNodes
 //			// add unequality constraints
 //			ArrayList<myTerm> uneq = buildUnequalFeature(getAllVars(max_form_body));
 //			for (myTerm t : uneq) {
@@ -393,22 +407,22 @@ public class PathRuleTree {
 			
 			// add negative candidates
 //				candidateTerms.removeAll(no_improve_terms);
-			for (myTerm tmp_term : node.getTermNodes()) {
+			for (myTerm tmp_term : node.getTermNodes()) {//把用过节点的Term加入usedTerms 关键看看怎么用usedTerms！！！
 				usedTerms.add(tmp_term.clone());
 			}
 			
-			ArrayList<myTerm> cov_Features = new ArrayList<myTerm>();
-			for (myTerm tmp_term : features) {
+			ArrayList<myTerm> cov_Features = new ArrayList<myTerm>();//cover Features
+			for (myTerm tmp_term : features) {//当前在用的特征 features是输入之后删除没用的特征之后的  把这些放入已覆盖的特征 重点关注输入和递归函数中的输入
 				cov_Features.add(tmp_term.clone());
 			}
-			ArrayList<myTerm> uncov_Features = new ArrayList<myTerm>();
+			ArrayList<myTerm> uncov_Features = new ArrayList<myTerm>();//同理
 			for (myTerm tmp_term : features) {
 				uncov_Features.add(tmp_term.clone());
 			}
 			cov_Features = addTermFromNegSamps(maxCovSat.getNegative(), cov_Features);
 			uncov_Features = addTermFromNegSamps(maxUncovSat.getNegative(), uncov_Features);
 			
-			// remove added nodes and useless nodes
+			// remove added nodes and useless nodes用过的usedTerms 和没用的no_improve_terms都删除
 			ArrayList<myTerm> tt = new ArrayList<myTerm>();
 			for (myTerm tmp_term : cov_Features) {
 				if (!(usedTerms.contains(tmp_term)) && !(no_improve_terms.contains(tmp_term)))
@@ -418,21 +432,26 @@ public class PathRuleTree {
 			tt = null;
 			
 			tt = new ArrayList<myTerm>();
-			for (myTerm tmp_term : uncov_Features) {
+			for (myTerm tmp_term : uncov_Features) {//对于cov_Features和uncov_Features一样？？想想
 				if (!(usedTerms.contains(tmp_term)) && !(no_improve_terms.contains(tmp_term)))
 					tt.add(tmp_term.clone());
 			}
 			uncov_Features = tt;
 			tt = null;
 			
-			// create children
-			node.setFalseChild(create(maxUncovSat, uncov_Features, usedTerms, node, false));
+			// create children递归的形式吗
+			node.setFalseChild(create(maxUncovSat, uncov_Features, usedTerms, node, false));//
 			node.setTrueChild(create(maxCovSat, cov_Features, usedTerms, node, true));
 			return node;
 		}
 	}
-
-	private ArrayList<myTerm> removeDup(ArrayList<myTerm> cands,
+	/**
+	 * 可能是删除和app中重复的？
+	 * @param cands
+	 * @param app
+	 * @return
+	 */
+	private ArrayList<myTerm> removeDup(ArrayList<myTerm> cands,//望洲说这是删掉没用的啥东西的啊？从所有候选中删 用过的？
 			ArrayList<myTerm> app) {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		ArrayList<Predicate> app_P = new ArrayList<Predicate>();
@@ -441,17 +460,16 @@ public class PathRuleTree {
 		ArrayList<Predicate> dup_feat = new ArrayList<Predicate>();
 		dup_feat.add(new Predicate("postag/2"));
 		dup_feat.add(new Predicate("class/2"));
-		dup_feat.add(new Predicate("wordfeat/2"));
-		for (myTerm a : app) {
-			if (a.isPositive() && dup_feat.contains(a.getPred())) {
+		dup_feat.add(new Predicate("wordfeat/2"));//只加这三个谓词
+		for (myTerm a : app) {//遍历输入app，有为正的而且谓词是以上三个之一 加入谓词的第i=1个getArg（word）
+			if (a.isPositive() && dup_feat.contains(a.getPred())){
 				app_P.add(a.getPred());
 				app_V.add(a.getArg(1));
 			}
 		}
-		
-		for (myTerm t : cands) {
+		for (myTerm t : cands) {//候选义项中包含这三个谓词的进行遍历  不包含的直接add到要返回的数据结构
 			if (dup_feat.contains(t.getPred()) && (app_P.size() > 0)) {
-				for (int i = 0; i < app_P.size(); i++) {
+				for (int i = 0; i < app_P.size(); i++) {//谓词 如果有又不在app_V中又不在app_P中的t  要add进来
 					if (!(t.getPred().equals(app_P.get(i)) && t.getArg(0).equals(app_V.get(i))))
 						re.add(t.clone());
 				}
@@ -464,23 +482,24 @@ public class PathRuleTree {
 
 	
 	/**
+	 * 从负例中提特征？？ 不理解实现
 	 * add features extracted from negative samples
 	 * @param sat: satisfaction info of node, contains negative samples
 	 * @param cand: candidate terms
 	 */
 	private ArrayList<myTerm> addTermFromNegSamps(ArrayList<PathData> path_data, ArrayList<myTerm> cand) {
-		for (int i = 0; i < path_data.size(); i ++) {
+		for (int i = 0; i < path_data.size(); i ++) {//遍历输入的每个PathData
 			PathData pd = path_data.get(i);
 			ArrayList<myTerm> neo_cand = new ArrayList<myTerm>();
-			for (int m = 0; m < pd.getWordList().size(); m++) {
+			for (int m = 0; m < pd.getWordList().size(); m++) {//每个PathData中每个词（还是每个变量var？）
 				myWord var = pd.getVar(m);
-				for (int n = 0; n < pd.getWordFeature(m).size(); n++) {
-					myTerm tmp_term = pd.getWordFeature(m).get(n).clone();
-					tmp_term.setArg(0, var);
+				for (int n = 0; n < pd.getWordFeature(m).size(); n++) {//每个特征
+					myTerm tmp_term = pd.getWordFeature(m).get(n).clone();//有该特征的Term？？？？特征为啥是Term类型 
+					tmp_term.setArg(0, var);//第0个特征用pd.getVar(m)替换掉？？？？是取负例的某种策略吗
 					neo_cand.add(tmp_term);
 				}
 			}
-			for (myTerm tt : neo_cand) {
+			for (myTerm tt : neo_cand) {//uniq的加入
 				if (!cand.contains(tt))
 					cand.add(tt);
 			}
@@ -525,7 +544,7 @@ public class PathRuleTree {
 		return sat;
 	}
 	/**
-	 * given satisfy samples then compute accuracy
+	 * 计算准确率given satisfy samples then compute accuracy
 	 * @return: accuracy
 	 */
 	private double computeAccuracy(SentSat sat) {
@@ -576,7 +595,7 @@ public class PathRuleTree {
 		return re;
 	}
 	/**
-	 * return a formula from a node to its root
+	 * return a formula from a node to its root应该是构建公式 但是没太清楚实现 输入好像是node节点
 	 * @param node
 	 * @return
 	 */
@@ -585,24 +604,24 @@ public class PathRuleTree {
 		re.pushHead(head);
 		// deep clone
 		LinkedList<myTerm> fa = new LinkedList<myTerm>();
-		for (myTerm t : node.toTerms()) {
+		for (myTerm t : node.toTerms()) {//输入node节点所有term 不是的话son_branch 反转正负性  都add进来
 			myTerm n_t = t.clone();
-			if (!son_branch)
+			if (!son_branch)//不是的话 反转正负性
 				n_t.flip();
 			fa.add(n_t);
 		}
-		re.pushBodyToFirst(fa);
-		while (node.getFather() != null) {
+		re.pushBodyToFirst(fa);//fa放到body的头
+		while (node.getFather() != null){//逐步向上找父亲  也是：把每个term add进来
 			TreeNode tmp_father_node = node.getFather();
 			fa = new LinkedList<myTerm>();
 			for (myTerm tmp_t : tmp_father_node.toTerms()) {
 				fa.add(tmp_t.clone());
 			}
-			if (!node.isPositiveBranch()) {
+			if (!node.isPositiveBranch()) {//？？？嘎哈的 为负的话每个fa都反转
 				for (myTerm t : fa)
 					t.flip();
 			}
-			re.pushBodyToFirst(fa);
+			re.pushBodyToFirst(fa);//每个都放在开头
 			node = tmp_father_node;
 		}
 		return re;
@@ -652,11 +671,11 @@ public class PathRuleTree {
 		if (words.size() == vars.size()) {
 			myTerm tmp_term = new myTerm();
 			for (int i = 0; i < words.size(); i++) {
-				for (myTerm feat_term : feat_list) {
-					if (feat_term.getArg(0).equals(words.get(i))) {
+				for (myTerm feat_term : feat_list) {//遍历每个word的每个feature
+					if (feat_term.getArg(0).equals(words.get(i))) {//feature的第0个==当前word
 						tmp_term = feat_term.clone();
 						tmp_term.setArg(0, vars.get(i));
-						if (!re.contains(tmp_term))
+						if (!re.contains(tmp_term))//uniq
 							re.add(tmp_term);
 					}
 				}
@@ -715,7 +734,8 @@ public class PathRuleTree {
  	   	return cand;
 	}
 	/**
-	 * Gain(R0, R1) := t * ( log2(p1/(p1+n1)) - log2(p0/(p0+n0)) ).
+	 * 计算两堆儿的熵的差值
+	 * Gain(R0, R1) := t * ( log2(p1/(p1+n1)) - log2(p0/(p0+n0)) ).加这一层节点之后的熵 - 之前的熵 
 	 * R0 denotes a rule before adding a new literal.
 	 * R1 is an extesion of R0.
 	 * p0 denotes the number of positive tupels, covered by R0,
@@ -729,6 +749,8 @@ public class PathRuleTree {
 	private double foilGain(PathSat ps1, PathSat ps0) {
 
 		int t = ps1.getPositive().size();
+		//为正的数量 为正/为负数量的差 能算出来紊乱程度 就是熵（这个不是准确率吧，应该是coverd，类似覆盖率吧？？？）
+		//要仔细想想是为啥
 		double acc1 = ps1.getAccuracy();
 		if (acc1 == 0.0)
 			acc1 = 0.000000000000001;
@@ -746,7 +768,12 @@ public class PathRuleTree {
 				p = 0.000000000000001;
 		return (double) -(p*Math.log(p) + (1-p)*Math.log(1-p));
 	}
-
+	
+	/**
+	 * 基本也是没人用 只有没用的RuleTree中调用 暂时不看 明天问问望洲？？？
+	 * @param data
+	 * @return
+	 */
 	public SentSat evaluateThis(Data data) {
 		// evaluate given data by current rules
 		SentSat re = new SentSat();
@@ -781,7 +808,12 @@ public class PathRuleTree {
 		}
 		return re;
 	}
-	
+	/**
+	 * 和yapEvaluateThread相似，这个是内部实现的yapEvaluateThread 可以在建树过程中实现 不细看了
+	 * @param data
+	 * @return
+	 * @throws IOException
+	 */
 	public SentSat yapEvaluateThis(Data data) throws IOException {
 		// evaluate given data by current rules
 		SentSat re = new SentSat();
@@ -843,7 +875,7 @@ public class PathRuleTree {
 		return re;
 	}
 	/**
-	 * Merge results of different probabilistic rules
+	 * 应该是adaboosting中调用的关键，计算每轮、下一轮如何分配时候用Merge results of different probabilistic rules
 	 * @param results
 	 * @return: merged results, with probability
 	 */
@@ -858,22 +890,23 @@ public class PathRuleTree {
 			ArrayList<myTerm> tmp_ans_list = new ArrayList<myTerm>();
 			ArrayList<Integer> tmp_ans_list_cnt = new ArrayList<Integer>();
 			
-			for (int i = 0; i < rule_num; i++) {
-				LinkedList<myTerm> tmp_result_list = results.get(i).get(j);
+			for (int i = 0; i < rule_num; i++) {//遍历每个句子中的每条rule
+				LinkedList<myTerm> tmp_result_list = results.get(i).get(j);//先i后j这个好好想想？？
 				for (myTerm t : tmp_result_list) {
-					if (tmp_ans_list.contains(t)) {
+					if (tmp_ans_list.contains(t)) {//tmp_ans_list是否包含结果中这个term 不包含则加入
 						int idx = tmp_ans_list.indexOf(t);
 						
-						myTerm the_t = tmp_ans_list.get(idx); // the term already in ans_list
+						myTerm the_t = tmp_ans_list.get(idx); //tmp_ans_list已有的 相应位置的Term the_t the term already in ans_list
 						
-						if (t.isPositive() == the_t.isPositive())
+						if (t.isPositive() == the_t.isPositive())//已有的和新来的根据正负性，加减权重
 							the_t.setWeight((double) (the_t.getWeight() + t.getWeight()));
 						else {
 							the_t.setWeight((double) (the_t.getWeight() + (1 - t.getWeight())));
 						}
 						
-						tmp_ans_list_cnt.set(idx, tmp_ans_list_cnt.get(idx) + 1); // record the counts
-					} else {
+						tmp_ans_list_cnt.set(idx, tmp_ans_list_cnt.get(idx) + 1);
+						//相当于对于对应位置的count++ record the counts 是记录所有该位置的term个数的
+					} else {//第一次 破处
 						tmp_ans_list.add(t);
 						tmp_ans_list_cnt.add(1);
 					}
@@ -882,7 +915,7 @@ public class PathRuleTree {
 			
 			for (int k = 0; k < tmp_ans_list.size(); k++) {
 				tmp_ans_list.get(k).setWeight((double) tmp_ans_list.get(k).getWeight()/tmp_ans_list_cnt.get(k));
-			}
+			}//计算加权平均？？ 恩 应该是
 			
 			re.add(tmp_ans_list);
 		}

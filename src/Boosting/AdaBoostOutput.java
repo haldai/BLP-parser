@@ -25,8 +25,8 @@ public class AdaBoostOutput {
 	/**
 	 * 
 	 */
-	ArrayList<ArrayList<Formula>> weakRules = new ArrayList<ArrayList<Formula>>();
-	ArrayList<Double> ruleWeights = new ArrayList<Double>();
+	ArrayList<ArrayList<Formula>> weakRules = new ArrayList<ArrayList<Formula>>();//所有的解码公式（方式） 外层是标签？内层是标签对应的公式？？？??
+	ArrayList<Double> ruleWeights = new ArrayList<Double>();//权重
 	
 	public AdaBoostOutput() {}
 	public ArrayList<ArrayList<Formula>> getWeakRules() {

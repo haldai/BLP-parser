@@ -17,7 +17,7 @@ public class LogicProgram {
 	 */
 	
 	ArrayList<Formula> rules = new ArrayList<Formula>();
-	ArrayList<Predicate> headPred = new ArrayList<Predicate>();
+	ArrayList<Predicate> headPred = new ArrayList<Predicate>();//是标签的吗
 	ArrayList<Predicate> bodyPred = new ArrayList<Predicate>();
 	int length;
 	

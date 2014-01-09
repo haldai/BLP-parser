@@ -51,7 +51,7 @@ public class AdaBoost {
 		ArrayList<ArrayList<myTerm>> labels = doc.getLabels();
 		ArrayList<Sentence> sentences = doc.getSentences();
 		
-		// assign each label term an weight
+		// assign each label term an weight计算全部的个数 准备求初始权重
 		int total_label = 0;
 		for (ArrayList<myTerm> t_list : labels)
 			for (myTerm t : t_list) {
@@ -60,6 +60,7 @@ public class AdaBoost {
 		System.out.println(total_label);
 		
 		ArrayList<ArrayList<Double>> label_weights = new ArrayList<ArrayList<Double>>(labels.size());
+		//权重 一直在用的 外层是标签 内层是每个标签的Term  为啥是Term？？？ 
 		for (int i = 0; i < labels.size(); i++) {
 			label_weights.add(new ArrayList<Double>(labels.get(i).size()));
 			for (int j = 0; j < labels.get(i).size(); j++) {
@@ -68,19 +69,19 @@ public class AdaBoost {
 		}
 		
 		int turn = -1;
-		double err = 1;
+		double err = 1;//好像没啥用
 		// repeat training until meets the turn limit
 		while (turn < T) {
 			turn++;
-			prolog = null;
+			prolog = null;//清空一下
 			prolog = new Prolog();
 			
-			ArrayList<Formula> rules = new ArrayList<Formula>();
+			ArrayList<Formula> rules = new ArrayList<Formula>();//Formula就是预测出的表达式 解码的时候用的
 			
 			
 			// sample the labels to produce a path
 			Data data = new Data();
-			if (turn == 0) {
+			if (turn == 0) {//if else没啥用 直接调函数吧 这个函数是根据权重随机抽样的 抽出来的本轮要训的数据返回到data中
 				data = weightedRandSample(labels, sentences, label_weights, (int) (P*total_label));
 			} else {
 				data = weightedRandSample(labels, sentences, label_weights, (int) (P*total_label));
@@ -93,12 +94,12 @@ public class AdaBoost {
 //				}
 			}
 			
-			// paths from current data
-			ArrayList<LinkedList<myTerm>> all_paths = new ArrayList<LinkedList<myTerm>>();
-			ArrayList<Integer> all_paths_sent = new ArrayList<Integer>(); // sentence num of path
-			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();
+			// paths from current data 貌似是从data中找出的所有标签下的所有路径
+			ArrayList<LinkedList<myTerm>> all_paths = new ArrayList<LinkedList<myTerm>>();//外层是所有标签 内层是标签对于的path
+			ArrayList<Integer> all_paths_sent = new ArrayList<Integer>(); // sentence num of path？？？？
+			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();//标签
 			for (int i = 0; i < data.getSents().size(); i++)
-				for (int j = 0; j < data.getLabel(i).size(); j++) {
+				for (int j = 0; j < data.getLabel(i).size(); j++) {//对每一句话中 每一个标签进行遍历 加入标签 加入path 再加入序号（相当于数组下标）
 					all_heads.add(data.getLabel(i).get(j));
 					all_paths.addAll(findPath(data.getLabel(i).get(j), data.getSent(i)));
 					all_paths_sent.add(i);
@@ -109,6 +110,7 @@ public class AdaBoost {
 //			}
 //			System.out.println();
 			// substitute all the paths and store the pattern with its frequency
+			//把标签放到path的开头 这样就形成了个类似  标签-path的pair
 			ArrayList<ArrayList<myTerm>> all_sub_paths = new ArrayList<ArrayList<myTerm>>();
 			ArrayList<Integer> all_sub_paths_count = new ArrayList<Integer>();
 			Map<ArrayList<myTerm>, ArrayList<Integer>> pat_path_map = new HashMap<ArrayList<myTerm>, ArrayList<Integer>>();
@@ -118,7 +120,7 @@ public class AdaBoost {
 				ArrayList<myTerm> all_terms = new ArrayList<myTerm>(path.size() + 1);
 				all_terms.add(head);
 				all_terms.addAll(path);
-				Substitute subs = new Substitute(all_terms);
+				Substitute subs = new Substitute(all_terms);//做Substitute操作？？？
 				ArrayList<myTerm> all_sub_terms = subs.getSubTerms();
 				
 				
@@ -127,27 +129,31 @@ public class AdaBoost {
 //				}
 //				System.out.println();
 				
-				if (all_sub_paths.contains(all_sub_terms)) {
-					int path_idx = all_sub_paths.indexOf(all_sub_terms);
+			//统计每个标签每个路径的频次	substitute all the paths and store the pattern with its frequency
+				if (all_sub_paths.contains(all_sub_terms)){//总路径中有all_sub_terms吗 有的话就用他的位置path_idx做  没有的话就是else 就插入
+					int path_idx = all_sub_paths.indexOf(all_sub_terms);//这个到底是啥？？？
 					int path_idx_last = all_sub_paths.lastIndexOf(all_sub_terms);
-					if (all_sub_paths.get(path_idx).get(0).isPositive() == all_sub_terms.get(0).isPositive()) {
+					if (all_sub_paths.get(path_idx).get(0).isPositive() == all_sub_terms.get(0).isPositive()){
+						//总路径中的这个路径的正负性是否和这个路径相同   是的话count++ 存入map
 						all_sub_paths_count.set(path_idx, all_sub_paths_count.get(path_idx) + 1);
 						pat_path_map.get(all_sub_paths.get(path_idx)).add(i);
 					}
 					if (path_idx != path_idx_last 
 							&& (all_sub_paths.get(path_idx_last).get(0).isPositive() == all_sub_terms.get(0).isPositive())) {
+						//不是最后一个节点 但和最后一个节点正负性相同 最后一个节点做是的话count++ 存入map   
 						all_sub_paths_count.set(path_idx_last, all_sub_paths_count.get(path_idx_last) + 1);
 						pat_path_map.get(all_sub_paths.get(path_idx_last)).add(i);
 					}
 					if (path_idx == path_idx_last 
 							&& (all_sub_paths.get(path_idx_last).get(0).isPositive() != all_sub_terms.get(0).isPositive())) {
+						//是最后节点但正负性不同
 						if (pat_path_map.get(all_sub_terms) == null)
 							pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
 						pat_path_map.get(all_sub_terms).add(i);
-						all_sub_paths.add(all_sub_terms);
+						all_sub_paths.add(all_sub_terms);//插入
 						all_sub_paths_count.add(1);
 					}
-				} else {
+				} else {//count++ 存入map 并插入
 					if (pat_path_map.get(all_sub_terms) == null)
 						pat_path_map.put(all_sub_terms, new ArrayList<Integer>());
 					pat_path_map.get(all_sub_terms).add(i);
@@ -156,6 +162,7 @@ public class AdaBoost {
 				}
 			}
 			
+			//貌似打印all_sub_paths的PrologString形式  频次小于100的排除 为啥频次是size？？
 			System.out.println("=============patterns================");
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
 				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)
@@ -182,8 +189,8 @@ public class AdaBoost {
 //			LinkedList<myTerm> path = all_paths.get(pat_path_map.get(all_sub_paths.get(max_freq_idx)).get(0));
 			// learn all patterns then add to rule list
 			int cnt = 0;
-			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)
+			for (int pt = 0; pt < all_sub_paths.size(); pt++) {//遍历所有路径
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)//个数小于100就扔了
 					continue;
 				cnt++;
 				LinkedList<myTerm> path = new LinkedList<myTerm>();
@@ -191,17 +198,19 @@ public class AdaBoost {
 				myTerm head = new myTerm();
 				try {
 					path = all_paths.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
-					int aa = all_paths_sent.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
-					path_sent = data.getSent(aa);
-					head = all_heads.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));
+					//当前遍历到的路径的 int list的第0个  位置的all_paths 这是个路径
+					int aa = all_paths_sent.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));//句子的标号？？？
+					path_sent = data.getSent(aa);//得到对应的句子
+					head = all_heads.get(pat_path_map.get(all_sub_paths.get(pt)).get(0));//当前遍历到的路径的 int list的第0个  位置的all_heads
 				} catch (IndexOutOfBoundsException e) {
 					continue;
 				}
-				PathRuleTree rule = new PathRuleTree(prolog, doc.getPredList());
+				PathRuleTree rule = new PathRuleTree(prolog, doc.getPredList());// doc.getPredList是输入 prolog是处女
 				System.out.println("tree :" + cnt);
-				rule.buildTree(data, head, path, path_sent);
+				rule.buildTree(data, head, path, path_sent);//直接调用buildTree 重要的部分 咔咔一顿干
 				for (Formula f : rule.getPrologRules())
 					if (Math.abs(f.getWeight() - 0.5) > 0.05)
+						//和0.5差的小了 认为分的不开 就不加入结果规则库了 是个意思吗 那这也是重要策略！！！？？
 						rules.add(f);
 			}
 			
@@ -210,12 +219,12 @@ public class AdaBoost {
 				System.out.println(rules.get(i).toString());
 			}
 			System.out.println(String.format("*****TURN %d*****\n", turn));
-			// use the rule to evaluate the whole document and reset the weight
+			// 评价并重新赋权重use the rule to evaluate the whole document and reset the weight
 			SentSat cur_tree_sent_sat = new SentSat();
 			try {
 //				Data eval_data = RandSample(doc, 2000);
 				long begintime = System.currentTimeMillis();
-				cur_tree_sent_sat = yapThreadsEvaluateRules(new Data(doc), rules, 10);
+				cur_tree_sent_sat = yapThreadsEvaluateRules(new Data(doc), rules, 10);//用这个预测，让我得到权重
 				long endtime=System.currentTimeMillis();
 				System.out.println("thread:" + (endtime - begintime));
 				
@@ -228,26 +237,26 @@ public class AdaBoost {
 				e.printStackTrace();
 			} // current tree sentence satisfy samples
 			
-			err = 1 - cur_tree_sent_sat.getAccuracy(); // error of current tree
+			err = 1 - cur_tree_sent_sat.getAccuracy(); // 错误率 没啥error of current tree
 			if (err > 0.5) {
-				double cov = cur_tree_sent_sat.getCov();
+				double cov = cur_tree_sent_sat.getCov();//打印 没啥
 				System.out.println(err + "/" + cov);
-				turn--;
+				turn--;//减少轮次？？？为啥>0.5就--
 				continue;
 			}
-			double cov = cur_tree_sent_sat.getCov();
+			double cov = cur_tree_sent_sat.getCov();//打印 没啥
 			System.out.println(err + "/" + cov);
 			
 			// TODO set new (negative) labels and reweight
-			for (int k = 0; k < cur_tree_sent_sat.getAllSats().size(); k++) {
-				Sentence tmp_sent = cur_tree_sent_sat.getAllSent(k);
+			for (int k = 0; k < cur_tree_sent_sat.getAllSats().size(); k++) {//遍历？？？？
+				//Sentence tmp_sent = cur_tree_sent_sat.getAllSent(k);
 				SatisfySamples tmp_sat = cur_tree_sent_sat.getAllSats(k);
 				
 				int sent_idx = k;
 				
-				// deal with uncovered samples
+				// 未覆盖到集合里的样本 deal with uncovered samples
 				for (int ii = 0; ii < labels.get(sent_idx).size(); ii++) {
-					if (!tmp_sat.getNegative().contains(labels.get(sent_idx).get(ii)) 
+					if (!tmp_sat.getNegative().contains(labels.get(sent_idx).get(ii))//不在 Negative也不在Positive 就认为是未覆盖到
 							&& !tmp_sat.getPositive().contains(labels.get(sent_idx).get(ii))) {
 						// assign weight
 						double new_weight = 0.0;
@@ -257,16 +266,16 @@ public class AdaBoost {
 				}
 				
 				// deal with negative samples
-				for (myTerm tmp_term : tmp_sat.getNegative()) {
+				for (myTerm tmp_term : tmp_sat.getNegative()) {//遍历Negative中的
 					ArrayList<myTerm> tmp_labels = labels.get(sent_idx);
 					int label_idx = 0;
-					if (tmp_labels.contains(tmp_term)) {
+					if (tmp_labels.contains(tmp_term)) {//相当于废屁
 						label_idx = tmp_labels.indexOf(tmp_term);
 						// assign weight
 						double new_weight = 0.0;
-						if (tmp_labels.get(label_idx).isPositive()) {
+						if (tmp_labels.get(label_idx).isPositive()) {//负例中对应的label是正的还是负的 也就是说是否一致
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
-									* Math.exp(-(tmp_term.getWeight()*1*2)) * 2; // cost sensitive
+									* Math.exp(-(tmp_term.getWeight()*1*2)) * 2; //好好研究下这种cost函数 cost sensitive
 						} else {
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
 									* Math.exp(-(tmp_term.getWeight()*(-1*2)) * 2);
@@ -316,21 +325,21 @@ public class AdaBoost {
 			
 			
 			
-			// normalize weights
-			double sum = 0;
+			// normalize weights对权重归一化
+			double sum = 0;//计算权重总和（简单加和）
 			for (ArrayList<Double> d_list : label_weights) {
 				for (Double d : d_list) {
 					sum = sum + d;
 				}
 			}
 			
-			for (int ii = 0; ii < label_weights.size(); ii++) {
+			for (int ii = 0; ii < label_weights.size(); ii++) {//归一化方式：除以总和 
 				for (int jj = 0; jj < label_weights.get(ii).size(); jj++) {
 					label_weights.get(ii).set(jj, label_weights.get(ii).get(jj)/sum);
 				}
 			}
 			double wweight = 0.5*Math.log((1-err)/(err));
-			re.addWeakRules(rules, wweight);
+			re.addWeakRules(rules, wweight);//加入adaboostoutput的序列 这个是将要完事了？
 		}
 		return re;
 	}
@@ -392,7 +401,7 @@ public class AdaBoost {
 	}
 
 	/**
-	 * A-ES sampling
+	 * A-ES sampling算法的方式 根据权重对样本随机抽样
 	 * @param labels
 	 * @param sentences
 	 * @param weight
@@ -445,6 +454,12 @@ public class AdaBoost {
 		return re;
 	}
 	
+	/**
+	 * 在图中找路径，别的地方实现过的
+	 * @param label
+	 * @param sent
+	 * @return
+	 */
 	private static ArrayList<LinkedList<myTerm>> findPath(myTerm label, Sentence sent) {
 		HyperGraph graph = new HyperGraph();
 		myTerm[] terms = sent.getTerms();
@@ -465,7 +480,14 @@ public class AdaBoost {
 		
 		return pf.getPaths();
 	}
-	
+	/**
+	 * 在重新赋权值过程中，需要用到的预测，在这里用yap做了  这个要用新的替换掉
+	 * @param data
+	 * @param rules
+	 * @param thread_num
+	 * @return
+	 * @throws Exception
+	 */
 	public SentSat yapThreadsEvaluateRules(Data data, ArrayList<Formula> rules, int thread_num) throws Exception {
 		SentSat re = new SentSat();
 		YapEvalThread yap_threads = new YapEvalThread(data, rules, thread_num);
@@ -493,7 +515,13 @@ public class AdaBoost {
 		
 		return re;
 	}
-	
+	/**
+	 * 貌似不用看
+	 * @param data
+	 * @param rules
+	 * @return
+	 * @throws Exception
+	 */
 	public SentSat yapEvaluateRules(Data data, ArrayList<Formula> rules) throws Exception {
 		// evaluate given data by current rules
 		SentSat re = new SentSat();
@@ -581,6 +609,12 @@ public class AdaBoost {
 		return re;
 	}	
 	
+	/**
+	 * 貌似不用看
+	 * @param data
+	 * @param rules
+	 * @return
+	 */
 	public SentSat evaluateRules(Data data, ArrayList<Formula> rules) {
 		// TODO evaluate given data by current rules
 		SentSat re = new SentSat();
@@ -616,6 +650,11 @@ public class AdaBoost {
 		return re;
 	}
 	
+	/**
+	 * 貌似不用看
+	 * @param results
+	 * @return
+	 */
 	private ArrayList<ArrayList<myTerm>> mergeProbResults(
 			ArrayList<ArrayList<LinkedList<myTerm>>> results) {
 		int rule_num = results.size();

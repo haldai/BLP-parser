@@ -17,14 +17,14 @@ public class TreeNode {
 	/**
 	 * TreeNode. It may be a term or a word feature.
 	 */
-	private ArrayList<myTerm> termNodes = new ArrayList<myTerm>();	// name of current node (splitting criteria)
-	private ArrayList<myTerm> candTerms = new ArrayList<myTerm>(); // candidate terms for splitting
-	private int hierarchy = 0;
+	private ArrayList<myTerm> termNodes = new ArrayList<myTerm>();	// name of current node (splitting criteria)非叶节点
+	private ArrayList<myTerm> candTerms = new ArrayList<myTerm>(); //candidate terms for splitting候选的
+	private int hierarchy = 0;//层数
 	private TreeNode father = null;
 	private TreeNode trueChild = null;
 	private TreeNode falseChild = null;
 	private boolean isLeaf = true;
-	private boolean isPositiveBranch = true;
+	private boolean isPositiveBranch = true;//是父亲的正儿子还是负儿子
 	SentSat t_sentsat = new SentSat();
 	SentSat f_sentsat = new SentSat();
 	
@@ -65,17 +65,20 @@ public class TreeNode {
 	public void setBranchNegative() {
 		this.isPositiveBranch = false;
 	}
-	
+	/**
+	 * termNodes中的节点   isPositiveBranch为负的话 反转正负 为正不用 存下来并返回
+	 * @return
+	 */
 	public ArrayList<myTerm> getTermNodes() {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		if (!isPositiveBranch)
-			for (myTerm t : termNodes) {
+			for (myTerm t : termNodes) {//每个节点反转正负 存下
 				myTerm nt = t.clone();
 				nt.flip();
 				re.add(nt);
 			}
 		else
-			for (myTerm t : termNodes) {
+			for (myTerm t : termNodes) {//每个节点 存下
 				myTerm nt = t.clone();
 				re.add(nt);
 			}
@@ -133,7 +136,10 @@ public class TreeNode {
 	public void setHierarchy(int h) {
 		hierarchy = h;
 	}
-	
+	/**
+	 * 返回他的父亲、祖父。。。直到根节点
+	 * @return
+	 */
 	public ArrayList<myTerm> getAncestorNodes() {
 		ArrayList<myTerm> re = new ArrayList<myTerm>();
 		TreeNode f = this.getFather();

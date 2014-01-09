@@ -23,11 +23,11 @@ public class HyperVertex {
 		name = null;
 	}
 	
-	public HyperVertex(myWord w) {
+	public HyperVertex(myWord w) {//word考验作为输入
 		name = w.toString();
 	}
 	
-	public void setName(String s) {
+	public void setName(String s) {//和构造函数一样
 		name = s;
 	}
 	
@@ -39,7 +39,7 @@ public class HyperVertex {
 		return name;
 	}
 	
-	public myWord toMyWord() {
+	public myWord toMyWord() {//当前点转为MyWord类型
 		return new myWord(this.name);
 	}
 	
@@ -48,13 +48,13 @@ public class HyperVertex {
 		return t_wrd.equals(w);
 	}
 	
-	public boolean equals(String s) {
+	public boolean equals(String s) {//和上面的原理一样 也是转化为MyWord类型比较
 		myWord t_wrd = new myWord(this.name);
 		myWord o_wrd = new myWord(s);
 		return t_wrd.equals(o_wrd);
 	}
 	
-	public boolean equals(Object o) {
+	public boolean equals(Object o) {//HyperVertex类型也能判断 也是转化为MyWord判断 没啥技术含量
 		if (o instanceof myWord)
 			return equals((myWord) o);
 		else if (o instanceof String)
