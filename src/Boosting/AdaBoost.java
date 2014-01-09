@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import utils.Tuple;
 import ILP.*;
@@ -48,7 +49,7 @@ public class AdaBoost {
 		AdaBoostOutput re = new AdaBoostOutput();
 		pred_list = doc.getPredList();
 		
-		ArrayList<ArrayList<myTerm>> labels = doc.getLabels();
+		ArrayList<ArrayList<myTerm>> labels = doc.getLabels();//标签 每个句子 每个标签
 		ArrayList<Sentence> sentences = doc.getSentences();
 		
 		// assign each label term an weight计算全部的个数 准备求初始权重
@@ -60,7 +61,7 @@ public class AdaBoost {
 		System.out.println(total_label);
 		
 		ArrayList<ArrayList<Double>> label_weights = new ArrayList<ArrayList<Double>>(labels.size());
-		//权重 一直在用的 外层是标签 内层是每个标签的Term  为啥是Term？？？ 
+		//权重 一直在用的 外层是标签 内层是每个标签的Term  为啥是Term？？？ 因为Term个数代表样本个数 按照样本个数分配初始权重
 		for (int i = 0; i < labels.size(); i++) {
 			label_weights.add(new ArrayList<Double>(labels.get(i).size()));
 			for (int j = 0; j < labels.get(i).size(); j++) {
@@ -97,7 +98,7 @@ public class AdaBoost {
 			// paths from current data 貌似是从data中找出的所有标签下的所有路径
 			ArrayList<LinkedList<myTerm>> all_paths = new ArrayList<LinkedList<myTerm>>();//外层是所有标签 内层是标签对于的path
 			ArrayList<Integer> all_paths_sent = new ArrayList<Integer>(); // sentence num of path？？？？
-			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();//标签
+			ArrayList<myTerm> all_heads = new ArrayList<myTerm>();//标签    给本轮用
 			for (int i = 0; i < data.getSents().size(); i++)
 				for (int j = 0; j < data.getLabel(i).size(); j++) {//对每一句话中 每一个标签进行遍历 加入标签 加入path 再加入序号（相当于数组下标）
 					all_heads.add(data.getLabel(i).get(j));
@@ -165,7 +166,7 @@ public class AdaBoost {
 			//貌似打印all_sub_paths的PrologString形式  频次小于100的排除 为啥频次是size？？
 			System.out.println("=============patterns================");
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)
 					continue;
 				for (int j = 0; j < all_sub_paths.get(pt).size(); j++) {
 					System.out.print(all_sub_paths.get(pt).get(j).toPrologString() + ", ");
@@ -190,7 +191,7 @@ public class AdaBoost {
 			// learn all patterns then add to rule list
 			int cnt = 0;
 			for (int pt = 0; pt < all_sub_paths.size(); pt++) {//遍历所有路径
-				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 100)//个数小于100就扔了
+				if (pat_path_map.get(all_sub_paths.get(pt)).size() < 10)//个数小于100就扔了
 					continue;
 				cnt++;
 				LinkedList<myTerm> path = new LinkedList<myTerm>();
@@ -277,7 +278,7 @@ public class AdaBoost {
 							new_weight = label_weights.get(sent_idx).get(label_idx) 
 									* Math.exp(-(tmp_term.getWeight()*1*2)) * 2; //好好研究下这种cost函数 cost sensitive
 						} else {
-							new_weight = label_weights.get(sent_idx).get(label_idx) 
+							new_weight = label_weights.get(sent_idx).get(label_idx)
 									* Math.exp(-(tmp_term.getWeight()*(-1*2)) * 2);
 						}
 //						new_weight = label_weights.get(sent_idx).get(label_idx) 
@@ -310,7 +311,7 @@ public class AdaBoost {
 						if (tmp_labels.contains(tmp_term)) {
 							label_idx = tmp_labels.indexOf(tmp_term);
 							// set weight
-							if (tmp_labels.get(label_idx).isPositive()) {
+							if (tmp_labels.get(label_idx).isPositive()) {//正负性一致
 								new_weight = label_weights.get(sent_idx).get(label_idx) 
 										* Math.exp(-(tmp_term.getWeight()*1));
 							} else {
@@ -401,7 +402,7 @@ public class AdaBoost {
 	}
 
 	/**
-	 * A-ES sampling算法的方式 根据权重对样本随机抽样
+	 * A-ES sampling算法的方式 根据权重对样本随机抽样  输入num应该是设定取前多少个
 	 * @param labels
 	 * @param sentences
 	 * @param weight
@@ -411,14 +412,14 @@ public class AdaBoost {
 			ArrayList<ArrayList<Double>> weight, int num) {
 		Data re = new Data();
 		
-		Map<Double, ArrayList<Tuple<Integer, Integer>>> map = new HashMap<Double, ArrayList<Tuple<Integer, Integer>>>();
+		Map<Double, ArrayList<Tuple<Integer, Integer>>> map = new HashMap<Double, ArrayList<Tuple<Integer, Integer>>>();//建立map结构方便排序
 		
 		ArrayList<Double> k = new ArrayList<Double>();
 		
 		for (int i = 0; i < sentences.size(); i++) {
 			for (int j = 0; j < labels.get(i).size(); j++) {
 				double u = Math.random();
-				double kk = Math.pow(u, (double) 1/weight.get(i).get(j));
+				double kk = Math.pow(u, (double) 1/weight.get(i).get(j));//就这行 有用
 				k.add(kk);
 				if (map.get(kk) == null) {
 					map.put(kk, new ArrayList<Tuple<Integer, Integer>>());
@@ -436,17 +437,17 @@ public class AdaBoost {
 			ArrayList<Tuple<Integer,Integer>> tuples= map.get(k_array[i]);
 			i++;
 
-			for (Tuple <Integer, Integer> tup : tuples) {
+			for (Tuple <Integer, Integer> tup : tuples){
 				t++;
-				if (t > num)
+				if (t > num)//大于次数返回了
 					break OK;
 				int x = (Integer) tup.x;
-				if (re.getSents().contains(sentences.get(x))) {
+				if (re.getSents().contains(sentences.get(x))) {//已经有了就不加了
 //					int idx_sent = re.getSents().indexOf(sentences.get(x));
 //					re.getLabel(idx_sent).add(labels.get(x).get(y));
 					continue;
 				} else {
-					re.addData(labels.get(x), sentences.get(x));
+					re.addData(labels.get(x), sentences.get(x));//还没有  加进去
 				}
 			}
 		}
@@ -481,7 +482,7 @@ public class AdaBoost {
 		return pf.getPaths();
 	}
 	/**
-	 * 在重新赋权值过程中，需要用到的预测，在这里用yap做了  这个要用新的替换掉
+	 * 在重新赋权值过程中，需要用到的预测，在这里用yap做了  这个要用新的替换掉  和望洲data里给我的python脚本做的事情一样
 	 * @param data
 	 * @param rules
 	 * @param thread_num

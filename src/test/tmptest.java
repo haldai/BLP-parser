@@ -20,8 +20,8 @@ public class tmptest {
 //		Document doc = new Document("data/data_revised.pred", 
 //				"data/data_revised.train", true);
 		Document doc = new Document();
-		doc.readConll("data/data_revised.pred", 
-				"../data/lemma.train", true);
+		doc.readConll("E:/项目/query语义解析/学习/data/data/data/data_revised.pred", 
+				"E:/项目/query语义解析/学习/data/data/lemma.train", true);
 //		for (int i = 0; i < doc.length(); i++) {
 //			System.out.println(doc.getSent(i).toString());
 //			System.out.println(doc.getLabel(i).toString());
@@ -50,7 +50,7 @@ public class tmptest {
 //		System.out.println(Math.log(0.0000000000000000000001));
 //		testClone();
 //		doc = label_selection(doc);
-		testAdaBoost(prolog, doc, null);
+		testAdaBoost(prolog, doc, null);//主要的
 //		testAdaBoostEval("../JAVA/out", prolog, doc2, doc.getPredList());
 		
 
@@ -103,9 +103,9 @@ public class tmptest {
 
 	public static void testAdaBoost(Prolog prolog, Document doc, Document doc2) throws Exception {
 		AdaBoost boost = new AdaBoost(prolog);
-		AdaBoostOutput boost_out = boost.train(doc);
+		AdaBoostOutput boost_out = boost.train(doc);//训练过程
 		try {
-			boost_out.writeToFile("out");
+			boost_out.writeToFile("out");//写下model到本地
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
